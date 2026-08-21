@@ -1,0 +1,76 @@
+import type { LegacyScreen, SourceFile } from '@/features/screens/types/screen';
+
+export const mockScreens: LegacyScreen[] = [
+  {
+    id: 'scr-login',
+    projectId: 'proj-acme',
+    name: 'LoginScreen.bms',
+    sourceType: 'BMS',
+    status: 'Completed',
+    framework: 'React',
+    lastUpdated: '1 day ago',
+    path: '/src/main/ui/views',
+    sizeKb: 245,
+  },
+  {
+    id: 'scr-dashboard',
+    projectId: 'proj-acme',
+    name: 'Dashboard.bms',
+    sourceType: 'BMS',
+    status: 'Processing',
+    framework: 'React',
+    lastUpdated: '10 mins ago',
+    path: '/web/pages/dialogs',
+    sizeKb: 380,
+  },
+  {
+    id: 'scr-report',
+    projectId: 'proj-acme',
+    name: 'Report_Final.dspf',
+    sourceType: 'DSPF',
+    status: 'Failed',
+    framework: 'React',
+    lastUpdated: '5 mins ago',
+    path: '/res/layout/reports',
+    sizeKb: 189,
+  },
+  {
+    id: 'scr-sidebar',
+    projectId: 'proj-acme',
+    name: 'Sidebar_Nav.bms',
+    sourceType: 'BMS',
+    status: 'Review Required',
+    framework: 'Vue',
+    lastUpdated: '2 hours ago',
+    path: '/legacy/auth',
+    sizeKb: 142,
+  },
+  {
+    id: 'scr-accountview',
+    projectId: 'proj-acme',
+    name: 'AccountView.bms',
+    sourceType: 'BMS',
+    status: 'Completed',
+    framework: 'React',
+    lastUpdated: '3 hours ago',
+    path: '/scripts/widgets',
+    sizeKb: 512,
+  },
+];
+
+export const mockUploadedFiles: SourceFile[] = [
+  {
+    id: 'file-1',
+    fileName: 'LoginScreen.bms',
+    sizeKb: 245,
+    uploadedAt: 'Oct 12, 2023 10:30 AM',
+    status: 'Ready',
+  },
+  {
+    id: 'file-2',
+    fileName: 'ReportScreen.dspf',
+    sizeKb: 189,
+    uploadedAt: 'Oct 12, 2023 10:32 AM',
+    status: 'Failed to parse',
+  },
+];
