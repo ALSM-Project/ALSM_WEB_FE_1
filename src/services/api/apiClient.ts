@@ -6,6 +6,9 @@ export interface ApiResponse<T> {
   status: number;
 }
 
+/** Auth token storage key */
+const TOKEN_KEY = 'alsm_access_token';
+
 export class ApiClient {
   private baseUrl: string;
 
@@ -13,24 +16,74 @@ export class ApiClient {
     this.baseUrl = env.apiBaseUrl;
   }
 
-  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    console.log(`[API GET] ${this.baseUrl}${endpoint}`);
-    throw new Error('API Client ready. Mock services currently handle frontend data.');
+  private getAuthHeaders(): Record<string, string> {
+    const token = localStorage.getItem(TOKEN_KEY);
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  async post<T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
-    console.log(`[API POST] ${this.baseUrl}${endpoint}`, body);
-    throw new Error('API Client ready. Mock services currently handle frontend data.');
+  async get<T>(endpoint: string): Promise<T> {
+    const res = await fetch(`${this.baseUrl}/api/v1${endpoint}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error(error.message || `API Error: ${res.status}`);
+    }
+    return res.json();
   }
 
-  async put<T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
-    console.log(`[API PUT] ${this.baseUrl}${endpoint}`, body);
-    throw new Error('API Client ready. Mock services currently handle frontend data.');
+  async post<T>(endpoint: string, body?: unknown): Promise<T> {
+    const res = await fetch(`${this.baseUrl}/api/v1${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error(error.message || `API Error: ${res.status}`);
+    }
+    // Handle 204 No Content
+    if (res.status === 204) return {} as T;
+    return res.json();
   }
 
-  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    console.log(`[API DELETE] ${this.baseUrl}${endpoint}`);
-    throw new Error('API Client ready. Mock services currently handle frontend data.');
+  async put<T>(endpoint: string, body?: unknown): Promise<T> {
+    const res = await fetch(`${this.baseUrl}/api/v1${endpoint}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error(error.message || `API Error: ${res.status}`);
+    }
+    return res.json();
+  }
+
+  async delete<T>(endpoint: string): Promise<T> {
+    const res = await fetch(`${this.baseUrl}/api/v1${endpoint}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...this.getAuthHeaders(),
+      },
+    });
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ message: res.statusText }));
+      throw new Error(error.message || `API Error: ${res.status}`);
+    }
+    if (res.status === 204) return {} as T;
+    return res.json();
   }
 }
 

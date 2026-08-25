@@ -1,12 +1,12 @@
-import type { Invoice, QRDetails, Subscription, SubscriptionPlan, UsageStatistics } from '@/features/billing/types/billing';
+import type { LegacySubscription, QRDetails, SubscriptionPlan, UsageStatistics } from '@/features/billing/types/billing';
 
 export const mockSubscriptionPlans: SubscriptionPlan[] = [
   {
-    id: 'Starter',
+    id: 'STARTER',
     name: 'Starter',
     description: 'Essential tools for small teams modernizing single applications.',
-    monthlyPrice: 99,
-    annualPrice: 79,
+    monthlyPrice: 99_000,
+    annualPrice: 79_000,
     features: [
       '1 Project',
       '10 Screens per month',
@@ -16,11 +16,11 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     ],
   },
   {
-    id: 'Professional',
+    id: 'PROFESSIONAL',
     name: 'Professional',
     description: 'Advanced AI capabilities for high-velocity engineering workflows.',
-    monthlyPrice: 499,
-    annualPrice: 399,
+    monthlyPrice: 499_000,
+    annualPrice: 399_000,
     isPopular: true,
     features: [
       'Unlimited Projects',
@@ -32,7 +32,7 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
     ],
   },
   {
-    id: 'Enterprise',
+    id: 'ENTERPRISE',
     name: 'Enterprise',
     description: 'Custom deployment and maximum security for large organizations.',
     monthlyPrice: 0,
@@ -48,69 +48,83 @@ export const mockSubscriptionPlans: SubscriptionPlan[] = [
   },
 ];
 
-export const mockCurrentSubscription: Subscription = {
-  planId: 'Professional',
+export const mockCurrentSubscription: LegacySubscription = {
+  planId: 'PROFESSIONAL',
   planName: 'Pro Tier',
   status: 'Active',
   nextBillingDate: 'Dec 31, 2026',
-  amount: 499,
-  billingCycle: 'Monthly',
+  amount: 499_000,
+  billingCycle: 'MONTHLY',
   paymentMethodMask: '•••• 4242',
 };
 
-export const mockInvoices: Invoice[] = [
+export const mockInvoices = [
   {
-    id: 'INV-2026-0042',
-    invoiceDate: 'Oct 1, 2026',
-    billingPeriod: 'Sep 1 - Sep 30, 2026',
-    amountPaid: '$1,250.00',
-    paymentMethod: 'Visa •••• 4242',
-    status: 'Paid',
+    id: 'inv-001',
+    invoiceNumber: 'INV-2026-0042',
+    planName: 'Professional',
+    amountVnd: 499_000,
+    status: 'PAID' as const,
+    billingPeriodStart: '2026-09-01',
+    billingPeriodEnd: '2026-09-30',
+    paidAt: '2026-10-01',
+    paymentMethod: 'QR Bank Transfer',
+    createdAt: '2026-10-01',
   },
   {
-    id: 'INV-2026-0041',
-    invoiceDate: 'Sep 1, 2026',
-    billingPeriod: 'Aug 1 - Aug 31, 2026',
-    amountPaid: '$499.00',
-    paymentMethod: 'Visa •••• 4242',
-    status: 'Paid',
+    id: 'inv-002',
+    invoiceNumber: 'INV-2026-0041',
+    planName: 'Professional',
+    amountVnd: 499_000,
+    status: 'PAID' as const,
+    billingPeriodStart: '2026-08-01',
+    billingPeriodEnd: '2026-08-31',
+    paidAt: '2026-09-01',
+    paymentMethod: 'QR Bank Transfer',
+    createdAt: '2026-09-01',
   },
   {
-    id: 'INV-2026-0040',
-    invoiceDate: 'Aug 1, 2026',
-    billingPeriod: 'Jul 1 - Jul 31, 2026',
-    amountPaid: '$499.00',
-    paymentMethod: 'Visa •••• 4242',
-    status: 'Paid',
-  },
-  {
-    id: 'INV-2026-0039',
-    invoiceDate: 'Jul 1, 2026',
-    billingPeriod: 'Jun 1 - Jun 30, 2026',
-    amountPaid: '$499.00',
-    paymentMethod: 'Visa •••• 4242',
-    status: 'Paid',
+    id: 'inv-003',
+    invoiceNumber: 'INV-2026-0040',
+    planName: 'Professional',
+    amountVnd: 499_000,
+    status: 'PAID' as const,
+    billingPeriodStart: '2026-07-01',
+    billingPeriodEnd: '2026-07-31',
+    paidAt: '2026-08-01',
+    paymentMethod: 'QR Bank Transfer',
+    createdAt: '2026-08-01',
   },
 ];
 
 export const mockQRDetails: QRDetails = {
   invoiceId: 'INV-2026-0142',
   planName: 'Professional (Monthly)',
-  amount: 499000,
+  amount: 499_000,
   currency: '₫',
   bankName: 'MB Bank',
   accountNumber: '005220248888',
   accountName: 'MODERNIZER JSC',
-  referenceCode: 'MODERNIZER 0142',
+  referenceCode: 'ALSM000142',
 };
 
 export const mockUsageStats: UsageStatistics = {
-  screensUsed: 45,
-  screensMax: 100,
-  containersUsed: 4,
-  containersMax: 10,
-  storageUsedGb: 12.4,
-  storageMaxGb: 50,
+  plan: {
+    tier: 'PROFESSIONAL',
+    name: 'Professional',
+  },
+  screens: {
+    used: 45,
+    max: 100,
+  },
+  projects: {
+    used: 4,
+    max: -1,
+  },
+  storage: {
+    usedGb: 12.4,
+    maxGb: 50,
+  },
   monthlyConversions: [
     { month: 'Jun', count: 12 },
     { month: 'Jul', count: 24 },

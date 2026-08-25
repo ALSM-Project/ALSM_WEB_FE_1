@@ -1,5 +1,8 @@
-export type PlanTier = 'Starter' | 'Professional' | 'Enterprise';
-export type BillingCycle = 'Monthly' | 'Annual';
+export type PlanTier = 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
+export type BillingCycle = 'MONTHLY' | 'ANNUAL';
+export type SubscriptionStatusType = 'ACTIVE' | 'TRIAL' | 'CANCELLED' | 'EXPIRED' | 'PENDING_PAYMENT';
+export type InvoiceStatusType = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED';
+export type PaymentStatusType = 'PENDING' | 'COMPLETED' | 'EXPIRED' | 'FAILED';
 
 export interface SubscriptionPlan {
   id: PlanTier;
@@ -12,6 +15,96 @@ export interface SubscriptionPlan {
 }
 
 export interface Subscription {
+  id: string;
+  planTier: PlanTier;
+  planName: string;
+  status: SubscriptionStatusType;
+  billingCycle: BillingCycle;
+  amountVnd: number;
+  trialEndsAt?: string;
+  currentPeriodStart?: string;
+  currentPeriodEnd?: string;
+  cancelledAt?: string;
+  createdAt: string;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  planName: string;
+  amountVnd: number;
+  status: InvoiceStatusType;
+  billingPeriodStart: string;
+  billingPeriodEnd: string;
+  paidAt?: string;
+  paymentMethod?: string;
+  createdAt: string;
+}
+
+export interface QRPaymentOrder {
+  paymentId: string;
+  subscriptionId: string;
+  invoiceNumber: string;
+  planName: string;
+  amountVnd: number;
+  currency: string;
+  referenceCode: string;
+  qrDataUrl: string;
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+  expiresAt: string;
+}
+
+export interface PaymentStatusResponse {
+  status: PaymentStatusType;
+  paidAt?: string;
+  amountVnd?: number;
+}
+
+export interface UpgradePreview {
+  currentPlan: {
+    tier: PlanTier;
+    name: string;
+    amountVnd: number;
+  };
+  targetPlan: {
+    tier: PlanTier;
+    name: string;
+    monthlyPriceVnd: number;
+    features: string[];
+  };
+  proration: {
+    creditRemainingVnd: number;
+    proratedNewCostVnd: number;
+    dueTodayVnd: number;
+    remainingDays: number;
+  };
+}
+
+export interface UsageStatistics {
+  plan: {
+    tier: PlanTier;
+    name: string;
+  };
+  screens: {
+    used: number;
+    max: number;
+  };
+  projects: {
+    used: number;
+    max: number;
+  };
+  storage: {
+    usedGb: number;
+    maxGb: number;
+  };
+  monthlyConversions: { month: string; count: number }[];
+}
+
+// ─── Legacy compat types (for existing mock-dependent pages) ──
+/** @deprecated Use Subscription instead */
+export interface LegacySubscription {
   planId: PlanTier;
   planName: string;
   status: 'Active' | 'Trial' | 'Cancelled' | 'Expired';
@@ -21,15 +114,7 @@ export interface Subscription {
   paymentMethodMask: string;
 }
 
-export interface Invoice {
-  id: string;
-  invoiceDate: string;
-  billingPeriod: string;
-  amountPaid: string;
-  paymentMethod: string;
-  status: 'Paid' | 'Pending' | 'Failed';
-}
-
+/** @deprecated Use QRPaymentOrder instead */
 export interface QRDetails {
   invoiceId: string;
   planName: string;
@@ -39,14 +124,4 @@ export interface QRDetails {
   accountNumber: string;
   accountName: string;
   referenceCode: string;
-}
-
-export interface UsageStatistics {
-  screensUsed: number;
-  screensMax: number;
-  containersUsed: number;
-  containersMax: number;
-  storageUsedGb: number;
-  storageMaxGb: number;
-  monthlyConversions: { month: string; count: number }[];
 }
