@@ -1,25 +1,37 @@
+// Auth types aligned with the backend contract:
+// - register/login/refresh return { accessToken, refreshToken }
+// - GET /auth/me returns { id, email, fullName, isPlatformAdmin, isActive, createdAt, updatedAt }
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+}
+
 export interface User {
   id: string;
-  fullName: string;
   email: string;
+  fullName: string;
+  isPlatformAdmin?: boolean;
+  isActive?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  // UI-only fields not guaranteed by the backend; kept optional so existing
+  // layouts that read them keep compiling until the real contract provides them.
+  avatarUrl?: string;
   companyName?: string;
   company?: string;
-  role: 'ADMIN' | 'ENGINEER' | 'VIEWER' | 'USER';
-  avatarUrl?: string;
-  createdAt?: string;
+  role?: 'ADMIN' | 'ENGINEER' | 'VIEWER' | 'USER';
 }
 
 export interface LoginCredentials {
-  emailOrUsername: string;
-  password?: string;
-  rememberMe?: boolean;
+  email: string;
+  password: string;
 }
 
 export interface RegisterData {
   fullName: string;
-  workEmail: string;
-  companyName: string;
-  agreedToTerms: boolean;
+  email: string;
+  password: string;
 }
 
 export interface AuthState {
