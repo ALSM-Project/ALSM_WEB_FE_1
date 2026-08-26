@@ -1,14 +1,16 @@
 import { mockSessions } from '@/mocks/sessions.mock';
+import { apiClient } from '@/services/api/apiClient';
 import type { PasswordChangeData } from '../types/account';
 import type { UserSession } from '@/features/auth/types/auth';
 
 export class AccountService {
   private sessions: UserSession[] = [...mockSessions];
 
-  async changePassword(_data: PasswordChangeData): Promise<boolean> {
-    console.log('[AccountService] Change password executed');
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return true;
+  async changePassword(data: PasswordChangeData): Promise<void> {
+    await apiClient.post<void>('/auth/change-password', {
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+    });
   }
 
   async verify2FA(otpCode: string): Promise<boolean> {

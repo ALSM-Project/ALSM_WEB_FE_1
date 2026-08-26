@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, CheckCircle2, Cpu } from 'lucide-react';
 import { authService } from '../services/auth.service';
 import { ROUTES } from '@/shared/constants/routes';
@@ -7,7 +7,9 @@ import { Input, PasswordInput } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 
 export const PasswordRecoveryPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const resetToken = searchParams.get('token') ?? '';
 
   // Form states
   const [email, setEmail] = useState('alex.vance@acmecorp.com');
@@ -21,15 +23,15 @@ export const PasswordRecoveryPage: React.FC = () => {
   const [resendCooldown, setResendCooldown] = useState(30);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
-    if (step === 2 && expireSeconds > 0) {
-      timer = setInterval(() => {
-        setExpireSeconds((prev) => (prev > 0 ? prev - 1 : 0));
-        setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-    }
+    if (step !== 2) return;
+
+    const timer = setInterval(() => {
+      setExpireSeconds((prev) => Math.max(prev - 1, 0));
+      setResendCooldown((prev) => Math.max(prev - 1, 0));
+    }, 1000);
+
     return () => clearInterval(timer);
-  }, [step, expireSeconds]);
+  }, [step]);
 
   const formatTimer = (secs: number) => {
     const m = Math.floor(secs / 60);
@@ -39,21 +41,43 @@ export const PasswordRecoveryPage: React.FC = () => {
 
   const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     if (!email.includes('@')) return setError('Valid email address is required');
     setLoading(true);
     try {
       await authService.sendPasswordRecoveryLink(email);
       setStep(2);
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      setError(
+        code
+          ? `Request failed (${code}). Please try again.`
+          : 'Unable to send the recovery link. Make sure the backend is running and try again.',
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSetPasswordSubmit = (e: React.FormEvent) => {
+  const handleSetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+    if (!resetToken) return setError('This reset link is missing its token. Please request a new one.');
     if (newPassword.length < 8) return setError('Password must be at least 8 characters');
     if (newPassword !== confirmPassword) return setError('Passwords do not match');
-    setStep(4);
+
+    setLoading(true);
+    try {
+      await authService.resetPassword(resetToken, newPassword);
+      setStep(4);
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      setError(code === 'INVALID_RESET_TOKEN'
+        ? 'This reset link is invalid or has expired. Please request a new one.'
+        : 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -120,14 +144,17 @@ export const PasswordRecoveryPage: React.FC = () => {
                 type="button"
                 variant="secondary"
                 className="w-full py-2 text-xs font-semibold"
-                onClick={() => setStep(3)}
+                onClick={() => window.location.assign(`${ROUTES.PUBLIC.RESET_PASSWORD}?token=demo-token`)}
               >
-                Simulate Clicking Reset Link (Demo Step 3)
+                Open Reset Link
               </Button>
 
               <button
                 disabled={resendCooldown > 0}
-                onClick={() => setResendCooldown(30)}
+                onClick={() => {
+                  setResendCooldown(30);
+                  setExpireSeconds(1425);
+                }}
                 className="text-xs text-brand-600 hover:underline disabled:opacity-50 font-medium"
               >
                 {resendCooldown > 0 ? `Resend Email (${resendCooldown}s)` : "Didn't receive the email? Resend Email"}
@@ -188,7 +215,7 @@ export const PasswordRecoveryPage: React.FC = () => {
                 </p>
               )}
 
-              <Button type="submit" className="w-full py-2.5 text-sm font-semibold">
+              <Button type="submit" className="w-full py-2.5 text-sm font-semibold" isLoading={loading}>
                 Update Password & Log In
               </Button>
             </form>
