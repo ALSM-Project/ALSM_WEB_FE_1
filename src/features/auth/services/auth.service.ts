@@ -44,11 +44,12 @@ export class AuthService {
     }
   }
 
-  async sendPasswordRecoveryLink(email: string): Promise<boolean> {
-    // Not yet exposed by the backend auth module; kept as a stub so callers
-    // (PasswordRecoveryPage) keep a stable interface.
-    void email;
-    return true;
+  async sendPasswordRecoveryLink(email: string): Promise<void> {
+    await apiClient.post<void>('/auth/forgot-password', { email }, { auth: false });
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await apiClient.post<void>('/auth/reset-password', { token, newPassword }, { auth: false });
   }
 
   private applyTokens(tokens: AuthTokens): void {

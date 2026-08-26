@@ -7,7 +7,7 @@ import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
 import { GuestRoute, ProtectedRoute } from './guards';
 
 // Feature Modules
-import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage } from '@/features/auth';
+import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, ResetPasswordPage } from '@/features/auth';
 import { ChangePasswordPage, TwoFactorAuthenticationPage, ActiveSessionsPage } from '@/features/account';
 import { CreateProjectPage, DeleteProjectPage } from '@/features/projects';
 import { UploadSourcePage, ScreensListPage } from '@/features/screens';
@@ -44,6 +44,7 @@ export const router = createBrowserRouter([
       { path: '/register', element: <RegisterPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/forgot-password', element: <PasswordRecoveryPage /> },
+      { path: '/reset-password', element: <ResetPasswordPage /> },
     ],
   },
 
