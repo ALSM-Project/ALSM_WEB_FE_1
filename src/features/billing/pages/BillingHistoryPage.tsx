@@ -4,6 +4,12 @@ import { billingService } from '../services/billing.service';
 import type { Invoice } from '../types/billing';
 import { StatusBadge } from '@/shared/ui/Badge';
 
+const formatVnd = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + '₫';
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('vi-VN', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
 export const BillingHistoryPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [search, setSearch] = useState('');
@@ -13,7 +19,7 @@ export const BillingHistoryPage: React.FC = () => {
   }, []);
 
   const filteredInvoices = invoices.filter((inv) =>
-    inv.id.toLowerCase().includes(search.toLowerCase())
+    (inv.invoiceNumber || inv.id).toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -47,11 +53,11 @@ export const BillingHistoryPage: React.FC = () => {
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
               <tr>
-                <th className="p-4">Invoice ID</th>
-                <th className="p-4">Invoice Date</th>
+                <th className="p-4">Invoice</th>
+                <th className="p-4">Plan</th>
                 <th className="p-4">Billing Period</th>
-                <th className="p-4">Amount Paid</th>
-                <th className="p-4">Payment Method</th>
+                <th className="p-4">Amount</th>
+                <th className="p-4">Payment</th>
                 <th className="p-4">Status</th>
                 <th className="p-4 text-right">Action</th>
               </tr>
@@ -61,21 +67,23 @@ export const BillingHistoryPage: React.FC = () => {
                 <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
                   <td className="p-4 font-mono font-bold text-slate-900 flex items-center space-x-2">
                     <FileText className="w-4 h-4 text-brand-600 flex-shrink-0" />
-                    <span>{inv.id}</span>
+                    <span>{inv.invoiceNumber || inv.id}</span>
                   </td>
-                  <td className="p-4 text-slate-500 font-medium">{inv.invoiceDate}</td>
-                  <td className="p-4 text-slate-500 font-medium">{inv.billingPeriod}</td>
-                  <td className="p-4 font-bold text-slate-900 font-mono">{inv.amountPaid}</td>
+                  <td className="p-4 text-slate-700 font-medium">{inv.planName}</td>
+                  <td className="p-4 text-slate-500 font-medium">
+                    {formatDate(inv.billingPeriodStart)} – {formatDate(inv.billingPeriodEnd)}
+                  </td>
+                  <td className="p-4 font-bold text-slate-900 font-mono">{formatVnd(inv.amountVnd)}</td>
                   <td className="p-4 text-slate-600 flex items-center space-x-1.5 font-medium">
                     <CreditCard className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{inv.paymentMethod}</span>
+                    <span>{inv.paymentMethod || 'Pending'}</span>
                   </td>
                   <td className="p-4">
-                    <StatusBadge status={inv.status} />
+                    <StatusBadge status={inv.status === 'PAID' ? 'Paid' : inv.status === 'PENDING' ? 'Pending' : inv.status} />
                   </td>
                   <td className="p-4 text-right">
                     <button
-                      onClick={() => alert(`Downloading PDF invoice ${inv.id}...`)}
+                      onClick={() => alert(`Downloading PDF invoice ${inv.invoiceNumber || inv.id}...`)}
                       className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold rounded-lg transition-colors inline-flex items-center space-x-1 shadow-xs"
                       title="Download PDF"
                     >

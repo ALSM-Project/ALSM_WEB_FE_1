@@ -2,27 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard } from 'lucide-react';
 import { billingService } from '../services/billing.service';
-import type { Subscription } from '../types/billing';
+import type { LegacySubscription } from '../types/billing';
 import { ROUTES } from '@/shared/constants/routes';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 
+const formatVnd = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + '₫';
+
 export const CancelSubscriptionPage: React.FC = () => {
   const navigate = useNavigate();
-  const [sub, setSub] = useState<Subscription | null>(null);
+  const [sub, setSub] = useState<LegacySubscription | null>(null);
   const [reason, setReason] = useState<string>('Price is too high');
   const [feedback, setFeedback] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    billingService.getCurrentSubscription().then((data) => setSub(data));
+    billingService.getCurrentSubscription().then((data) => setSub(data as LegacySubscription));
   }, []);
 
   const handleCancelSubscription = async () => {
     setLoading(true);
     try {
       await billingService.cancelSubscription(reason, feedback);
-      alert('Subscription cancellation submitted. Access remains active until Dec 31, 2026.');
+      alert('Subscription cancellation submitted. Access remains active until end of billing period.');
       navigate(ROUTES.BILLING.PRICING);
     } finally {
       setLoading(false);
@@ -47,7 +49,7 @@ export const CancelSubscriptionPage: React.FC = () => {
               <span className="font-extrabold text-lg text-slate-900">{sub.planName}</span>
               <StatusBadge status={sub.status} />
             </div>
-            <p className="text-xs text-slate-500 mt-1">Next Billing Date: {sub.nextBillingDate} (${sub.amount}.00 / year)</p>
+            <p className="text-xs text-slate-500 mt-1">Next Billing Date: {sub.nextBillingDate} ({formatVnd(sub.amount)} / {sub.billingCycle === 'ANNUAL' ? 'year' : 'month'})</p>
           </div>
 
           <Button variant="secondary" size="sm" onClick={() => navigate(ROUTES.BILLING.UPGRADE)} className="font-semibold">
@@ -58,7 +60,7 @@ export const CancelSubscriptionPage: React.FC = () => {
         <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
           <div className="flex items-center space-x-3 text-xs font-medium">
             <CreditCard className="w-5 h-5 text-brand-600" />
-            <span className="text-slate-800">Visa ending in {sub.paymentMethodMask}</span>
+            <span className="text-slate-800">QR Bank Transfer {sub.paymentMethodMask}</span>
           </div>
           <button onClick={() => alert('Update method dialog')} className="text-xs text-brand-600 hover:underline font-semibold">
             Update Method
@@ -70,7 +72,7 @@ export const CancelSubscriptionPage: React.FC = () => {
         <div>
           <h3 className="text-xl font-bold text-slate-900">We're sorry to see you go</h3>
           <p className="text-xs text-slate-500 mt-1">
-            Your access will remain active until current period end (Dec 31, 2026).
+            Your access will remain active until current period end.
           </p>
         </div>
 
@@ -121,7 +123,7 @@ export const CancelSubscriptionPage: React.FC = () => {
         </div>
 
         <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.SCREENS('proj-acme'))} className="font-semibold">
+          <Button variant="secondary" onClick={() => navigate(ROUTES.BILLING.PRICING)} className="font-semibold">
             Cancel
           </Button>
           <Button variant="danger" onClick={handleCancelSubscription} isLoading={loading} className="font-semibold">

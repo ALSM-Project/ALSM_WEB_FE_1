@@ -5,6 +5,11 @@ import { mockSubscriptionPlans } from '@/mocks/billing.mock';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
 
+const formatVnd = (amount: number) => {
+  if (amount === 0) return 'Custom pricing';
+  return new Intl.NumberFormat('vi-VN').format(amount) + '₫';
+};
+
 export const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState(true);
@@ -63,22 +68,22 @@ export const PricingPage: React.FC = () => {
                 </div>
 
                 <div>
-                  {plan.id === 'Enterprise' ? (
+                  {plan.id === 'ENTERPRISE' ? (
                     <div className="space-y-1">
                       <p className="text-3xl font-extrabold text-slate-900">Custom pricing</p>
-                      <p className="text-xs text-slate-500">Billed annually</p>
+                      <p className="text-xs text-slate-500">Contact for quote</p>
                     </div>
                   ) : (
                     <div className="flex items-baseline space-x-1">
-                      <span className="text-4xl font-extrabold text-slate-900">${price}</span>
-                      <span className="text-xs font-medium text-slate-500">/month</span>
+                      <span className="text-3xl font-extrabold text-slate-900">{formatVnd(price)}</span>
+                      <span className="text-xs font-medium text-slate-500">/tháng</span>
                     </div>
                   )}
                 </div>
 
                 {/* Primary CTA placed directly below price according to Figma */}
                 <div>
-                  {plan.id === 'Professional' ? (
+                  {plan.id === 'PROFESSIONAL' ? (
                     <Button
                       onClick={() => navigate(ROUTES.BILLING.TRIAL)}
                       className="w-full py-2.5 space-x-2 text-sm shadow-xs font-semibold"
@@ -86,7 +91,7 @@ export const PricingPage: React.FC = () => {
                       <span>Start Free Trial</span>
                       <ArrowRight className="w-4 h-4" />
                     </Button>
-                  ) : plan.id === 'Starter' ? (
+                  ) : plan.id === 'STARTER' ? (
                     <Button
                       variant="outline"
                       onClick={() => navigate(ROUTES.BILLING.PAYMENT)}
@@ -123,7 +128,7 @@ export const PricingPage: React.FC = () => {
       </div>
 
       <p className="text-center text-xs text-slate-500">
-        Secure payment via Stripe. Cancel anytime. Read our FAQ.
+        Secure payment via QR bank transfer. Cancel anytime. Read our FAQ.
       </p>
     </div>
   );
