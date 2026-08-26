@@ -22,7 +22,7 @@ export const TrialActivationPage: React.FC = () => {
           <Sparkles className="w-6 h-6" />
         </div>
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Activate Your Trial</h1>
-        <p className="text-brand-600 font-semibold text-sm">Professional Trial — $0 Due Today</p>
+        <p className="text-brand-600 font-semibold text-sm">Professional Trial — 0₫ Due Today</p>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-8 space-y-6 shadow-sm">
