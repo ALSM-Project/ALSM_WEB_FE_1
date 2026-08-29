@@ -1,8 +1,23 @@
 import { render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { authService } from '@/features/auth/services/auth.service';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { User } from '@/features/auth/types/auth';
 import { AppProviders, useAuth } from './providers';
+
+const authMocks = vi.hoisted(() => ({
+  getCurrentUser: vi.fn(),
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+}));
+
+vi.mock('@/features/auth/services/auth.service', () => ({
+  authService: {
+    getCurrentUser: authMocks.getCurrentUser,
+    login: authMocks.login,
+    register: authMocks.register,
+    logout: authMocks.logout,
+  },
+}));
 
 function AuthStatus() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -46,16 +61,17 @@ const authenticatedUser: User = {
 };
 
 describe('AppProviders authentication bootstrap', () => {
-  afterEach(() => {
-    vi.restoreAllMocks();
+  beforeEach(() => {
+    authMocks.getCurrentUser.mockReset();
+    authMocks.login.mockReset();
+    authMocks.register.mockReset();
+    authMocks.logout.mockReset();
   });
 
   it('shows a loading state until authentication bootstrap resolves', () => {
     const bootstrap = deferred<User | null>();
 
-    vi.spyOn(authService, 'getCurrentUser').mockReturnValue(
-      bootstrap.promise,
-    );
+    authMocks.getCurrentUser.mockReturnValue(bootstrap.promise);
 
     renderWithProviders();
 
@@ -65,9 +81,7 @@ describe('AppProviders authentication bootstrap', () => {
   });
 
   it('exposes an authenticated user after a successful bootstrap', async () => {
-    vi.spyOn(authService, 'getCurrentUser').mockResolvedValue(
-      authenticatedUser,
-    );
+    authMocks.getCurrentUser.mockResolvedValue(authenticatedUser);
 
     renderWithProviders();
 
@@ -77,7 +91,7 @@ describe('AppProviders authentication bootstrap', () => {
   });
 
   it('exposes an unauthenticated state when bootstrap returns no user', async () => {
-    vi.spyOn(authService, 'getCurrentUser').mockResolvedValue(null);
+    authMocks.getCurrentUser.mockResolvedValue(null);
 
     renderWithProviders();
 
