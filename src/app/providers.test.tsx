@@ -3,19 +3,43 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { User } from '@/features/auth/types/auth';
 import { AppProviders, useAuth } from './providers';
 
-const authMocks = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   login: vi.fn(),
   register: vi.fn(),
+  loginWithGoogle: vi.fn(),
   logout: vi.fn(),
+
+  getRefreshToken: vi.fn(),
+  getAccessToken: vi.fn(),
+  clearTokens: vi.fn(),
+
+  refreshSession: vi.fn(),
+  setAuthFailureHandler: vi.fn(),
 }));
 
 vi.mock('@/features/auth/services/auth.service', () => ({
   authService: {
-    getCurrentUser: authMocks.getCurrentUser,
-    login: authMocks.login,
-    register: authMocks.register,
-    logout: authMocks.logout,
+    getCurrentUser: mocks.getCurrentUser,
+    login: mocks.login,
+    register: mocks.register,
+    loginWithGoogle: mocks.loginWithGoogle,
+    logout: mocks.logout,
+  },
+}));
+
+vi.mock('@/services/api/tokenStore', () => ({
+  tokenStore: {
+    getRefreshToken: mocks.getRefreshToken,
+    getAccessToken: mocks.getAccessToken,
+    clear: mocks.clearTokens,
+  },
+}));
+
+vi.mock('@/services/api/apiClient', () => ({
+  apiClient: {
+    post: mocks.refreshSession,
+    setAuthFailureHandler: mocks.setAuthFailureHandler,
   },
 }));
 
@@ -62,16 +86,20 @@ const authenticatedUser: User = {
 
 describe('AppProviders authentication bootstrap', () => {
   beforeEach(() => {
-    authMocks.getCurrentUser.mockReset();
-    authMocks.login.mockReset();
-    authMocks.register.mockReset();
-    authMocks.logout.mockReset();
+    vi.clearAllMocks();
+
+    mocks.getRefreshToken.mockReturnValue(null);
+    mocks.getAccessToken.mockReturnValue(null);
   });
 
-  it('shows a loading state until authentication bootstrap resolves', () => {
-    const bootstrap = deferred<User | null>();
+  it('shows loading state while an existing session is being restored', () => {
+    const refresh = deferred<{
+      accessToken: string;
+      refreshToken: string;
+    }>();
 
-    authMocks.getCurrentUser.mockReturnValue(bootstrap.promise);
+    mocks.getRefreshToken.mockReturnValue('existing-refresh-token');
+    mocks.refreshSession.mockReturnValue(refresh.promise);
 
     renderWithProviders();
 
@@ -80,23 +108,45 @@ describe('AppProviders authentication bootstrap', () => {
     );
   });
 
-  it('exposes an authenticated user after a successful bootstrap', async () => {
-    authMocks.getCurrentUser.mockResolvedValue(authenticatedUser);
+  it('exposes an authenticated user after successful session restoration', async () => {
+    mocks.getRefreshToken.mockReturnValue('existing-refresh-token');
+
+    mocks.refreshSession.mockResolvedValue({
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+    });
+
+    mocks.getCurrentUser.mockResolvedValue(authenticatedUser);
 
     renderWithProviders();
 
     expect(
       await screen.findByText('Authenticated as alex@example.com'),
     ).toBeInTheDocument();
+
+    expect(mocks.refreshSession).toHaveBeenCalledWith(
+      '/auth/refresh',
+      {
+        refreshToken: 'existing-refresh-token',
+      },
+      {
+        auth: false,
+      },
+    );
+
+    expect(mocks.getCurrentUser).toHaveBeenCalled();
   });
 
-  it('exposes an unauthenticated state when bootstrap returns no user', async () => {
-    authMocks.getCurrentUser.mockResolvedValue(null);
+  it('exposes an unauthenticated state when no refresh token exists', async () => {
+    mocks.getRefreshToken.mockReturnValue(null);
 
     renderWithProviders();
 
     expect(
       await screen.findByText('Unauthenticated'),
     ).toBeInTheDocument();
+
+    expect(mocks.refreshSession).not.toHaveBeenCalled();
+    expect(mocks.getCurrentUser).not.toHaveBeenCalled();
   });
 });
