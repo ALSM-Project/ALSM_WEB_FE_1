@@ -1,8 +1,10 @@
+import axios from 'axios';
+import type { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { env } from '@/shared/constants/env';
 import { ApiError } from './apiError';
 import { tokenStore } from './tokenStore';
 
-// Shared API client (FE guideline 04 §2). Single place that owns:
+// Shared API client (FE guideline 04 §2-5). Single place that owns:
 // - base URL + /api/v1 prefix (from env, not duplicated in services);
 // - Authorization header from the in-memory access token;
 // - 401 → single-flight refresh → retry (avoids refresh storm);
@@ -27,13 +29,61 @@ interface TokenPair {
 
 const REFRESH_ENDPOINT = '/auth/refresh';
 
+// Axios copies custom config fields through the pipeline, so we stash the
+// skip-auth flag here and read it back in the interceptors. Named `_skipAuth`
+// (not `auth`) because axios reserves `auth` for HTTP Basic credentials.
+interface AuthedRequestConfig extends InternalAxiosRequestConfig {
+  _skipAuth?: boolean;
+  _retry?: boolean;
+}
+
 export class ApiClient {
+  private readonly axios: AxiosInstance;
   private readonly baseUrl: string;
   private refreshPromise: Promise<string | null> | null = null;
   private authFailureHandler: (() => void) | null = null;
 
   constructor() {
     this.baseUrl = `${env.apiBaseUrl.replace(/\/+$/, '')}/api/v1`;
+    this.axios = axios.create({
+      baseURL: this.baseUrl,
+      timeout: Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 30000),
+    });
+
+    // Attach the Authorization header from the in-memory access token.
+    this.axios.interceptors.request.use((config) => {
+      const cfg = config as AuthedRequestConfig;
+      if (!cfg._skipAuth) {
+        const token = tokenStore.getAccessToken();
+        if (token) {
+          cfg.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+      return cfg;
+    });
+
+    // 401 → single-flight refresh → retry once.
+    this.axios.interceptors.response.use(
+      (response) => response,
+      async (error: AxiosError) => {
+        const cfg = error.config as AuthedRequestConfig | undefined;
+        const isRefreshEndpoint = cfg?.url === REFRESH_ENDPOINT;
+        const canRetry =
+          error.response?.status === 401 && !cfg?._skipAuth && !cfg?._retry && !isRefreshEndpoint;
+
+        if (canRetry && cfg) {
+          cfg._retry = true;
+          const newToken = await this.refreshAccessToken();
+          if (newToken) {
+            cfg.headers.Authorization = `Bearer ${newToken}`;
+            return this.axios(cfg);
+          }
+          this.authFailureHandler?.();
+        }
+
+        return Promise.reject(this.toApiError(error));
+      },
+    );
   }
 
   /** Called by the auth provider so a failed refresh clears the session state. */
@@ -53,49 +103,25 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'PUT', body });
   }
 
+  async patch<T>(endpoint: string, body?: unknown, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'PATCH', body });
+  }
+
   async delete<T>(endpoint: string, options: Omit<RequestOptions, 'method'> = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-    return this.doRequest<T>(endpoint, options, false);
-  }
+    const config: AxiosRequestConfig & { _skipAuth?: boolean } = {
+      method: options.method ?? 'GET',
+      url: endpoint,
+      data: options.body,
+      headers: options.headers,
+      _skipAuth: options.auth === false,
+    };
 
-  private async doRequest<T>(endpoint: string, options: RequestOptions, hasRetried: boolean): Promise<T> {
-    const method = options.method ?? 'GET';
-    const auth = options.auth ?? true;
-    const headers: Record<string, string> = { 'Content-Type': 'application/json', ...options.headers };
-
-    if (auth) {
-      const token = tokenStore.getAccessToken();
-      if (token) headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method,
-      headers,
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
-    });
-
-    // Refresh flow: only for authenticated requests, once, and never for the
-    // refresh endpoint itself (which would loop).
-    if (response.status === 401 && auth && !hasRetried && endpoint !== REFRESH_ENDPOINT) {
-      const newToken = await this.refreshAccessToken();
-      if (newToken) {
-        return this.doRequest<T>(endpoint, options, true);
-      }
-      this.authFailureHandler?.();
-      throw await this.toApiError(response);
-    }
-
-    if (!response.ok) {
-      throw await this.toApiError(response);
-    }
-
-    if (response.status === 204) {
-      return undefined as T;
-    }
-    return (await response.json()) as T;
+    const response = await this.axios.request<T>(config);
+    return response.data;
   }
 
   /** Single-flight refresh: concurrent 401s share one refresh request. */
@@ -116,49 +142,30 @@ export class ApiClient {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}${REFRESH_ENDPOINT}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
+      const response = await axios.post<TokenPair>(
+        `${this.baseUrl}${REFRESH_ENDPOINT}`,
+        { refreshToken },
+        { headers: { 'Content-Type': 'application/json' } },
+      );
 
-      if (!response.ok) {
-        tokenStore.clear();
-        return null;
-      }
-
-      const tokens = (await response.json()) as TokenPair;
-      tokenStore.setAccessToken(tokens.accessToken);
-      tokenStore.setRefreshToken(tokens.refreshToken);
-      return tokens.accessToken;
+      tokenStore.setAccessToken(response.data.accessToken);
+      tokenStore.setRefreshToken(response.data.refreshToken);
+      return response.data.accessToken;
     } catch {
       tokenStore.clear();
       return null;
     }
   }
 
-  private async toApiError(response: Response): Promise<ApiError> {
-    let payload: {
-      message?: string;
-      code?: string;
-      details?: unknown;
-      requestId?: string;
-    } | null = null;
+  private toApiError(error: AxiosError): ApiError {
+    const payload = error.response?.data as
+      | { message?: string; code?: string; details?: unknown; requestId?: string }
+      | undefined;
 
-    try {
-      payload = (await response.json()) as {
-        message?: string;
-        code?: string;
-        details?: unknown;
-        requestId?: string;
-      };
-    } catch {
-      payload = null;
-    }
-
+    const status = error.response?.status ?? 500;
     return new ApiError(
-      payload?.message || response.statusText || 'Request failed',
-      response.status,
+      payload?.message || error.message || 'Request failed',
+      status,
       payload?.details,
       payload?.code,
       payload?.requestId,
