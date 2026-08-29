@@ -1,9 +1,18 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Cpu, ShieldCheck, Zap, Code2, Database, Terminal } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowRight, Cpu, ShieldCheck, Zap, Code2, Database, Terminal, LogOut } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
+import { useAuth } from '@/app/providers';
 
 export const LandingPage: React.FC = () => {
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate(ROUTES.PUBLIC.LANDING, { replace: true });
+  };
+
   return (
     <div className="bg-[#F7F9FC] text-slate-900 min-h-screen flex flex-col font-sans">
       {/* Top Navbar */}
@@ -27,16 +36,41 @@ export const LandingPage: React.FC = () => {
           </nav>
 
           <div className="flex items-center space-x-4">
-            <Link to={ROUTES.PUBLIC.LOGIN} className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
-              Sign in
-            </Link>
-            <Link
-              to={ROUTES.PUBLIC.REGISTER}
-              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg shadow-xs transition-all flex items-center space-x-2"
-            >
-              <span>Start Free Trial</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <span className="hidden md:inline text-sm font-medium text-slate-600">
+                  {user?.fullName || user?.email}
+                </span>
+                <Link
+                  to={ROUTES.PROJECTS.NEW}
+                  className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg shadow-xs transition-all flex items-center space-x-2"
+                >
+                  <span>Create Project</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors flex items-center space-x-1"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign out</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to={ROUTES.PUBLIC.LOGIN} className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                  Sign in
+                </Link>
+                <Link
+                  to={ROUTES.PUBLIC.REGISTER}
+                  className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg shadow-xs transition-all flex items-center space-x-2"
+                >
+                  <span>Start Free Trial</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>
