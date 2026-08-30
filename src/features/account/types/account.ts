@@ -5,11 +5,18 @@ export interface PasswordChangeData {
   acknowledgeLogout: boolean;
 }
 
-export interface TwoFactorState {
-  enabled: boolean;
-  step: 1 | 2 | 3;
-  secretKey: string;
-  qrCodeUrl: string;
+export interface StartMfaSetupResponse {
+  enabled: false;
+  otpauthUri: string;
+  qrCodeDataUrl: string;
+}
+
+export interface ConfirmMfaSetupRequest {
+  code: string;
+}
+
+export interface ConfirmMfaSetupResponse {
+  enabled: true;
   backupCodes: string[];
 }
 

@@ -47,7 +47,7 @@ export class ApiClient {
     this.baseUrl = `${env.apiBaseUrl.replace(/\/+$/, '')}/api/v1`;
     this.axios = axios.create({
       baseURL: this.baseUrl,
-      timeout: Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 30000),
+      timeout: env.apiTimeoutMs,
     });
 
     // Attach the Authorization header from the in-memory access token.

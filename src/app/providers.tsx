@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { authService } from '@/features/auth/services/auth.service';
 import { apiClient } from '@/services/api/apiClient';
 import { tokenStore } from '@/services/api/tokenStore';
 import type { AuthState, LoginCredentials, RegisterData, User } from '@/features/auth/types/auth';
+import { queryClient } from './queryClient';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -85,20 +87,22 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        token: tokenStore.getAccessToken(),
-        login: handleLogin,
-        register: handleRegister,
-        loginWithGoogle: handleLoginWithGoogle,
-        logout: handleLogout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <QueryClientProvider client={queryClient}>
+      <AuthContext.Provider
+        value={{
+          user,
+          isAuthenticated: !!user,
+          isLoading,
+          token: tokenStore.getAccessToken(),
+          login: handleLogin,
+          register: handleRegister,
+          loginWithGoogle: handleLoginWithGoogle,
+          logout: handleLogout,
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    </QueryClientProvider>
   );
 };
 

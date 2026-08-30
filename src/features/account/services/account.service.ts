@@ -1,6 +1,11 @@
 import { mockSessions } from '@/mocks/sessions.mock';
 import { apiClient } from '@/services/api/apiClient';
-import type { PasswordChangeData } from '../types/account';
+import type {
+  ConfirmMfaSetupRequest,
+  ConfirmMfaSetupResponse,
+  PasswordChangeData,
+  StartMfaSetupResponse,
+} from '../types/account';
 import type { UserSession } from '@/features/auth/types/auth';
 
 export class AccountService {
@@ -13,10 +18,14 @@ export class AccountService {
     });
   }
 
-  async verify2FA(otpCode: string): Promise<boolean> {
-    console.log('[AccountService] Verify 2FA OTP:', otpCode);
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    return otpCode.length === 6;
+  async startMfaSetup(): Promise<StartMfaSetupResponse> {
+    return apiClient.post<StartMfaSetupResponse>('/auth/2fa/setup');
+  }
+
+  async confirmMfaSetup(
+    data: ConfirmMfaSetupRequest,
+  ): Promise<ConfirmMfaSetupResponse> {
+    return apiClient.post<ConfirmMfaSetupResponse>('/auth/2fa/confirm', data);
   }
 
   async getActiveSessions(): Promise<UserSession[]> {
