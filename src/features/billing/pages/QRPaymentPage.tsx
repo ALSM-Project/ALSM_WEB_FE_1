@@ -76,9 +76,17 @@ export const QRPaymentPage: React.FC = () => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const copyText = useCallback((text: string, setCopied: React.Dispatch<React.SetStateAction<boolean>>) => {
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const copyText = useCallback((text: string, label: string, setCopied: React.Dispatch<React.SetStateAction<boolean>>) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
+    showToast(`Copied ${label} to clipboard!`);
     setTimeout(() => setCopied(false), 2000);
   }, []);
 
@@ -170,7 +178,7 @@ export const QRPaymentPage: React.FC = () => {
                 <span className="text-slate-500 font-medium">Account:</span>
                 <div className="flex items-center space-x-2 font-mono">
                   <span className="text-brand-700 font-bold">{qr.accountNumber}</span>
-                  <button onClick={() => copyText(qr.accountNumber, setCopiedAccount)} className="text-slate-400 hover:text-slate-800">
+                  <button onClick={() => copyText(qr.accountNumber, 'account number', setCopiedAccount)} className="text-slate-400 hover:text-slate-800">
                     {copiedAccount ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </div>
@@ -185,7 +193,7 @@ export const QRPaymentPage: React.FC = () => {
                 <span className="text-slate-500 font-medium">Amount:</span>
                 <div className="flex items-center space-x-2 font-mono">
                   <span className="text-brand-700 font-bold">{formatVnd(qr.amountVnd)}</span>
-                  <button onClick={() => copyText(String(qr.amountVnd), setCopiedAmount)} className="text-slate-400 hover:text-slate-800">
+                  <button onClick={() => copyText(String(qr.amountVnd), 'amount', setCopiedAmount)} className="text-slate-400 hover:text-slate-800">
                     {copiedAmount ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </div>
@@ -195,13 +203,20 @@ export const QRPaymentPage: React.FC = () => {
                 <span className="text-slate-500 font-medium">Reference:</span>
                 <div className="flex items-center space-x-2 font-mono">
                   <span className="text-brand-700 font-bold">{qr.referenceCode}</span>
-                  <button onClick={() => copyText(qr.referenceCode, setCopiedRef)} className="text-slate-400 hover:text-slate-800">
+                  <button onClick={() => copyText(qr.referenceCode, 'reference code', setCopiedRef)} className="text-slate-400 hover:text-slate-800">
                     {copiedRef ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
             </div>
           </div>
+
+          {toastMessage && (
+            <div className="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-3 rounded-xl text-xs font-semibold shadow-lg flex items-center space-x-2 z-50 animate-bounce">
+              <Check className="w-4 h-4 text-emerald-400" />
+              <span>{toastMessage}</span>
+            </div>
+          )}
 
           <div className="text-xs text-slate-500 space-y-1 font-medium">
             <p>Prefer bank transfer? View manual transfer instructions</p>
