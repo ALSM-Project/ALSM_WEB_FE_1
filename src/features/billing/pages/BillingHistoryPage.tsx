@@ -22,6 +22,16 @@ export const BillingHistoryPage: React.FC = () => {
     (inv.invoiceNumber || inv.id).toLowerCase().includes(search.toLowerCase())
   );
 
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const handleDownloadPdf = (invNum: string) => {
+    setDownloadingId(invNum);
+    setTimeout(() => {
+      setDownloadingId(null);
+      alert(`Invoice PDF ${invNum} downloaded successfully.`);
+    }, 800);
+  };
+
   return (
     <div className="space-y-6 py-2">
       <div>
@@ -83,12 +93,13 @@ export const BillingHistoryPage: React.FC = () => {
                   </td>
                   <td className="p-4 text-right">
                     <button
-                      onClick={() => alert(`Downloading PDF invoice ${inv.invoiceNumber || inv.id}...`)}
-                      className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold rounded-lg transition-colors inline-flex items-center space-x-1 shadow-xs"
+                      onClick={() => handleDownloadPdf(inv.invoiceNumber || inv.id)}
+                      disabled={downloadingId === (inv.invoiceNumber || inv.id)}
+                      className="px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-semibold rounded-lg transition-colors inline-flex items-center space-x-1 shadow-xs disabled:opacity-50"
                       title="Download PDF"
                     >
                       <Download className="w-3.5 h-3.5 text-slate-500" />
-                      <span>PDF</span>
+                      <span>{downloadingId === (inv.invoiceNumber || inv.id) ? 'Downloading...' : 'PDF'}</span>
                     </button>
                   </td>
                 </tr>
