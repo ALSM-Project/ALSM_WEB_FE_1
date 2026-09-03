@@ -1,9 +1,14 @@
-import { mockASTData, mockConversionResult, mockFieldMappings } from '@/mocks/conversions.mock';
+import { mockASTData, mockConversionResult } from '@/mocks/conversions.mock';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { mockScreens, mockUploadedFiles } from '@/mocks/screens.mock';
+import { apiClient } from '@/services/api/apiClient';
 import type { ASTNode, ConversionResult, FieldMapping } from '../types/conversion';
 import type { LegacyScreen, SourceFile } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
+
+interface FieldMappingResponse {
+  mappings: Omit<FieldMapping, 'id'>[];
+}
 
 export class ConversionService {
   private screens: LegacyScreen[] = [...mockScreens];
@@ -51,12 +56,24 @@ export class ConversionService {
     return mockASTData;
   }
 
-  async getFieldMappings(_screenId: string): Promise<FieldMapping[]> {
-    return mockFieldMappings;
+  async getFieldMappings(projectId: string, screenId: string): Promise<FieldMapping[]> {
+    const res = await apiClient.get<FieldMappingResponse>(
+      `/projects/${projectId}/screens/${screenId}/field-mapping`,
+    );
+    return res.mappings.map((entry, index) => ({ id: `fm-${index}`, ...entry }));
   }
 
-  async saveFieldMapping(_screenId: string, _mappings: FieldMapping[]): Promise<boolean> {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+  async saveFieldMapping(
+    projectId: string,
+    screenId: string,
+    mappings: FieldMapping[],
+  ): Promise<boolean> {
+    await apiClient.put(`/projects/${projectId}/screens/${screenId}/field-mapping`, {
+      mappings: mappings.map(({ legacyField, componentMapping }) => ({
+        legacyField,
+        componentMapping,
+      })),
+    });
     return true;
   }
 
