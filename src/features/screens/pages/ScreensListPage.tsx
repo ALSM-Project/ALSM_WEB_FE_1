@@ -189,13 +189,23 @@ export const ScreensListPage: React.FC = () => {
                   <td className="p-4 text-slate-700 font-medium">{screen.framework}</td>
                   <td className="p-4 text-slate-500">{screen.lastUpdated}</td>
                   <td className="p-4 text-right space-x-2">
-                    <Link
-                      to={ROUTES.PROJECTS.CONVERT(projectId, screen.id)}
-                      className="inline-flex items-center space-x-1 text-xs text-brand-600 font-medium hover:text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-200 transition-colors"
-                    >
-                      <span>Studio</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {screen.status === 'Completed' ? (
+                      <Link
+                        to={ROUTES.PROJECTS.RESULT(projectId, screen.id)}
+                        className="inline-flex items-center space-x-1 text-xs text-brand-600 font-medium hover:text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-200 transition-colors"
+                      >
+                        <span>View Result</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    ) : (
+                      <Link
+                        to={ROUTES.PROJECTS.CONVERT(projectId, screen.id)}
+                        className="inline-flex items-center space-x-1 text-xs text-brand-600 font-medium hover:text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-200 transition-colors"
+                      >
+                        <span>Studio</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}
