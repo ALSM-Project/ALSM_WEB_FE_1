@@ -1,0 +1,239 @@
+/* LegacyX Design System & Micro-animations */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --lx-bg-main: #030914;
+  --lx-bg-card: #091E42;
+  --lx-bg-card-hover: #0d2858;
+  --lx-primary: #0652CC;
+  --lx-accent: #0655FF;
+  --lx-neutral: #F4F5F7;
+  --lx-text: #FFFFFF;
+  --lx-text-muted: #A7B4C8;
+  --lx-border: rgba(255, 255, 255, 0.08);
+  --lx-glow: rgba(6, 82, 204, 0.25);
+  --lx-glow-bright: rgba(6, 85, 255, 0.45);
+}
+
+.legacyx-landing {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--lx-bg-main);
+  color: var(--lx-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  selection-background-color: var(--lx-primary);
+  selection-color: #ffffff;
+}
+
+/* Custom Scrollbar */
+.legacyx-landing::-webkit-scrollbar {
+  width: 8px;
+}
+.legacyx-landing::-webkit-scrollbar-track {
+  background: #030914;
+}
+.legacyx-landing::-webkit-scrollbar-thumb {
+  background: #091E42;
+  border-radius: 4px;
+}
+.legacyx-landing::-webkit-scrollbar-thumb:hover {
+  background: #0652CC;
+}
+
+/* Gradient Text */
+.lx-gradient-text {
+  background: linear-gradient(135deg, #FFFFFF 0%, #A7B4C8 50%, #0655FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.lx-blue-gradient-text {
+  background: linear-gradient(135deg, #FFFFFF 30%, #38BDF8 70%, #0655FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Ambient Background Grid */
+.lx-grid-background {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glowing Radial Orbs */
+.lx-orb-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Glass Surface */
+.lx-glass-card {
+  background: rgba(9, 30, 66, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.lx-glass-card:hover {
+  border-color: rgba(6, 85, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(6, 82, 204, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Buttons */
+.lx-btn-primary {
+  background: var(--lx-primary);
+  color: #FFFFFF;
+  font-weight: 600;
+  padding: 14px 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px var(--lx-glow);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.lx-btn-primary:hover {
+  background: var(--lx-accent);
+  box-shadow: 0 6px 30px var(--lx-glow-bright);
+  transform: translateY(-2px);
+}
+
+.lx-btn-secondary {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--lx-text);
+  font-weight: 600;
+  padding: 14px 28px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.lx-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(6, 85, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Animated Wing Particles */
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-15px) scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+@keyframes pulseDataLine {
+  0%, 100% {
+    stroke-dashoffset: 100;
+    opacity: 0.3;
+  }
+  50% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes breatheGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.45;
+  }
+}
+
+.animate-breathe {
+  animation: breatheGlow 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: floatParticle 8s ease-in-out infinite;
+}
+
+/* Interactive Pipeline Signal Flow */
+@keyframes signalFlow {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.lx-pipeline-signal {
+  position: absolute;
+  top: 50%;
+  width: 120px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #0655FF, #38BDF8, transparent);
+  box-shadow: 0 0 15px #0655FF;
+  animation: signalFlow 4s linear infinite;
+  transform: translateY(-50%);
+}
+
+/* Code Transformation Diff Highlighting */
+.lx-code-line-old {
+  background: rgba(239, 68, 68, 0.1);
+  border-left: 2px solid #ef4444;
+  padding-left: 8px;
+}
+
+.lx-code-line-new {
+  background: rgba(16, 185, 129, 0.1);
+  border-left: 2px solid #10b981;
+  padding-left: 8px;
+}
+
+/* 3D Browser Perspective Showcase */
+.lx-browser-perspective {
+  perspective: 1200px;
+}
+
+.lx-browser-frame {
+  transform: rotateX(8deg) rotateY(-2deg) scale(0.96);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(6, 82, 204, 0.2);
+}
+
+.lx-browser-frame:hover {
+  transform: rotateX(2deg) rotateY(0deg) scale(1);
+}
+
+/* Floating Sticky Nav Blur */
+.lx-navbar {
+  transition: all 0.3s ease;
+}
+
+.lx-navbar.scrolled {
+  background: rgba(3, 9, 20, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
