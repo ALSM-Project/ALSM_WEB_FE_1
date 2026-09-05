@@ -16,33 +16,35 @@ export interface TabsProps {
 
 export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, className = '' }) => {
   return (
-    <div className={`flex border-b border-slate-200 space-x-2 ${className}`}>
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeTab;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onChange(tab.id)}
-            className={`flex items-center space-x-2 py-3 px-4 text-sm font-medium border-b-2 transition-all ${
-              isActive
-                ? 'border-brand-600 text-brand-600 font-semibold'
-                : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
-            }`}
-          >
-            {tab.icon && <span className="w-4 h-4">{tab.icon}</span>}
-            <span>{tab.label}</span>
-            {tab.count !== undefined && (
-              <span
-                className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
-                  isActive ? 'bg-brand-50 text-brand-700 font-medium' : 'bg-slate-100 text-slate-600'
-                }`}
-              >
-                {tab.count}
-              </span>
-            )}
-          </button>
-        );
-      })}
+    <div className={`flex justify-center ${className}`}>
+      <div className="inline-flex p-1.5 bg-white rounded-full gap-1 border border-[#D9E2EC] shadow-sm">
+        {tabs.map((tab) => {
+          const isActive = tab.id === activeTab;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onChange(tab.id)}
+              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center space-x-2 ${
+                isActive
+                  ? 'bg-[#0652CC] text-white shadow-[0_4px_15px_rgba(6,82,204,0.3)]'
+                  : 'text-[#42526E] hover:text-[#091E42] hover:bg-gray-100'
+              }`}
+            >
+              {tab.icon && <span className="w-4 h-4">{tab.icon}</span>}
+              <span>{tab.label}</span>
+              {tab.count !== undefined && (
+                <span
+                  className={`ml-1.5 px-2 py-0.5 text-xs rounded-full ${
+                    isActive ? 'bg-white/20 text-white font-bold' : 'bg-gray-200 text-[#091E42]'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };

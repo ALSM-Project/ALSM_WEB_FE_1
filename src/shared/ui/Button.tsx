@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'ai';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -17,20 +17,21 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed';
+  const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0652CC] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
   const variants = {
-    primary: 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm',
-    secondary: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 shadow-sm',
-    outline: 'bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 shadow-sm',
-    ghost: 'hover:bg-slate-100 text-slate-700 hover:text-slate-900',
+    primary: 'bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-[0_4px_15px_rgba(6,82,204,0.25)] hover:shadow-[0_6px_20px_rgba(6,85,255,0.35)]',
+    secondary: 'bg-[#E8F1FF] text-[#0652CC] hover:bg-[#0652CC] hover:text-white border border-[#0652CC]/25 shadow-sm',
+    outline: 'bg-white border border-[#D9E2EC] hover:border-[#0652CC]/50 text-[#091E42] hover:bg-[#F7F9FC] shadow-sm',
+    ghost: 'hover:bg-[#E8F1FF] text-[#42526E] hover:text-[#091E42]',
     danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm',
+    ai: 'bg-gradient-to-r from-[#22D3EE] via-[#0655FF] to-[#8B5CF6] text-white font-bold shadow-[0_4px_20px_rgba(34,211,238,0.3)] hover:opacity-95',
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-5 py-2.5 text-base',
+    sm: 'px-3.5 py-1.5 text-xs',
+    md: 'px-5 py-2.5 text-sm',
+    lg: 'px-8 py-3.5 text-base',
   };
 
   return (

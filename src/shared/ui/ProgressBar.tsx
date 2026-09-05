@@ -20,11 +20,11 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   };
 
   const colors = {
-    indigo: 'bg-[#175CD3]',
-    cyan: 'bg-[#0284C7]',
-    emerald: 'bg-[#079455]',
-    rose: 'bg-[#D92D20]',
-    amber: 'bg-[#DC6803]',
+    indigo: 'bg-gradient-to-r from-[#0652CC] to-[#0655FF]',
+    cyan: 'bg-gradient-to-r from-[#0655FF] to-[#22D3EE]',
+    emerald: 'bg-gradient-to-r from-[#10B981] to-[#34D399]',
+    rose: 'bg-gradient-to-r from-rose-600 to-rose-400',
+    amber: 'bg-gradient-to-r from-amber-500 to-amber-300',
   };
 
   const clamped = Math.min(100, Math.max(0, progress));
