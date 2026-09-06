@@ -1,0 +1,136 @@
+/* ================================================
+   ALSM LandingPage – Light-First Enterprise Styles
+   ================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ─── Gradient Text Utilities ─── */
+.lx-gradient-text {
+  background: linear-gradient(135deg, #091E42 0%, #0652CC 50%, #0655FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.lx-blue-gradient-text {
+  background: linear-gradient(135deg, #0652CC 30%, #22D3EE 70%, #0655FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glass Surface (Light) ─── */
+.lx-glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #D9E2EC;
+  box-shadow: 0 10px 30px rgba(9, 30, 66, 0.06);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lx-glass-card:hover {
+  border-color: rgba(6, 82, 204, 0.3);
+  box-shadow: 0 15px 40px rgba(6, 82, 204, 0.12);
+}
+
+/* ─── Animated Breathe Glow ─── */
+@keyframes breatheGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.45;
+  }
+}
+
+.animate-breathe {
+  animation: breatheGlow 6s ease-in-out infinite;
+}
+
+/* ─── Floating Particle Animation ─── */
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(-15px) scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+.animate-float-slow {
+  animation: floatParticle 8s ease-in-out infinite;
+}
+
+/* ─── Code Diff Lines ─── */
+.lx-code-line-old {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 2px solid #ef4444;
+  padding-left: 8px;
+}
+
+.lx-code-line-new {
+  background: rgba(16, 185, 129, 0.08);
+  border-left: 2px solid #10b981;
+  padding-left: 8px;
+}
+
+/* ─── Pipeline Signal Flow ─── */
+@keyframes signalFlow {
+  0% {
+    left: 0%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.lx-pipeline-signal {
+  position: absolute;
+  top: 50%;
+  width: 120px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #0655FF, #22D3EE, transparent);
+  box-shadow: 0 0 15px rgba(6, 85, 255, 0.4);
+  animation: signalFlow 4s linear infinite;
+  transform: translateY(-50%);
+}
+
+/* ─── 3D Perspective Showcase ─── */
+.lx-browser-perspective {
+  perspective: 1200px;
+}
+
+.lx-browser-frame {
+  transform: rotateX(8deg) rotateY(-2deg) scale(0.96);
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 30px 80px rgba(9, 30, 66, 0.15), 0 0 40px rgba(6, 82, 204, 0.08);
+}
+
+.lx-browser-frame:hover {
+  transform: rotateX(2deg) rotateY(0deg) scale(1);
+}
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathe,
+  .animate-float-slow,
+  .lx-pipeline-signal {
+    animation: none;
+  }
+
+  .lx-browser-frame {
+    transition: none;
+  }
+}

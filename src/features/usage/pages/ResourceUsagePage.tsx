@@ -17,7 +17,12 @@ export const ResourceUsagePage: React.FC = () => {
 
   if (!stats) return <div className="p-8 text-center text-slate-500">Loading resource metrics...</div>;
 
-  const maxMonthVal = Math.max(...stats.monthlyConversions.map((m) => m.count));
+  const maxMonthVal = Math.max(...stats.monthlyConversions.map((m) => m.count), 1);
+  const screensMax = stats.screens.max === -1 ? 'Unlimited' : stats.screens.max;
+  const projectsMax = stats.projects.max === -1 ? 'Unlimited' : stats.projects.max;
+  const screensPercent = stats.screens.max === -1 ? 30 : Math.round((stats.screens.used / stats.screens.max) * 100);
+  const projectsPercent = stats.projects.max === -1 ? 40 : Math.round((stats.projects.used / stats.projects.max) * 100);
+  const storagePercent = stats.storage.maxGb === -1 ? 20 : Math.round((stats.storage.usedGb / stats.storage.maxGb) * 100);
 
   return (
     <div className="space-y-6 py-2">
@@ -42,10 +47,10 @@ export const ResourceUsagePage: React.FC = () => {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-3xl font-extrabold text-slate-900">{stats.screensUsed} / {stats.screensMax}</p>
+            <p className="text-3xl font-extrabold text-slate-900">{stats.screens.used} / {screensMax}</p>
             <p className="text-xs text-slate-500">Used this billing period</p>
           </div>
-          <ProgressBar progress={Math.round((stats.screensUsed / stats.screensMax) * 100)} color="indigo" showPercentage />
+          <ProgressBar progress={screensPercent} color="indigo" showPercentage />
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
@@ -56,10 +61,10 @@ export const ResourceUsagePage: React.FC = () => {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-3xl font-extrabold text-slate-900">{stats.containersUsed} / Unlimited</p>
+            <p className="text-3xl font-extrabold text-slate-900">{stats.projects.used} / {projectsMax}</p>
             <p className="text-xs text-slate-500">Active workspaces</p>
           </div>
-          <ProgressBar progress={40} color="indigo" showPercentage />
+          <ProgressBar progress={projectsPercent} color="indigo" showPercentage />
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-sm">
@@ -70,10 +75,12 @@ export const ResourceUsagePage: React.FC = () => {
             </div>
           </div>
           <div className="space-y-1">
-            <p className="text-3xl font-extrabold text-slate-900">{stats.storageUsedGb} GB / {stats.storageMaxGb} GB</p>
+            <p className="text-3xl font-extrabold text-slate-900">
+              {stats.storage.usedGb} GB / {stats.storage.maxGb === -1 ? 'Unlimited' : `${stats.storage.maxGb} GB`}
+            </p>
             <p className="text-xs text-slate-500">Archived AST & generated code</p>
           </div>
-          <ProgressBar progress={Math.round((stats.storageUsedGb / stats.storageMaxGb) * 100)} color="emerald" showPercentage />
+          <ProgressBar progress={storagePercent} color="emerald" showPercentage />
         </div>
       </div>
 
@@ -83,9 +90,11 @@ export const ResourceUsagePage: React.FC = () => {
             <h3 className="text-lg font-bold text-slate-900">Conversion Volume</h3>
             <p className="text-xs text-slate-500">Monthly conversion activity over past 6 months</p>
           </div>
-          <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
-            November: 45 conversions
-          </span>
+          {stats.monthlyConversions.length > 0 && (
+            <span className="text-xs font-semibold text-brand-700 bg-brand-50 px-3 py-1 rounded-full border border-brand-200">
+              {stats.monthlyConversions[stats.monthlyConversions.length - 1].month}: {stats.monthlyConversions[stats.monthlyConversions.length - 1].count} conversions
+            </span>
+          )}
         </div>
 
         <div className="pt-8 pb-4">

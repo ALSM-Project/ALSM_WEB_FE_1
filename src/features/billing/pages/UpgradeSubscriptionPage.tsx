@@ -5,6 +5,8 @@ import { billingService } from '../services/billing.service';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
 
+const formatVnd = (amount: number) => new Intl.NumberFormat('vi-VN').format(amount) + '₫';
+
 export const UpgradeSubscriptionPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -12,7 +14,7 @@ export const UpgradeSubscriptionPage: React.FC = () => {
   const handleConfirmUpgrade = async () => {
     setLoading(true);
     try {
-      await billingService.upgradePlan('Professional');
+      await billingService.upgradePlan('PROFESSIONAL');
       alert('Subscription upgraded to Professional Tier!');
       navigate(ROUTES.BILLING.SUBSCRIPTION);
     } finally {
@@ -24,7 +26,7 @@ export const UpgradeSubscriptionPage: React.FC = () => {
     <div className="max-w-3xl mx-auto space-y-8 py-6">
       <div>
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Upgrade Subscription</h1>
-        <p className="text-slate-500 text-sm mt-1">Upgrade your tier for higher screen limits and priority AI refactoring capabilities.</p>
+        <p className="text-slate-500 text-sm mt-1">Upgrade your tier for higher screen limits and priority validation capabilities.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -32,7 +34,7 @@ export const UpgradeSubscriptionPage: React.FC = () => {
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">CURRENT PLAN</span>
           <div>
             <h3 className="text-xl font-bold text-slate-900">Starter</h3>
-            <p className="text-2xl font-extrabold text-slate-700 mt-1">$149 <span className="text-xs font-normal text-slate-500">/mo</span></p>
+            <p className="text-2xl font-extrabold text-slate-700 mt-1">{formatVnd(99_000)} <span className="text-xs font-normal text-slate-500">/tháng</span></p>
           </div>
           <ul className="space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3 font-medium">
             <li>• 5 Projects</li>
@@ -47,7 +49,7 @@ export const UpgradeSubscriptionPage: React.FC = () => {
           </div>
           <div>
             <h3 className="text-xl font-bold text-slate-900">PROFESSIONAL</h3>
-            <p className="text-3xl font-extrabold text-brand-600 mt-1">$499 <span className="text-xs font-normal text-slate-500">/mo</span></p>
+            <p className="text-3xl font-extrabold text-brand-600 mt-1">{formatVnd(499_000)} <span className="text-xs font-normal text-slate-500">/tháng</span></p>
           </div>
           <ul className="space-y-2 text-xs text-slate-800 border-t border-brand-200/80 pt-3 font-medium">
             <li className="flex items-center space-x-2">
@@ -72,15 +74,15 @@ export const UpgradeSubscriptionPage: React.FC = () => {
         <div className="space-y-2 text-xs font-medium text-slate-700">
           <div className="flex justify-between">
             <span className="text-slate-500">Credit remaining from current plan:</span>
-            <span className="text-[#079455] font-bold font-mono">-$142.50</span>
+            <span className="text-[#079455] font-bold font-mono">-{formatVnd(42_500)}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Professional Plan (prorated remainder of month):</span>
-            <span className="text-slate-900 font-bold font-mono">$499.00</span>
+            <span className="text-slate-900 font-bold font-mono">{formatVnd(499_000)}</span>
           </div>
           <div className="border-t border-slate-100 pt-3 flex justify-between items-center text-sm">
             <span className="text-slate-900 font-bold">Due today for upgrade:</span>
-            <span className="text-brand-600 font-extrabold text-base font-mono">$356.50</span>
+            <span className="text-brand-600 font-extrabold text-base font-mono">{formatVnd(456_500)}</span>
           </div>
         </div>
 

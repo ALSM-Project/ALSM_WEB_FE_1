@@ -1,6 +1,9 @@
 export const ROUTES = {
   PUBLIC: {
     LANDING: '/',
+    FAQ: '/faq',
+    DOCS: '/docs',
+    CONTACT: '/contact',
     REGISTER: '/register',
     LOGIN: '/login',
     FORGOT_PASSWORD: '/forgot-password',

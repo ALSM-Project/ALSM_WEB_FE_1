@@ -1,0 +1,413 @@
+/* ================================================
+   ALSM Documentation Page Styles
+   ================================================ */
+
+.alsm-docs-page {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #091E42;
+  background: #ffffff;
+  min-height: calc(100vh - 80px);
+}
+
+.alsm-docs-layout {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  gap: 40px;
+}
+
+@media (min-width: 1280px) {
+  .alsm-docs-layout {
+    padding: 40px 48px;
+  }
+}
+
+/* ─── Left Sidebar Navigation ─── */
+.alsm-docs-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 100px;
+  height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.alsm-docs-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.alsm-docs-sidebar::-webkit-scrollbar-thumb {
+  background: #D9E2EC;
+  border-radius: 999px;
+}
+
+.alsm-docs-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alsm-docs-sidebar-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #42526E;
+  margin-bottom: 8px;
+  padding-left: 10px;
+}
+
+.alsm-docs-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #42526E;
+  text-decoration: none;
+  border-radius: 8px;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.alsm-docs-sidebar-link:hover {
+  background: #F7F9FC;
+  color: #0652CC;
+}
+
+.alsm-docs-sidebar-link.active {
+  background: #E8F1FF;
+  color: #0652CC;
+  font-weight: 600;
+  border-left-color: #0652CC;
+}
+
+/* Mobile Sidebar Drawer Toggle */
+.alsm-docs-mobile-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #F7F9FC;
+  border: 1px solid #D9E2EC;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  color: #091E42;
+}
+
+@media (min-width: 1024px) {
+  .alsm-docs-mobile-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .alsm-docs-sidebar {
+    display: none;
+    position: static;
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    margin-bottom: 24px;
+    border: 1px solid #D9E2EC;
+    border-radius: 14px;
+    padding: 16px;
+    background: #ffffff;
+  }
+
+  .alsm-docs-sidebar.mobile-open {
+    display: flex;
+  }
+}
+
+/* ─── Main Content Area ─── */
+.alsm-docs-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.alsm-docs-header {
+  margin-bottom: 36px;
+}
+
+.alsm-docs-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #0652CC;
+  background: #E8F1FF;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+
+.alsm-docs-h1 {
+  font-size: 36px;
+  font-weight: 800;
+  color: #091E42;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.alsm-docs-subtitle {
+  font-size: 16px;
+  color: #42526E;
+  line-height: 1.5;
+  max-width: 720px;
+}
+
+/* ─── Featured Visual Block ─── */
+.alsm-docs-visual-block {
+  background: #020817;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 32px;
+  margin-bottom: 48px;
+  color: #ffffff;
+  box-shadow: 0 16px 40px rgba(2, 8, 23, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.alsm-docs-visual-block::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.alsm-docs-visual-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #22D3EE;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alsm-docs-pipeline-flow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .alsm-docs-pipeline-flow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .alsm-docs-pipeline-flow {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.alsm-docs-step-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px 12px;
+  text-align: center;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.alsm-docs-step-card:hover {
+  transform: translateY(-2px);
+  border-color: #22D3EE;
+  background: rgba(34, 211, 238, 0.06);
+}
+
+.alsm-docs-step-num {
+  font-size: 10px;
+  font-weight: 800;
+  color: #8B5CF6;
+  background: rgba(139, 92, 246, 0.15);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.alsm-docs-step-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.alsm-docs-step-desc {
+  font-size: 11px;
+  color: #94A3B8;
+  line-height: 1.3;
+}
+
+/* ─── Typography & Content Sections ─── */
+.alsm-docs-section {
+  margin-bottom: 48px;
+  scroll-margin-top: 100px;
+}
+
+.alsm-docs-h2 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #091E42;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #D9E2EC;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.alsm-docs-h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #091E42;
+  margin-top: 24px;
+  margin-bottom: 12px;
+}
+
+.alsm-docs-p {
+  font-size: 15px;
+  color: #42526E;
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+
+.alsm-docs-ul {
+  list-style: disc;
+  padding-left: 24px;
+  margin-bottom: 20px;
+  color: #42526E;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.alsm-docs-ul li {
+  margin-bottom: 6px;
+}
+
+.alsm-docs-ul li strong {
+  color: #091E42;
+}
+
+/* ─── Dark Code Blocks ─── */
+.alsm-docs-code-block {
+  background: #020817;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 20px 0;
+  box-shadow: 0 8px 24px rgba(2, 8, 23, 0.2);
+}
+
+.alsm-docs-code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+  font-weight: 600;
+  color: #94A3B8;
+}
+
+.alsm-docs-code-lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #22D3EE;
+  font-family: monospace;
+}
+
+.alsm-docs-copy-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #CBD5E1;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.alsm-docs-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.alsm-docs-code-content {
+  padding: 16px 20px;
+  margin: 0;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #E2E8F0;
+}
+
+/* ─── Right On-This-Page TOC ─── */
+.alsm-docs-toc {
+  width: 200px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 100px;
+  height: calc(100vh - 120px);
+  padding-left: 16px;
+  border-left: 1px solid #D9E2EC;
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  .alsm-docs-toc {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+.alsm-docs-toc-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #42526E;
+  margin-bottom: 4px;
+}
+
+.alsm-docs-toc-link {
+  font-size: 12.5px;
+  color: #42526E;
+  text-decoration: none;
+  line-height: 1.4;
+  transition: color 0.15s ease;
+  padding: 3px 0;
+}
+
+.alsm-docs-toc-link:hover {
+  color: #0652CC;
+}

@@ -1,23 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  --text: #475569;
-  --text-h: #0F172A;
-  --bg: #F7F9FC;
-  --border: #E2E8F0;
-  --code-bg: #1E293B;
-  --accent: #175CD3;
-  --accent-bg: rgba(23, 92, 211, 0.08);
-  --accent-border: rgba(23, 92, 211, 0.3);
-  --social-bg: #F1F5F9;
-  --shadow: rgba(16, 24, 40, 0.08) 0 4px 6px -2px, rgba(16, 24, 40, 0.03) 0 2px 4px -2px;
+  --color-background: #F7F9FC;
+  --color-surface: #FFFFFF;
+  --color-text-primary: #091E42;
+  --color-text-secondary: #42526E;
+  --color-primary-blue: #0652CC;
+  --color-electric-blue: #0655FF;
+  --color-soft-blue: #E8F1FF;
+  --color-cyan: #22D3EE;
+  --color-violet: #8B5CF6;
+  --color-border: #D9E2EC;
+  --color-dark-section: #020817;
+  --color-dark-surface: #091E42;
 
   --sans: Inter, system-ui, -apple-system, sans-serif;
-  --heading: Inter, system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', Consolas, monospace;
 
   font-family: var(--sans);
   color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--color-text-secondary);
+  background: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -26,8 +31,9 @@
 
 body {
   margin: 0;
-  background-color: var(--bg);
-  color: var(--text);
+  background-color: var(--color-background);
+  color: var(--color-text-secondary);
+  overflow-x: hidden;
 }
 
 p {
@@ -36,11 +42,55 @@ p {
 
 code {
   font-family: var(--mono);
-  font-size: 13px;
-  line-height: 140%;
-  padding: 2px 6px;
-  background: #1E293B;
-  color: #F8FAFC;
+}
+
+/* Fan card transformation animations */
+.fan-card {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 20px 40px rgba(9, 30, 66, 0.1);
+}
+.fan-card:hover {
+  transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 12px)) scale(1.05) !important;
+  z-index: 40 !important;
+  box-shadow: 0 30px 60px rgba(6, 82, 204, 0.25) !important;
+}
+
+/* Reviews Marquee */
+.reviews-track {
+  animation: marquee 35s linear infinite;
+}
+.reviews-marquee:hover .reviews-track {
+  animation-play-state: paused;
+}
+
+/* FAQ Accordion Smooth Expansion */
+.faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 250ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
+  opacity: 0;
+}
+.faq-answer > div {
+  overflow: hidden;
+}
+.faq-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #091E42;
+}
+::-webkit-scrollbar-thumb {
+  background: #0652CC;
   border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0655FF;
 }
 

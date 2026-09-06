@@ -7,7 +7,8 @@ import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
 import { GuestRoute, ProtectedRoute } from './guards';
 
 // Feature Modules
-import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, ResetPasswordPage } from '@/features/auth';
+import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage } from '@/features/auth';
+import { DocsPage } from '@/features/docs';
 import { ChangePasswordPage, TwoFactorAuthenticationPage, ActiveSessionsPage } from '@/features/account';
 import { CreateProjectPage, DeleteProjectPage } from '@/features/projects';
 import { UploadSourcePage, ScreensListPage } from '@/features/screens';
@@ -31,10 +32,16 @@ import {
 import { ResourceUsagePage } from '@/features/usage';
 
 export const router = createBrowserRouter([
-  // Public Routes
+  // Public Routes (Header & Layout for all visitors)
   {
     element: <PublicLayout />,
-    children: [{ path: '/', element: <LandingPage /> }],
+    children: [
+      { path: '/', element: <LandingPage /> },
+      { path: '/pricing', element: <PricingPage /> },
+      { path: '/faq', element: <FaqPage /> },
+      { path: '/docs', element: <DocsPage /> },
+      { path: '/contact', element: <ContactPage /> },
+    ],
   },
 
   // Guest-only Routes (login / register / password recovery)
@@ -79,7 +86,6 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
 
           // Billing Routes
-          { path: '/pricing', element: <PricingPage /> },
           { path: '/billing/trial', element: <TrialActivationPage /> },
           { path: '/billing/payment', element: <QRPaymentPage /> },
           { path: '/billing/upgrade', element: <UpgradeSubscriptionPage /> },

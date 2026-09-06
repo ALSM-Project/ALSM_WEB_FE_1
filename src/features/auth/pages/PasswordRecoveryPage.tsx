@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Mail, Lock, CheckCircle2, Cpu } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, CheckCircle2 } from 'lucide-react';
 import { authService } from '../services/auth.service';
 import { ROUTES } from '@/shared/constants/routes';
 import { Input, PasswordInput } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { AuthLayout } from '../components/AuthLayout';
 
 export const PasswordRecoveryPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -81,42 +82,45 @@ export const PasswordRecoveryPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] flex items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold shadow-xs">
-            <Cpu className="w-5 h-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold tracking-tight text-slate-900 text-lg leading-none">ALSM</span>
-            <span className="text-[10px] font-medium text-slate-500 tracking-wide mt-0.5 font-sans">Password Recovery</span>
-          </div>
-        </div>
-
+    <AuthLayout
+      variant="recovery"
+      eyebrow="ACCOUNT RECOVERY"
+      headline="Secure Account Access & Recovery"
+      description="Enter your registered work email to receive encrypted reset links and manage your enterprise ALSM credentials."
+    >
+      <div className="space-y-6">
         {step === 1 && (
           <div className="space-y-6">
-            <Link to={ROUTES.PUBLIC.LOGIN} className="inline-flex items-center space-x-2 text-xs font-medium text-slate-500 hover:text-slate-900">
+            <Link to={ROUTES.PUBLIC.LOGIN} className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-500 hover:text-[#0652CC] transition-colors">
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Sign In</span>
             </Link>
 
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Reset your password</h2>
-              <p className="text-slate-500 text-sm mt-1">Enter your work email to receive reset instructions.</p>
+              <h2 className="text-2xl font-bold text-[#091E42] tracking-tight">Forgot your password?</h2>
+              <p className="text-slate-500 text-sm mt-1">Enter your email address and we'll help you reset your password.</p>
             </div>
 
-            {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
+            {error && (
+              <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-3 rounded-xl text-sm font-medium">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleRequestSubmit} className="space-y-4">
               <Input
-                label="Email Address"
+                label="WORK EMAIL"
                 placeholder="alex.vance@acmecorp.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 icon={<Mail className="w-4 h-4 text-slate-400" />}
               />
-              <Button type="submit" className="w-full py-2.5 text-sm font-semibold" isLoading={loading}>
-                Send Recovery Link
+              <Button 
+                type="submit" 
+                className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm" 
+                isLoading={loading}
+              >
+                Send Reset Link
               </Button>
             </form>
           </div>
@@ -124,12 +128,12 @@ export const PasswordRecoveryPage: React.FC = () => {
 
         {step === 2 && (
           <div className="space-y-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mx-auto border border-brand-200">
+            <div className="w-12 h-12 rounded-full bg-blue-50 text-[#0652CC] flex items-center justify-center mx-auto border border-blue-100 shadow-sm">
               <Mail className="w-6 h-6" />
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Check Your Email</h2>
+              <h2 className="text-2xl font-bold text-[#091E42] tracking-tight">Check Your Email</h2>
               <p className="text-slate-500 text-xs mt-1">
                 We've sent password reset instructions to <strong className="text-slate-800">{email}</strong>
               </p>
@@ -143,7 +147,7 @@ export const PasswordRecoveryPage: React.FC = () => {
               <Button
                 type="button"
                 variant="secondary"
-                className="w-full py-2 text-xs font-semibold"
+                className="w-full py-2.5 text-xs font-semibold rounded-xl"
                 onClick={() => window.location.assign(`${ROUTES.PUBLIC.RESET_PASSWORD}?token=demo-token`)}
               >
                 Open Reset Link
@@ -155,7 +159,7 @@ export const PasswordRecoveryPage: React.FC = () => {
                   setResendCooldown(30);
                   setExpireSeconds(1425);
                 }}
-                className="text-xs text-brand-600 hover:underline disabled:opacity-50 font-medium"
+                className="text-xs text-[#0652CC] hover:underline disabled:opacity-50 font-semibold"
               >
                 {resendCooldown > 0 ? `Resend Email (${resendCooldown}s)` : "Didn't receive the email? Resend Email"}
               </button>
@@ -166,23 +170,27 @@ export const PasswordRecoveryPage: React.FC = () => {
         {step === 3 && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Create a New Password</h2>
+              <h2 className="text-2xl font-bold text-[#091E42] tracking-tight">Create a New Password</h2>
               <p className="text-slate-500 text-sm mt-1">Set a strong password for your account.</p>
             </div>
 
-            {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
+            {error && (
+              <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-3 rounded-xl text-sm font-medium">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSetPasswordSubmit} className="space-y-4">
               <PasswordInput
-                label="New Password"
+                label="NEW PASSWORD"
                 placeholder="••••••••••••"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 icon={<Lock className="w-4 h-4 text-slate-400" />}
               />
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1.5 text-xs">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Requirements</p>
+              <div className="bg-slate-50 p-4 rounded-xl border border-[#D9E2EC] space-y-1.5 text-xs">
+                <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Requirements</p>
                 <div className="flex items-center space-x-2 text-slate-700">
                   <CheckCircle2 className={`w-3.5 h-3.5 ${newPassword.length >= 8 ? 'text-emerald-600' : 'text-slate-400'}`} />
                   <span>8+ characters</span>
@@ -202,7 +210,7 @@ export const PasswordRecoveryPage: React.FC = () => {
               </div>
 
               <PasswordInput
-                label="Confirm Password"
+                label="CONFIRM PASSWORD"
                 placeholder="••••••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -215,7 +223,11 @@ export const PasswordRecoveryPage: React.FC = () => {
                 </p>
               )}
 
-              <Button type="submit" className="w-full py-2.5 text-sm font-semibold" isLoading={loading}>
+              <Button 
+                type="submit" 
+                className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm" 
+                isLoading={loading}
+              >
                 Update Password & Log In
               </Button>
             </form>
@@ -229,21 +241,22 @@ export const PasswordRecoveryPage: React.FC = () => {
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Password Updated</h2>
+              <h2 className="text-2xl font-bold text-[#091E42] tracking-tight">Password Updated</h2>
               <p className="text-slate-500 text-xs mt-1">
                 Your password has been successfully changed. You can now log in with your new credentials.
               </p>
             </div>
 
             <Link to={ROUTES.PUBLIC.LOGIN}>
-              <Button className="w-full py-2.5 text-sm font-semibold">
+              <Button className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm">
                 Sign In Now
               </Button>
             </Link>
           </div>
         )}
       </div>
-    </div>
+    </AuthLayout>
   );
 };
+
 export default PasswordRecoveryPage;

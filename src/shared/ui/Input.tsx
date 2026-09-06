@@ -22,15 +22,15 @@ export const Input: React.FC<InputProps> = ({
   const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
   return (
-    <div className="w-full space-y-1">
+    <div className="w-full space-y-1.5">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">
+        <label htmlFor={inputId} className="block text-xs font-bold uppercase tracking-wider text-[#091E42]">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#42526E]">
             {icon}
           </div>
         )}
@@ -38,17 +38,17 @@ export const Input: React.FC<InputProps> = ({
           id={inputId}
           className={twMerge(
             clsx(
-              'w-full bg-white border text-slate-900 rounded-lg px-3.5 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600 transition-all placeholder:text-slate-400 shadow-sm',
-              icon && 'pl-10',
-              error ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500' : 'border-slate-300',
+              'w-full bg-white border text-[#091E42] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0652CC] focus:border-[#0652CC] transition-all placeholder:text-gray-400 shadow-sm font-medium',
+              icon && 'pl-11',
+              error ? 'border-rose-500 focus:ring-rose-500 focus:border-rose-500' : 'border-[#D9E2EC]',
               className
             )
           )}
           {...props}
         />
       </div>
-      {error && <p className="text-xs text-rose-600 font-medium">{error}</p>}
-      {helperText && !error && <p className="text-xs text-slate-500">{helperText}</p>}
+      {error && <p className="text-xs text-rose-600 font-semibold mt-1">{error}</p>}
+      {helperText && !error && <p className="text-xs text-[#42526E] mt-1">{helperText}</p>}
     </div>
   );
 };
