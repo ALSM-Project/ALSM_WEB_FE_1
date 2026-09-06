@@ -1,0 +1,163 @@
+/* Auth Layout Styles - Strict Equal Size 50%/50% Composition */
+
+/* Main Page Container Below Header */
+.auth-page-main {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #F7F9FC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .auth-page-main {
+    padding: 3rem 2rem;
+  }
+}
+
+/* Centered Max-Width Wrapper - 50% / 50% Equal Grid Container */
+.auth-centered-container {
+  width: calc(100% - 48px);
+  max-width: 1040px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: stretch;
+}
+
+@media (min-width: 1024px) {
+  .auth-centered-container {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+    align-items: stretch;
+    height: 580px; /* Shared identical height for both columns on desktop */
+  }
+
+  .auth-centered-container.variant-login {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .auth-centered-container.variant-register {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Marketing Panel Card - 50% Grid Cell Box */
+.auth-marketing-card {
+  position: relative;
+  background-color: #091E42;
+  color: #FFFFFF;
+  border-radius: 16px;
+  padding: 2rem;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 36px -10px rgba(9, 30, 66, 0.22);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Background Glows & Texture */
+.auth-card-glow-1 {
+  position: absolute;
+  top: -20%;
+  left: -20%;
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(6, 82, 204, 0.38) 0%, rgba(9, 30, 66, 0) 70%);
+  pointer-events: none;
+  filter: blur(40px);
+}
+
+.auth-card-glow-2 {
+  position: absolute;
+  bottom: -20%;
+  right: -20%;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.2) 0%, rgba(139, 92, 246, 0.16) 50%, rgba(9, 30, 66, 0) 75%);
+  pointer-events: none;
+  filter: blur(45px);
+}
+
+.auth-card-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 26px 26px;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Flow Graphic Box inside Marketing Card */
+.modernization-flow-box {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 1rem 1.125rem;
+  margin-top: 1.25rem;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
+}
+
+.flow-node-item {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.flow-node-item:hover {
+  border-color: rgba(34, 211, 238, 0.3);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Form Card Wrapper - 50% Grid Cell Box */
+.auth-card-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.auth-card-box {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  background-color: #FFFFFF;
+  border: 1px solid #D9E2EC;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px -5px rgba(9, 30, 66, 0.05), 0 4px 12px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  animation: authCardFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes authCardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card-box {
+    animation: none !important;
+  }
+}

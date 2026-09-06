@@ -18,6 +18,7 @@ import {
   Terminal,
   Coffee,
 } from 'lucide-react';
+import logo2 from '@/assets/logo2.png';
 import { ROUTES } from '@/shared/constants/routes';
 import './PublicNavbar.css';
 
@@ -58,7 +59,7 @@ const PLATFORM_SECTIONS: DropdownSection[] = [
     ],
   },
   {
-    title: 'AI & QUALITY',
+    title: 'VALIDATION & QUALITY',
     links: [
       {
         label: 'AI Validation',
@@ -246,9 +247,8 @@ export const PublicNavbar: React.FC = () => {
     <div
       id={`dropdown-${id}`}
       role="region"
-      className={`alsm-dropdown-panel ${isOpen ? 'open' : ''} ${isWide ? 'wide' : ''} ${
-        id === 'platform' ? 'mega' : ''
-      }`}
+      className={`alsm-dropdown-panel ${isOpen ? 'open' : ''} ${isWide ? 'wide' : ''} ${id === 'platform' ? 'mega' : ''
+        }`}
     >
       <div className={`alsm-dropdown-grid ${sections.length === 3 ? 'cols-3' : 'cols-2'}`}>
         {sections.map((section) => (
@@ -295,10 +295,11 @@ export const PublicNavbar: React.FC = () => {
         <div className="alsm-header-inner" ref={dropdownRef}>
           {/* ─── Logo ─── */}
           <Link to="/" className="alsm-logo" aria-label="ALSM Home">
-            <div className="alsm-logo-mark">
-              <Cpu className="w-5 h-5 text-white" />
-            </div>
-            <span className="alsm-logo-text">LegacyX</span>
+            <img
+              src={logo2}
+              alt="ALSM"
+              className="alsm-logo-image"
+            />
           </Link>
 
           {/* ─── Center Navigation ─── */}
@@ -356,13 +357,19 @@ export const PublicNavbar: React.FC = () => {
 
           {/* ─── Right Auth Section ─── */}
           <div className="alsm-nav-right">
-            <Link to={ROUTES.PUBLIC.LOGIN} className="alsm-login-link">
+            <Link
+              to={ROUTES.PUBLIC.LOGIN}
+              className={`alsm-login-link ${location.pathname === ROUTES.PUBLIC.LOGIN ? 'active' : ''}`}
+            >
               <span className="alsm-login-rollover">
                 <span>Log in</span>
                 <span>Log in</span>
               </span>
             </Link>
-            <Link to={ROUTES.PUBLIC.REGISTER} className="alsm-cta-btn">
+            <Link
+              to={ROUTES.PUBLIC.REGISTER}
+              className={`alsm-cta-btn ${location.pathname === ROUTES.PUBLIC.REGISTER ? 'active' : ''}`}
+            >
               <span className="alsm-cta-rollover">
                 <span>Get Started</span>
                 <span>Get Started</span>

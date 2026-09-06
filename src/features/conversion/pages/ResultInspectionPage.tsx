@@ -94,7 +94,7 @@ export const ResultInspectionPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-100">
         <Button variant="outline" onClick={handleReRunValidator} isLoading={validating} className="space-x-1.5 text-xs font-semibold">
           <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
-          <span>Re-run AI Validator</span>
+          <span>Re-run Validation Engine</span>
         </Button>
 
         <div className="flex space-x-3">

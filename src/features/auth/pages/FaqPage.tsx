@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, MessageSquare, Calendar, HelpCircle, Layers, Cpu, Sparkles, FolderKanban, CreditCard } from 'lucide-react';
+import { ChevronDown, MessageSquare, Calendar, HelpCircle, Layers, Sparkles, FolderKanban, CreditCard } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import './FaqPage.css';
 
@@ -41,21 +41,21 @@ const FAQ_DATA: FaqItem[] = [
     category: 'MODERNIZATION',
     question: 'How does BMS / DSPF modernization work?',
     answer:
-      'ALSM parses raw BMS macro definitions (.bms) and DSPF DDS files, extracts field positions, attributes, and colors, maps legacy screen structures to React UI primitives, and generates clean TypeScript/JSX components with matching state hooks.',
+      'The Conversion Algorithm analyzes raw BMS macro definitions (.bms) and DSPF DDS files, extracts field positions, attributes, and colors, deterministically maps screen fields to target components, and generates React JSX components.',
   },
   {
     id: 'mod-2',
     category: 'MODERNIZATION',
     question: 'How does COBOL modernization work?',
     answer:
-      'ALSM analyzes COBOL DIVISION statements, data structures (DATA DIVISION / WORKING-STORAGE), and control flows (PROCEDURE DIVISION), mapping business rules into structured Java classes and Spring Boot-compatible service methods.',
+      'The Conversion Algorithm parses COBOL DIVISION statements, data structures, and PROCEDURE DIVISION paragraphs, mapping business rules to Java methods and generating Spring Boot-compatible service classes.',
   },
   {
     id: 'mod-3',
     category: 'MODERNIZATION',
     question: 'What does the modernization workflow look like?',
     answer:
-      'The workflow follows a 5-step pipeline: Analyze (parse legacy source) → Map (configure field & data mappings) → Generate (produce React & Java code) → Validate (AI-assisted verification) → Export (download project bundle).',
+      'The workflow follows a structured pipeline: Analyze (screen analysis / parsing) → Map (field & paragraph mapping by algorithm) → Generate (React & Java code generation) → Rule Validate → Optional AI Validation Assistance → Human Review → Export.',
   },
   {
     id: 'mod-4',
@@ -69,30 +69,30 @@ const FAQ_DATA: FaqItem[] = [
   {
     id: 'ai-1',
     category: 'AI & VALIDATION',
-    question: 'How does AI validation work?',
+    question: 'Does ALSM use AI for core conversion?',
     answer:
-      'AI validation compares generated React/Java code against original legacy specifications, identifying structural anomalies, missing field bindings, data type discrepancies, or logic edge cases.',
+      'No. Core BMS/DSPF and COBOL conversion is performed deterministically by the Conversion Algorithm. AI is used ONLY as optional validation assistance.',
   },
   {
     id: 'ai-2',
     category: 'AI & VALIDATION',
-    question: 'How is AI used in the modernization process?',
+    question: 'How is AI used in ALSM?',
     answer:
-      'AI is used as an intelligent assistant during structural mapping, field naming inference, code optimization, and syntax validation. It accelerates manual review without compromising developer control.',
+      'The optional AI Validator assists the Rule Validator by identifying candidate findings with confidence and risk indicators. It does NOT generate initial mappings, modify code directly, or serve as final approval authority.',
   },
   {
     id: 'ai-3',
     category: 'AI & VALIDATION',
     question: 'Does ALSM automatically convert everything without review?',
     answer:
-      'No. ALSM emphasizes human-in-the-loop engineering. Every automated conversion undergoes automated validation checks, diagnostic reporting, and explicit developer review before final codebase export.',
+      'No. Human review remains the final decision authority. Every conversion undergoes rule-based validation, optional AI validation assistance, diagnostic reporting, and explicit developer review before export.',
   },
   {
     id: 'ai-4',
     category: 'AI & VALIDATION',
-    question: 'What are diagnostics used for?',
+    question: 'Can users manually correct mappings and re-convert?',
     answer:
-      'Diagnostics report syntax anomalies, unmapped legacy keywords, variable type mismatches, and conversion warnings to help developers isolate and fix migration issues quickly.',
+      'Yes. Users can manually adjust field mappings or paragraph mappings in the mapping studio and trigger versioned re-conversion through the Conversion Algorithm.',
   },
 
   // ─── PROJECTS ───

@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ArrowRight, Sparkles, Building2, HelpCircle } from 'lucide-react';
+import { Check, ArrowRight, Sparkles, Building2, HelpCircle, Loader2 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
+import { billingService } from '../services/billing.service';
+import type { SubscriptionPlan } from '../types/billing';
 import './PricingPage.css';
 
 interface PlanDetail {
-  id: 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
+  id: string;
   name: string;
   description: string;
   monthlyPrice: string;
@@ -20,88 +22,6 @@ interface PlanDetail {
   specs: { label: string; highlight?: boolean }[];
   features: string[];
 }
-
-const PLANS: PlanDetail[] = [
-  {
-    id: 'STARTER',
-    name: 'Starter',
-    description: 'Essential tools for small teams modernizing single applications.',
-    monthlyPrice: '$99',
-    annualPrice: '$950',
-    monthlyPeriod: '/ month',
-    annualPeriod: '/ year ($79/mo)',
-    trialText: '14-day free trial',
-    ctaText: 'Start 14-Day Trial',
-    ctaVariant: 'outline',
-    route: ROUTES.BILLING.TRIAL,
-    specs: [
-      { label: '1 project', highlight: false },
-      { label: '10 screens / month', highlight: false },
-      { label: '0 COBOL programs', highlight: false },
-      { label: '5 GB storage', highlight: false },
-      { label: '2 team members', highlight: false },
-    ],
-    features: [
-      'BMS to React conversion',
-      'Standard community support',
-    ],
-  },
-  {
-    id: 'PROFESSIONAL',
-    name: 'Professional',
-    description: 'Advanced AI capabilities for high-velocity engineering workflows.',
-    monthlyPrice: '$499',
-    annualPrice: '$4,790',
-    monthlyPeriod: '/ month',
-    annualPeriod: '/ year ($399/mo)',
-    isPopular: true,
-    trialText: '14-day free trial',
-    ctaText: 'Start 14-Day Free Trial',
-    ctaVariant: 'primary',
-    route: ROUTES.BILLING.TRIAL,
-    specs: [
-      { label: 'Unlimited projects', highlight: true },
-      { label: '100 screens / month', highlight: true },
-      { label: '20 COBOL programs / month', highlight: true },
-      { label: '50 GB storage', highlight: false },
-      { label: '10 team members', highlight: false },
-    ],
-    features: [
-      'BMS to React & COBOL to Java',
-      'AI-assisted mapping',
-      'Code review workflow',
-      'Priority SLA support',
-    ],
-  },
-  {
-    id: 'ENTERPRISE',
-    name: 'Enterprise',
-    description: 'Custom deployment and maximum security for large organizations.',
-    monthlyPrice: 'Contact Sales',
-    annualPrice: 'Contact Sales',
-    monthlyPeriod: '',
-    annualPeriod: '',
-    trialText: 'Proof of concept on request',
-    ctaText: 'Contact Sales',
-    ctaVariant: 'outline',
-    route: ROUTES.BILLING.TRIAL,
-    specs: [
-      { label: 'Unlimited projects', highlight: true },
-      { label: 'Unlimited screens', highlight: true },
-      { label: 'Unlimited COBOL programs', highlight: true },
-      { label: 'Unlimited storage', highlight: true },
-      { label: 'Unlimited team members', highlight: true },
-    ],
-    features: [
-      'BMS to React & COBOL to Java',
-      'AI-assisted mapping & Code review',
-      'Webhook integration & Audit logs',
-      'SSO/SAML Integration',
-      'Self-hosted deployment option',
-      'Dedicated CSM & 99.9% SLA',
-    ],
-  },
-];
 
 const FAQS = [
   {
@@ -125,6 +45,73 @@ const FAQS = [
 export const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   const [isYearly, setIsYearly] = useState(true);
+  const [plans, setPlans] = useState<PlanDetail[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+
+    billingService
+      .getSubscriptionPlans()
+      .then((fetchedPlans: SubscriptionPlan[]) => {
+        if (!isMounted) return;
+        if (fetchedPlans && fetchedPlans.length > 0) {
+          const formatted: PlanDetail[] = fetchedPlans.map((p) => {
+            const isEnterprise = p.id === 'ENTERPRISE';
+            const formatPrice = (val: number) => {
+              if (isEnterprise || val === 0) return 'Contact Sales';
+              return `${val.toLocaleString('vi-VN')}₫`;
+            };
+            return {
+              id: p.id,
+              name: p.name,
+              description: p.description,
+              monthlyPrice: formatPrice(p.monthlyPrice),
+              annualPrice: formatPrice(p.annualPrice),
+              monthlyPeriod: isEnterprise ? '' : '/ month',
+              annualPeriod: isEnterprise ? '' : '/ year',
+              isPopular: p.isPopular,
+              trialText: p.trialText || (isEnterprise ? 'Proof of concept on request' : '14-day free trial'),
+              ctaText: p.ctaText || (isEnterprise ? 'Contact Sales' : 'Start 14-Day Free Trial'),
+              ctaVariant: p.ctaVariant || (p.isPopular ? 'primary' : 'outline'),
+              route: ROUTES.BILLING.TRIAL,
+              specs: p.specs || (isEnterprise ? [
+                { label: 'Unlimited projects', highlight: true },
+                { label: 'Unlimited screens', highlight: true },
+                { label: 'Unlimited COBOL programs', highlight: true },
+                { label: 'Unlimited storage', highlight: true },
+              ] : p.id === 'PROFESSIONAL' ? [
+                { label: 'Unlimited projects', highlight: true },
+                { label: '100 screens / month', highlight: true },
+                { label: '20 COBOL programs / month', highlight: true },
+                { label: '50 GB storage', highlight: false },
+              ] : [
+                { label: '1 project', highlight: false },
+                { label: '10 screens / month', highlight: false },
+                { label: '0 COBOL programs', highlight: false },
+                { label: '5 GB storage', highlight: false },
+              ]),
+              features: p.features || [],
+            };
+          });
+          setPlans(formatted);
+        } else {
+          setPlans([]);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load subscription plans from MongoDB API:', err);
+        if (isMounted) setPlans([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="alsm-pricing-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -164,78 +151,105 @@ export const PricingPage: React.FC = () => {
 
       {/* ─── Pricing Grid ─── */}
       <div className="alsm-pricing-grid">
-        {PLANS.map((plan) => {
-          const price = isYearly ? plan.annualPrice : plan.monthlyPrice;
-          const period = isYearly ? plan.annualPeriod : plan.monthlyPeriod;
-
-          return (
-            <div
-              key={plan.id}
-              className={`alsm-pricing-card ${plan.isPopular ? 'popular' : ''}`}
-            >
-              {plan.isPopular && (
-                <div className="alsm-pricing-popular-badge">
-                  <Sparkles className="w-3.5 h-3.5 inline-block mr-1" />
-                  Most Popular
-                </div>
-              )}
-
-              <div>
-                <div className="alsm-pricing-card-header">
-                  <h2 className="alsm-pricing-plan-name">{plan.name}</h2>
-                  <p className="alsm-pricing-plan-desc">{plan.description}</p>
-                </div>
-
-                <div className="alsm-pricing-price-box">
-                  <div className="flex items-baseline">
-                    <span className="alsm-pricing-amount">{price}</span>
-                    {period && <span className="alsm-pricing-cycle">{period}</span>}
-                  </div>
-                  <span className="alsm-pricing-trial-tag">{plan.trialText}</span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => navigate(plan.route)}
-                  className={`alsm-pricing-cta ${plan.ctaVariant}`}
-                >
-                  <span>{plan.ctaText}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                {/* Specs Section */}
-                <div className="alsm-pricing-specs-title">Plan Limits</div>
-                <ul className="alsm-pricing-specs-list">
-                  {plan.specs.map((spec, idx) => (
-                    <li key={idx} className="alsm-pricing-spec-item">
-                      <Check className="alsm-pricing-check-icon" />
-                      <span>
-                        {spec.highlight ? (
-                          <strong className="text-[#0652CC]">{spec.label}</strong>
-                        ) : (
-                          spec.label
-                        )}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Features Section */}
-                <div className="alsm-pricing-specs-title" style={{ marginTop: '16px' }}>
-                  Supported Capabilities
-                </div>
-                <ul className="alsm-pricing-specs-list">
-                  {plan.features.map((feat, idx) => (
-                    <li key={idx} className="alsm-pricing-spec-item">
-                      <Check className="alsm-pricing-check-icon" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
+        {loading ? (
+          /* Loading Skeletons */
+          [1, 2, 3].map((idx) => (
+            <div key={idx} className="alsm-pricing-card animate-pulse">
+              <div className="h-6 w-1/3 bg-gray-200 rounded mb-4" />
+              <div className="h-4 w-3/4 bg-gray-200 rounded mb-6" />
+              <div className="h-10 w-1/2 bg-gray-200 rounded mb-6" />
+              <div className="h-12 w-full bg-gray-200 rounded mb-6" />
+              <div className="space-y-3">
+                <div className="h-4 w-full bg-gray-200 rounded" />
+                <div className="h-4 w-5/6 bg-gray-200 rounded" />
+                <div className="h-4 w-2/3 bg-gray-200 rounded" />
               </div>
             </div>
-          );
-        })}
+          ))
+        ) : plans.length === 0 ? (
+          /* Empty State */
+          <div className="col-span-full p-12 text-center bg-white rounded-3xl border border-[#D9E2EC]">
+            <Loader2 className="w-8 h-8 text-[#0652CC] animate-spin mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-[#091E42]">Không có gói dịch vụ nào</h3>
+            <p className="text-sm text-[#42526E] mt-2">
+              Các gói dịch vụ sẽ được thiết lập và cập nhật từ hệ thống quản trị MongoDB.
+            </p>
+          </div>
+        ) : (
+          /* Dynamic Plans from MongoDB */
+          plans.map((plan) => {
+            const price = isYearly ? plan.annualPrice : plan.monthlyPrice;
+            const period = isYearly ? plan.annualPeriod : plan.monthlyPeriod;
+
+            return (
+              <div
+                key={plan.id}
+                className={`alsm-pricing-card ${plan.isPopular ? 'popular' : ''}`}
+              >
+                {plan.isPopular && (
+                  <div className="alsm-pricing-popular-badge">
+                    <Sparkles className="w-3.5 h-3.5 inline-block mr-1" />
+                    Most Popular
+                  </div>
+                )}
+
+                <div>
+                  <div className="alsm-pricing-card-header">
+                    <h2 className="alsm-pricing-plan-name">{plan.name}</h2>
+                    <p className="alsm-pricing-plan-desc">{plan.description}</p>
+                  </div>
+
+                  <div className="alsm-pricing-price-box">
+                    <div className="flex items-baseline">
+                      <span className="alsm-pricing-amount">{price}</span>
+                      {period && <span className="alsm-pricing-cycle">{period}</span>}
+                    </div>
+                    <span className="alsm-pricing-trial-tag">{plan.trialText}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate(plan.route)}
+                    className={`alsm-pricing-cta ${plan.ctaVariant}`}
+                  >
+                    <span>{plan.ctaText}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  {/* Specs Section */}
+                  <div className="alsm-pricing-specs-title">Plan Limits</div>
+                  <ul className="alsm-pricing-specs-list">
+                    {plan.specs.map((spec, idx) => (
+                      <li key={idx} className="alsm-pricing-spec-item">
+                        <Check className="alsm-pricing-check-icon" />
+                        <span>
+                          {spec.highlight ? (
+                            <strong className="text-[#0652CC]">{spec.label}</strong>
+                          ) : (
+                            spec.label
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* Features Section */}
+                  <div className="alsm-pricing-specs-title" style={{ marginTop: '16px' }}>
+                    Supported Capabilities
+                  </div>
+                  <ul className="alsm-pricing-specs-list">
+                    {plan.features.map((feat, idx) => (
+                      <li key={idx} className="alsm-pricing-spec-item">
+                        <Check className="alsm-pricing-check-icon" />
+                        <span>{feat}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       {/* ─── Enterprise Banner ─── */}

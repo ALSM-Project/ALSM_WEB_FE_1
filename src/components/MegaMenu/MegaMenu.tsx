@@ -1,5 +1,5 @@
 import React from 'react';
-import { MegaMenuGroup } from '../../features/menus/types/menu';
+import type { MegaMenuGroup } from '../../features/menus/types/menu';
 import './MegaMenu.css';
 
 interface MegaMenuProps {

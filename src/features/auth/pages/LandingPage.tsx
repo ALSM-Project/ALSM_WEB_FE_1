@@ -17,6 +17,8 @@ import {
   Star,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
+import { billingService } from '@/features/billing/services/billing.service';
+import type { SubscriptionPlan } from '@/features/billing/types/billing';
 import './LandingPage.css';
 
 interface ReviewItem {
@@ -45,7 +47,7 @@ const REVIEWS: ReviewItem[] = [
   {
     name: 'Marcus Thorne',
     role: 'VP of Modernization @ CoreBank',
-    comment: 'Cleanest AST tree parsing and field mapping workflow available. The AI Parity validation runner is top tier.',
+    comment: 'Cleanest AST tree parsing and field mapping workflow available. The Rule Validator and AI-assisted validation runner is top tier.',
     avatarBg: 'bg-[#0652CC]',
     avatarText: 'text-white',
   },
@@ -59,7 +61,7 @@ const REVIEWS: ReviewItem[] = [
   {
     name: 'Liam Sterling',
     role: 'Legacy Migration Architect',
-    comment: 'Zero AI hallucinations thanks to ALSM constrained grammar validation. Essential developer infrastructure.',
+    comment: 'Deterministic AST conversion rules guarantee clean React & Java output with zero logic regressions.',
     avatarBg: 'bg-[#E8F1FF] border border-[#0652CC]/30',
     avatarText: 'text-[#0652CC]',
   },
@@ -73,23 +75,23 @@ interface FaqItem {
 const FAQS: FaqItem[] = [
   {
     question: 'How does ALSM extract BMS & DSPF green-screen definitions?',
-    answer: 'ALSM parses IBM i / AS400 DFHMDF BMS mapfields and DSPF display files into standardized Abstract Syntax Trees (AST). Field coordinates, length, data types, and function key bindings (F3/F12) automatically map into React form components.',
+    answer: 'The Conversion Algorithm parses IBM i / AS400 DFHMDF BMS mapfields and DSPF display files into standardized Abstract Syntax Trees (AST). Field coordinates, length, data types, and function key bindings (F3/F12) automatically map into React form components.',
   },
   {
     question: 'How does COBOL to Java microservice refactoring preserve business rules?',
-    answer: 'Our deterministic AST transformation engine maps WORKING-STORAGE sections to DTOs and PROCEDURE DIVISION paragraphs into Spring Boot service methods. Automated JUnit test suites are generated to ensure 100% logic parity.',
+    answer: 'Our deterministic Conversion Algorithm maps WORKING-STORAGE sections to DTOs and PROCEDURE DIVISION paragraphs into Spring Boot service methods. Rule validation and automated test suites ensure 100% logic parity.',
   },
   {
     question: 'Can we inspect field mappings before exporting production code?',
     answer: 'Yes! The ALSM Field Mapping & Result Inspection Studio provides full side-by-side AST inspection, field mapping overrides, code diffing, and interactive preview before downloading production bundles.',
   },
   {
-    question: 'What target frameworks and tech stack are supported?',
-    answer: 'Frontend: React 19, TypeScript, Tailwind CSS v4, Lucide icons. Backend: Spring Boot 3, Java 21/17, REST API, JPA Repositories, and PostgreSQL/DB2 integration.',
+    question: 'Does ALSM use AI to perform code conversion?',
+    answer: 'No. Core BMS/DSPF and COBOL conversions are performed deterministically by the Conversion Algorithm. AI is used strictly as an optional validation assistant to highlight candidate findings for human review.',
   },
   {
-    question: 'Can I upgrade or adjust subscription plans at any time?',
-    answer: 'Yes. All plans can be managed directly from your Billing settings with immediate activation or cancellation at cycle end.',
+    question: 'What target frameworks and tech stack are supported?',
+    answer: 'Frontend: React 19, TypeScript, Tailwind CSS v4, Lucide icons. Backend: Spring Boot 3, Java 21/17, REST API, JPA Repositories, and PostgreSQL/DB2 integration.',
   },
 ];
 
@@ -99,6 +101,31 @@ export const LandingPage: React.FC = () => {
   const [activeMatrixTab, setActiveMatrixTab] = useState('react');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [annualBilling, setAnnualBilling] = useState(false);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
+  // Fetch subscription plans dynamically from backend API / MongoDB
+  useEffect(() => {
+    let isMounted = true;
+    setLoadingPlans(true);
+    billingService
+      .getSubscriptionPlans()
+      .then((data) => {
+        if (isMounted && data && Array.isArray(data)) {
+          setPlans(data);
+        }
+      })
+      .catch((err) => {
+        console.warn('Failed to load plans on LandingPage:', err);
+        if (isMounted) setPlans([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoadingPlans(false);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Auto-cycle pipeline stage
   useEffect(() => {
@@ -137,15 +164,15 @@ export const LandingPage: React.FC = () => {
       step: '04',
       title: 'CODE GENERATION',
       subtitle: 'React 19 & Spring Boot',
-      description: 'Generate clean, modular TypeScript React components and Spring Boot REST microservices.',
+      description: 'Generate clean, modular TypeScript React components and Spring Boot REST microservices via Conversion Algorithm.',
       icon: Code2,
       color: '#0655FF',
     },
     {
       step: '05',
-      title: 'AI PARITY VERIFICATION',
-      subtitle: 'Zero Regressions',
-      description: 'Automated test suite validates pixel parity and state-machine behavior 1:1.',
+      title: 'RULE & AI VALIDATION',
+      subtitle: 'Quality Verification',
+      description: 'Rule Validator checks deterministic code contracts while optional AI Validator assists with risk findings.',
       icon: ShieldCheck,
       color: '#10b981',
     },
@@ -282,21 +309,21 @@ public class AccountBalanceService {
           {/* Eyebrow Tag */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8F1FF] border border-[#0652CC]/20 text-[#0652CC] text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-[#0655FF] animate-pulse" />
-            <span>AI MODERNIZATION PLATFORM</span>
+            <span>LEGACY MODERNIZATION PLATFORM</span>
           </div>
 
           {/* Main Heading */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#091E42] leading-[1.08] max-w-4xl">
-            <span>AI-POWERED LEGACY </span>
+            <span>CONVERT IBM i LEGACY </span>
             <br className="hidden sm:inline" />
             <span className="bg-gradient-to-r from-[#0652CC] to-[#0655FF] bg-clip-text text-transparent">
-              MODERNIZATION PLATFORM
+              SYSTEMS TO MODERN WEB APPS
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-[#42526E] font-medium max-w-3xl text-base sm:text-lg text-center mt-6 px-4 leading-relaxed">
-            Accelerate legacy IBM i, AS400, BMS, DSPF, and COBOL applications straight into production-ready React 19 components and Spring Boot microservices with 100% deterministic AI parity.
+            Automate BMS/DSPF-to-React and COBOL-to-Java modernization using structured conversion algorithms, rule-based validation, and optional AI-assisted validation.
           </p>
 
           {/* Hero 3D Interactive Card Deck */}
@@ -350,12 +377,12 @@ public class AccountBalanceService {
             >
               <div>
                 <span className="text-[10px] font-mono font-bold text-[#22D3EE] bg-[#0652CC]/30 px-2 py-0.5 rounded border border-[#22D3EE]/30 uppercase">ALSM AST Engine</span>
-                <h4 className="text-base font-bold text-white mt-3">AI Parity Mapper</h4>
+                <h4 className="text-base font-bold text-white mt-3">Conversion Algorithm</h4>
                 <p className="text-xs text-[#22D3EE] mt-1 font-mono">AST Deterministic Pipeline</p>
               </div>
               <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/60 p-2 rounded border border-emerald-500/30">
                 <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                <span>0 AI Hallucinations</span>
+                <span>Deterministic Rules</span>
               </div>
             </div>
 
@@ -404,7 +431,7 @@ public class AccountBalanceService {
               to={ROUTES.PUBLIC.REGISTER}
               className="w-full sm:w-auto text-center bg-[#0652CC] text-white px-8 py-4 rounded-full text-base font-semibold hover:bg-[#0655FF] transition-all shadow-[0_10px_25px_rgba(6,82,204,0.25)] hover:shadow-[0_12px_30px_rgba(6,85,255,0.35)] cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>Get Started</span>
+              <span>Start Modernization</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
@@ -444,7 +471,7 @@ public class AccountBalanceService {
               </div>
               <div>
                 <div className="text-3xl font-extrabold text-[#0655FF] font-mono">100%</div>
-                <div className="text-xs text-[#F4F5F7]/70 mt-1">Deterministic AI Parity</div>
+                <div className="text-xs text-[#F4F5F7]/70 mt-1">Deterministic Rule Parity</div>
               </div>
             </div>
           </div>
@@ -745,7 +772,7 @@ public class AccountInterestService {
       </section>
 
       {/* ================================================== */}
-      {/* 08. AI-ASSISTED VALIDATION                         */}
+      {/* 08. RULE & AI-ASSISTED VALIDATION                  */}
       {/* ================================================== */}
       <section id="ai-parity" className="w-full py-28 bg-[#020817] text-[#F4F5F7] relative overflow-hidden border-t border-[#091E42]">
         <div className="absolute top-1/3 left-1/4 w-[600px] h-[350px] bg-[#0655FF]/20 rounded-full blur-[150px] pointer-events-none" />
@@ -755,13 +782,13 @@ public class AccountInterestService {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#22D3EE] bg-[#0652CC]/20 px-4 py-1.5 rounded-full border border-[#22D3EE]/30 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
-                AI PARITY & VALIDATION
+                RULE & AI-ASSISTED VALIDATION
               </span>
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#F4F5F7] mt-6 leading-tight">
-                Deterministic AI Parity with Zero Regressions
+                Rule Validation & Optional AI Assistance
               </h2>
               <p className="text-[#F4F5F7]/80 mt-4 text-base sm:text-lg leading-relaxed">
-                ALSM automatically validates data schemas, state logic, and visual UI layouts between legacy systems and modern React micro-frontends.
+                ALSM uses deterministic rule validation for structural correctness, combined with optional AI-assisted validation to produce candidate findings with confidence scores for human review.
               </p>
 
               <div className="mt-8 space-y-4">
@@ -770,8 +797,8 @@ public class AccountInterestService {
                     <Check className="w-3.5 h-3.5 text-[#22D3EE]" />
                   </span>
                   <div>
-                    <h4 className="text-base font-bold text-[#F4F5F7]">Visual & State Diff Engine</h4>
-                    <p className="text-xs sm:text-sm text-[#F4F5F7]/70">Automated pixel and state-machine comparison across breakpoints.</p>
+                    <h4 className="text-base font-bold text-[#F4F5F7]">Rule Validator Engine</h4>
+                    <p className="text-xs sm:text-sm text-[#F4F5F7]/70">Deterministic checks for data types, grid bounds, paragraph coverage, and structural rules.</p>
                   </div>
                 </div>
 
@@ -780,8 +807,8 @@ public class AccountInterestService {
                     <Check className="w-3.5 h-3.5 text-[#22D3EE]" />
                   </span>
                   <div>
-                    <h4 className="text-base font-bold text-[#F4F5F7]">Zero AI Hallucinations</h4>
-                    <p className="text-xs sm:text-sm text-[#F4F5F7]/70">Constrained AST grammar rules guarantee valid TypeScript syntax.</p>
+                    <h4 className="text-base font-bold text-[#F4F5F7]">Optional AI-Assisted Findings</h4>
+                    <p className="text-xs sm:text-sm text-[#F4F5F7]/70">AI highlights candidate risks and confidence scores. Human review makes all final decisions.</p>
                   </div>
                 </div>
               </div>
@@ -789,17 +816,17 @@ public class AccountInterestService {
 
             <div className="p-8 rounded-3xl bg-[#091E42]/80 border border-[#0652CC]/50 backdrop-blur-xl shadow-[0_0_50px_rgba(6,82,204,0.15)]">
               <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
-                <span className="text-xs font-mono font-bold text-[#22D3EE]">SYSTEM_PARITY_VALIDATION.log</span>
+                <span className="text-xs font-mono font-bold text-[#22D3EE]">SYSTEM_QUALITY_VALIDATION.log</span>
                 <span className="text-xs font-semibold px-3 py-1 bg-emerald-500/20 text-emerald-400 rounded-full border border-emerald-500/30">
-                  100% PASS
+                  RULE PASSED
                 </span>
               </div>
 
               <div className="font-mono text-xs text-gray-200 space-y-2 leading-relaxed">
-                <div className="text-emerald-400">+ [VALIDATED] BMS Mapfield: CUST_ADDR_01 -&gt; React state: customerAddress</div>
-                <div className="text-emerald-400">+ [VALIDATED] Transaction rule: ERR_CODE_802 -&gt; Throws LegacyException</div>
+                <div className="text-emerald-400">+ [RULE VALIDATOR] BMS Mapfield: CUST_ADDR_01 -&gt; React state: customerAddress</div>
+                <div className="text-emerald-400">+ [RULE VALIDATOR] Transaction rule: ERR_CODE_802 -&gt; Throws LegacyException</div>
                 <div className="text-blue-400">+ [PERFORMANCE] Response latency: 1.2s -&gt; 42ms (96.5% reduction)</div>
-                <div className="text-cyan-400">+ [AI PARITY] Visual diff variance: 0.00%</div>
+                <div className="text-cyan-400">+ [AI ASSISTED FINDING] Visual diff candidate variance: 0.00% (Confidence: 98%)</div>
               </div>
             </div>
           </div>
@@ -813,13 +840,13 @@ public class AccountInterestService {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-xs font-bold uppercase tracking-wider text-[#22D3EE] bg-[#0652CC]/20 px-4 py-1.5 rounded-full border border-[#22D3EE]/30">
-              AI-POWERED WORKFLOW
+              AUTOMATED WORKFLOW
             </span>
             <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#F4F5F7] mt-6 leading-tight">
               How ALSM Modernizes Enterprise Codebases
             </h2>
             <p className="text-[#F4F5F7]/75 mt-4 text-base sm:text-lg">
-              From legacy BMS & COBOL straight to React 19 and Java with 100% deterministic AI parity.
+              From legacy BMS & COBOL straight to React 19 and Java via conversion algorithms and rule validation.
             </p>
           </div>
 
@@ -829,10 +856,10 @@ public class AccountInterestService {
                 01
               </div>
               <h3 className="text-xl font-bold text-[#F4F5F7] mb-3 group-hover:text-[#22D3EE] transition-colors">
-                Ingest & Reverse Engineer
+                Ingest & Analyze
               </h3>
               <p className="text-sm text-[#F4F5F7]/70 leading-relaxed">
-                Parse legacy screens, schemas, and COBOL copybooks into standardized AST trees and structured AI context.
+                Parse legacy screens, schemas, and COBOL copybooks into standardized AST trees for the Conversion Algorithm.
               </p>
             </div>
 
@@ -841,10 +868,10 @@ public class AccountInterestService {
                 02
               </div>
               <h3 className="text-xl font-bold text-[#F4F5F7] mb-3 group-hover:text-[#22D3EE] transition-colors">
-                AI Parity Validation
+                Rule & AI Validation
               </h3>
               <p className="text-sm text-[#F4F5F7]/70 leading-relaxed">
-                Run automated regression tests and behavior diffs to ensure converted UI matches original workflows 1:1.
+                Run Rule Validator checks and optional AI-assisted analysis to identify candidate findings for human review.
               </p>
             </div>
 
@@ -1017,129 +1044,87 @@ public class AccountInterestService {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            {/* Starter */}
-            <div className="p-8 rounded-3xl bg-white border border-[#D9E2EC] flex flex-col justify-between hover:border-[#0652CC]/40 transition-all shadow-[0_10px_30px_rgba(9,30,66,0.06)]">
-              <div>
-                <h3 className="text-xl font-bold text-[#091E42]">Starter</h3>
-                <p className="text-xs text-[#42526E] mt-1">For single project migration & evaluation</p>
-                <div className="my-6">
-                  <span className="text-4xl font-extrabold text-[#091E42]">
-                    ${annualBilling ? '499' : '599'}
-                  </span>
-                  <span className="text-[#42526E] text-sm"> / month</span>
+            {loadingPlans ? (
+              [1, 2, 3].map((idx) => (
+                <div key={idx} className="p-8 rounded-3xl bg-white border border-[#D9E2EC] animate-pulse">
+                  <div className="h-6 w-1/3 bg-gray-200 rounded mb-4" />
+                  <div className="h-4 w-3/4 bg-gray-200 rounded mb-6" />
+                  <div className="h-10 w-1/2 bg-gray-200 rounded mb-6" />
+                  <div className="space-y-3">
+                    <div className="h-4 w-full bg-gray-200 rounded" />
+                    <div className="h-4 w-5/6 bg-gray-200 rounded" />
+                    <div className="h-4 w-2/3 bg-gray-200 rounded" />
+                  </div>
                 </div>
-
-                <ul className="space-y-3.5 text-sm text-[#091E42]">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Up to 500 BMS/DSPF Screen Conversions
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    React 19 & TypeScript export
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Standard AST Parser Engine
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Email Support
-                  </li>
-                </ul>
+              ))
+            ) : plans.length === 0 ? (
+              <div className="col-span-full p-12 text-center bg-white rounded-3xl border border-[#D9E2EC]">
+                <h3 className="text-xl font-bold text-[#091E42]">Không có gói dịch vụ nào</h3>
+                <p className="text-sm text-[#42526E] mt-2">
+                  Dữ liệu gói dịch vụ sẽ được tải tự động từ hệ thống quản trị MongoDB.
+                </p>
               </div>
+            ) : (
+              plans.map((plan) => {
+                const isEnterprise = plan.id === 'ENTERPRISE';
+                const priceVal = annualBilling ? plan.annualPrice : plan.monthlyPrice;
+                const formatPrice = (val: number) => {
+                  if (isEnterprise || val === 0) return 'Contact Sales';
+                  return `${val.toLocaleString('vi-VN')}₫`;
+                };
 
-              <Link
-                to={ROUTES.PUBLIC.REGISTER}
-                className="w-full mt-8 py-3.5 text-center text-sm font-bold rounded-full bg-[#E8F1FF] text-[#0652CC] hover:bg-[#0652CC] hover:text-white transition-colors border border-[#0652CC]/25"
-              >
-                Get Started
-              </Link>
-            </div>
+                return (
+                  <div
+                    key={plan.id}
+                    className={`p-8 rounded-3xl bg-white flex flex-col justify-between relative transition-all ${
+                      plan.isPopular
+                        ? 'border-2 border-[#0652CC] shadow-[0_15px_45px_rgba(6,82,204,0.18)] scale-[1.02]'
+                        : 'border border-[#D9E2EC] shadow-[0_10px_30px_rgba(9,30,66,0.06)] hover:border-[#0652CC]/40'
+                    }`}
+                  >
+                    {plan.isPopular && (
+                      <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-wider bg-[#0652CC] text-white px-3.5 py-1 rounded-full shadow-md">
+                        Most Popular
+                      </span>
+                    )}
+                    <div>
+                      <h3 className="text-xl font-bold text-[#091E42]">{plan.name}</h3>
+                      <p className={`text-xs mt-1 ${plan.isPopular ? 'text-[#0652CC] font-semibold' : 'text-[#42526E]'}`}>
+                        {plan.description}
+                      </p>
+                      <div className="my-6">
+                        <span className="text-4xl font-extrabold text-[#091E42]">
+                          {formatPrice(priceVal)}
+                        </span>
+                        {!isEnterprise && priceVal !== 0 && (
+                          <span className="text-[#42526E] text-sm"> / month</span>
+                        )}
+                      </div>
 
-            {/* Pro All-Access */}
-            <div className="p-8 rounded-3xl bg-white border-2 border-[#0652CC] flex flex-col justify-between relative shadow-[0_15px_45px_rgba(6,82,204,0.18)] scale-[1.02]">
-              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-wider bg-[#0652CC] text-white px-3.5 py-1 rounded-full shadow-md">
-                Most Popular
-              </span>
-              <div>
-                <h3 className="text-xl font-bold text-[#091E42]">Enterprise Pro</h3>
-                <p className="text-xs text-[#0652CC] mt-1 font-semibold">For mid-size modernization teams</p>
-                <div className="my-6">
-                  <span className="text-4xl font-extrabold text-[#091E42]">
-                    ${annualBilling ? '1,499' : '1,799'}
-                  </span>
-                  <span className="text-[#42526E] text-sm"> / month</span>
-                </div>
+                      <ul className="space-y-3.5 text-sm text-[#091E42]">
+                        {plan.features.map((feat, idx) => (
+                          <li key={idx} className="flex items-center gap-2.5">
+                            <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
+                            <span>{feat}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
 
-                <ul className="space-y-3.5 text-sm text-[#091E42]">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Unlimited Screen Conversions
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    COBOL to Java Spring Boot Engine
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    AI Parity Verification Studio
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Up to 10 Developer Seats
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Priority Support Channel
-                  </li>
-                </ul>
-              </div>
-
-              <Link
-                to={ROUTES.PUBLIC.REGISTER}
-                className="w-full mt-8 py-3.5 text-center text-sm font-bold rounded-full bg-[#0652CC] text-white hover:bg-[#0655FF] transition-all shadow-[0_4px_20px_rgba(6,82,204,0.3)]"
-              >
-                Get Pro Access
-              </Link>
-            </div>
-
-            {/* Scale / Custom */}
-            <div className="p-8 rounded-3xl bg-white border border-[#D9E2EC] flex flex-col justify-between hover:border-[#0652CC]/40 transition-all shadow-[0_10px_30px_rgba(9,30,66,0.06)]">
-              <div>
-                <h3 className="text-xl font-bold text-[#091E42]">Custom Enterprise</h3>
-                <p className="text-xs text-[#42526E] mt-1">For core mainframe transformations</p>
-                <div className="my-6">
-                  <span className="text-4xl font-extrabold text-[#091E42]">Custom</span>
-                </div>
-
-                <ul className="space-y-3.5 text-sm text-[#091E42]">
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Dedicated Migration Engineers
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    On-Premises AST Deployment
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    Custom COBOL Dialect Parsing
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                    SLA & 24/7 Phone Support
-                  </li>
-                </ul>
-              </div>
-
-              <Link
-                to={ROUTES.PUBLIC.REGISTER}
-                className="w-full mt-8 py-3.5 text-center text-sm font-bold rounded-full bg-[#E8F1FF] text-[#0652CC] hover:bg-[#0652CC] hover:text-white transition-colors border border-[#0652CC]/25"
-              >
-                Contact Sales
-              </Link>
-            </div>
+                    <Link
+                      to={ROUTES.PUBLIC.REGISTER}
+                      className={`w-full mt-8 py-3.5 text-center text-sm font-bold rounded-full transition-all ${
+                        plan.isPopular
+                          ? 'bg-[#0652CC] text-white hover:bg-[#0655FF] shadow-[0_4px_20px_rgba(6,82,204,0.3)]'
+                          : 'bg-[#E8F1FF] text-[#0652CC] hover:bg-[#0652CC] hover:text-white border border-[#0652CC]/25'
+                      }`}
+                    >
+                      {isEnterprise ? 'Contact Sales' : plan.isPopular ? 'Get Pro Access' : 'Get Started'}
+                    </Link>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </section>

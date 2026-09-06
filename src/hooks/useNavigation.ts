@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../services/api/apiClient';
-import { NavigationData } from '../features/menus/types/menu';
+import type { NavigationData } from '../features/menus/types/menu';
 
 const CACHE_KEY = 'alsm_navigation_cache';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MenuItem } from '../../features/menus/types/menu';
+import type { MenuItem } from '../../features/menus/types/menu';
 
 interface SidebarItemProps {
   item: MenuItem;
@@ -20,7 +20,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
   onClick,
   onPinToggle,
 }) => {
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     if (onClick) onClick();
   };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { apiClient } from '../services/api/apiClient';
-import { CommandItem } from '../features/menus/types/menu';
+import type { CommandItem } from '../features/menus/types/menu';
 
 export function useCommandPalette() {
   const [isOpen, setIsOpen] = useState(false);

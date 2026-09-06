@@ -53,7 +53,7 @@ const SIDEBAR_NAV: SidebarSection[] = [
       { id: 'projects', label: 'Projects', icon: BookOpen },
       { id: 'upload', label: 'Upload', icon: Workflow },
       { id: 'screens', label: 'Screens', icon: Layers },
-      { id: 'conversion', label: 'Conversion Engine', icon: Cpu },
+      { id: 'conversion', label: 'Conversion Algorithm', icon: Cpu },
       { id: 'preview', label: 'Preview Studio', icon: Code2 },
       { id: 'export', label: 'Export', icon: FileCode },
     ],
@@ -70,10 +70,10 @@ const SIDEBAR_NAV: SidebarSection[] = [
 
 const PIPELINE_STEPS = [
   { step: '01', name: 'Legacy Input', desc: 'Raw BMS, DSPF & COBOL source files' },
-  { step: '02', name: 'Analyze', desc: 'AST parsing & symbol identification' },
-  { step: '03', name: 'Map', desc: 'Field & data attribute binding' },
+  { step: '02', name: 'Analyze', desc: 'AST parsing & screen analysis' },
+  { step: '03', name: 'Map', desc: 'Field & paragraph mapping by algorithm' },
   { step: '04', name: 'Generate', desc: 'React 19 JSX & Java 21 code' },
-  { step: '05', name: 'Validate', desc: 'AI validation & diagnostic rules' },
+  { step: '05', name: 'Validate', desc: 'Rule validation & optional AI assistance' },
   { step: '06', name: 'Export', desc: 'Production-ready project bundle' },
 ];
 
@@ -248,7 +248,7 @@ public class AccountProcessorService {
             </p>
             <p className="alsm-docs-p">
               Unlike black-box automated tools, ALSM maintains complete developer transparency. Every step
-              of the pipeline—from field identification to AI validation—provides interactive preview
+              of the pipeline—from field identification to rule & AI validation—provides interactive preview
               studios, field mapping controls, and explicit diagnostic reports.
             </p>
           </section>
@@ -295,7 +295,7 @@ public class AccountProcessorService {
               <li><strong>2. Analysis:</strong> AST parsing isolates labels, input fields, display attributes, and control loops.</li>
               <li><strong>3. Mapping:</strong> Structural mapping correlates 24x80 screen positions with modern CSS grid layouts.</li>
               <li><strong>4. Generation:</strong> Produces formatted React 19 components with Tailwind CSS and Java Spring Boot services.</li>
-              <li><strong>5. Validation:</strong> AI-assisted rules check field binding integrity and syntax correctness.</li>
+              <li><strong>5. Validation:</strong> Rule validation & optional AI assistance check field binding integrity and syntax correctness.</li>
               <li><strong>6. Review:</strong> Developers inspect live UI renders side-by-side with generated source code.</li>
               <li><strong>7. Export:</strong> Clean, un-obfuscated TypeScript/Java ZIP archive ready for CI/CD integration.</li>
             </ul>
@@ -383,21 +383,21 @@ public class AccountProcessorService {
             </div>
           </section>
 
-          {/* ─── Section: AI Validation ─── */}
+          {/* ─── Section: AI-Assisted Validation ─── */}
           <section id="ai-validation" className="alsm-docs-section">
             <h2 className="alsm-docs-h2">
               <Sparkles className="w-6 h-6 text-[#0652CC]" />
-              AI Validation Engine
+              AI-Assisted Validation
             </h2>
             <p className="alsm-docs-p">
-              AI validation functions as an intelligent review assistant rather than an autonomous black box.
-              It scans generated code to ensure:
+              The optional AI Validator assists the Rule Validator by acting as a review assistant rather than modifying converted code.
+              It scans generated React/Java code against legacy specs to highlight candidate findings:
             </p>
             <ul className="alsm-docs-ul">
-              <li>Field length constraints match original legacy definitions.</li>
-              <li>Data types (PIC 9 vs PIC X) map correctly to TypeScript string/number or Java BigDecimal.</li>
-              <li>Conditional business rules preserve branch coverage.</li>
-              <li>Accessibility ARIA attributes are attached to input elements.</li>
+              <li>Field length constraints matching original legacy definitions.</li>
+              <li>Data types (PIC 9 vs PIC X) mapping accurately to TypeScript or Java types.</li>
+              <li>Conditional business rules preserving branch coverage.</li>
+              <li>Accessibility ARIA attributes attached to interactive UI elements.</li>
             </ul>
           </section>
         </main>
@@ -421,7 +421,7 @@ public class AccountProcessorService {
             COBOL Modernization
           </a>
           <a href="#ai-validation" className="alsm-docs-toc-link">
-            AI Validation Engine
+            AI-Assisted Validation
           </a>
         </aside>
       </div>

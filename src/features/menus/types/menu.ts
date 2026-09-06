@@ -1,16 +1,6 @@
-export enum NavigationLevel {
-  GLOBAL = 'global',
-  PRIMARY = 'primary',
-  SECONDARY = 'secondary',
-  CONTEXTUAL = 'contextual',
-}
+export type NavigationLevel = 'global' | 'primary' | 'secondary' | 'contextual';
 
-export enum MenuPosition {
-  TOP = 'top',
-  LEFT = 'left',
-  RIGHT = 'right',
-  BOTTOM = 'bottom',
-}
+export type MenuPosition = 'top' | 'left' | 'right' | 'bottom';
 
 export interface MegaMenuGroup {
   id: string;

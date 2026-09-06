@@ -39,7 +39,7 @@ export const TrialActivationPage: React.FC = () => {
           </div>
           <div className="flex items-center space-x-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span>AI-assisted structural mapping</span>
+            <span>AI-assisted validation</span>
           </div>
           <div className="flex items-center space-x-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />

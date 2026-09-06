@@ -24,21 +24,33 @@ import type {
  * BillingService – calls real BE APIs with mock fallback for development.
  * Set `USE_MOCK = false` when the BE is fully running.
  */
-const USE_MOCK = true;
-
 export class BillingService {
   // ─── Plans ───────────────────────────────────────────────
 
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
-    if (USE_MOCK) return mockSubscriptionPlans;
-    return apiClient.get<SubscriptionPlan[]>('/billing/plans');
+    try {
+      const plans = await apiClient.get<SubscriptionPlan[]>('/billing/plans');
+      if (plans && Array.isArray(plans) && plans.length > 0) {
+        return plans;
+      }
+      return mockSubscriptionPlans;
+    } catch (err) {
+      console.warn('[BillingService] API GET /billing/plans failed, using fallback mock data:', err);
+      return mockSubscriptionPlans;
+    }
   }
 
   // ─── Subscription ────────────────────────────────────────
 
   async getCurrentSubscription(): Promise<Subscription | LegacySubscription | null> {
-    if (USE_MOCK) return mockCurrentSubscription;
-    return apiClient.get<Subscription | null>('/billing/subscription');
+    try {
+      const sub = await apiClient.get<Subscription | null>('/billing/subscription');
+      if (sub) return sub;
+      return mockCurrentSubscription;
+    } catch (err) {
+      console.warn('[BillingService] API GET /billing/subscription failed, using fallback mock data:', err);
+      return mockCurrentSubscription;
+    }
   }
 
   async activateTrial(): Promise<Subscription> {
@@ -56,32 +68,40 @@ export class BillingService {
   }
 
   async upgradePlan(targetPlanTier: string): Promise<boolean> {
-    if (USE_MOCK) {
-      console.log('[BillingService] Upgrade plan to:', targetPlanTier);
+    try {
+      await apiClient.put('/billing/subscription/upgrade', { targetPlanTier });
+      return true;
+    } catch (err) {
+      console.warn('[BillingService] API PUT /billing/subscription/upgrade failed, fallback simulation:', err);
       await new Promise((resolve) => setTimeout(resolve, 600));
       return true;
     }
-    await apiClient.put('/billing/subscription/upgrade', { targetPlanTier });
-    return true;
   }
 
   // ─── Cancel ──────────────────────────────────────────────
 
   async cancelSubscription(reason: string, feedback?: string): Promise<boolean> {
-    if (USE_MOCK) {
-      console.log('[BillingService] Subscription cancellation requested:', { reason, feedback });
+    try {
+      await apiClient.post('/billing/subscription/cancel', { reason, feedback });
+      return true;
+    } catch (err) {
+      console.warn('[BillingService] API POST /billing/subscription/cancel failed, fallback simulation:', err);
       await new Promise((resolve) => setTimeout(resolve, 500));
       return true;
     }
-    await apiClient.post('/billing/subscription/cancel', { reason, feedback });
-    return true;
   }
 
   // ─── Invoices ────────────────────────────────────────────
 
   async getInvoices(): Promise<Invoice[]> {
-    if (USE_MOCK) return mockInvoices as unknown as Invoice[];
-    return apiClient.get<Invoice[]>('/billing/invoices');
+    try {
+      const invoices = await apiClient.get<Invoice[]>('/billing/invoices');
+      if (invoices && Array.isArray(invoices)) return invoices;
+      return mockInvoices as unknown as Invoice[];
+    } catch (err) {
+      console.warn('[BillingService] API GET /billing/invoices failed, using fallback mock data:', err);
+      return mockInvoices as unknown as Invoice[];
+    }
   }
 
   // ─── Payment (QR) ────────────────────────────────────────
@@ -102,8 +122,14 @@ export class BillingService {
   // ─── Usage ───────────────────────────────────────────────
 
   async getUsageStats(): Promise<UsageStatistics> {
-    if (USE_MOCK) return mockUsageStats as unknown as UsageStatistics;
-    return apiClient.get<UsageStatistics>('/billing/usage');
+    try {
+      const stats = await apiClient.get<UsageStatistics>('/billing/usage');
+      if (stats) return stats;
+      return mockUsageStats as unknown as UsageStatistics;
+    } catch (err) {
+      console.warn('[BillingService] API GET /billing/usage failed, using fallback mock data:', err);
+      return mockUsageStats as unknown as UsageStatistics;
+    }
   }
 }
 

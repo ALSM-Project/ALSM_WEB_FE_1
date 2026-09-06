@@ -20,7 +20,12 @@
   transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
-
+.alsm-logo-image {
+  height: 100px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
 .alsm-header.scrolled {
   background: rgba(255, 255, 255, 0.96);
   box-shadow: 0 1px 20px rgba(9, 30, 66, 0.06);
@@ -29,18 +34,18 @@
 
 .alsm-header-inner {
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 48px;
+  padding: 0 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 100%;
 }
 
-@media (min-width: 1440px) {
+@media (max-width: 1024px) {
   .alsm-header-inner {
-    padding: 0 72px;
+    padding: 0 24px;
   }
 }
 
@@ -221,8 +226,14 @@
   transition: background 0.2s ease;
 }
 
-.alsm-login-link:hover {
-  background: rgba(6, 82, 204, 0.05);
+.alsm-login-link:hover,
+.alsm-login-link.active {
+  background: rgba(6, 82, 204, 0.08);
+  color: #0652CC;
+}
+
+.alsm-login-link.active {
+  font-weight: 700;
 }
 
 .alsm-login-rollover {

@@ -26,7 +26,7 @@ export const UpgradeSubscriptionPage: React.FC = () => {
     <div className="max-w-3xl mx-auto space-y-8 py-6">
       <div>
         <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Upgrade Subscription</h1>
-        <p className="text-slate-500 text-sm mt-1">Upgrade your tier for higher screen limits and priority AI refactoring capabilities.</p>
+        <p className="text-slate-500 text-sm mt-1">Upgrade your tier for higher screen limits and priority validation capabilities.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

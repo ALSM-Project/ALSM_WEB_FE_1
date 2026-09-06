@@ -4,5 +4,7 @@ export { LoginPage } from './pages/LoginPage';
 export { PasswordRecoveryPage } from './pages/PasswordRecoveryPage';
 export { FaqPage } from './pages/FaqPage';
 export { ContactPage } from './pages/ContactPage';
+export { ResetPasswordPage } from './pages/ResetPasswordPage';
+export { AuthLayout } from './components/AuthLayout';
 export { authService } from './services/auth.service';
 export type * from './types/auth';

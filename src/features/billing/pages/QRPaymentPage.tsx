@@ -15,7 +15,7 @@ export const QRPaymentPage: React.FC = () => {
   const [copiedRef, setCopiedRef] = useState(false);
   const [copiedAmount, setCopiedAmount] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'PENDING' | 'COMPLETED' | 'EXPIRED'>('PENDING');
-  const [paymentOrder, setPaymentOrder] = useState<QRPaymentOrder | null>(null);
+  const [paymentOrder] = useState<QRPaymentOrder | null>(null);
 
   // Use mock data as fallback
   const qr = paymentOrder || {
