@@ -12,7 +12,12 @@ export interface SubscriptionPlan {
   annualPrice: number;
   isPopular?: boolean;
   features: string[];
+  trialText?: string;
+  ctaText?: string;
+  ctaVariant?: 'primary' | 'outline' | 'secondary';
+  specs?: { label: string; highlight?: boolean }[];
 }
+
 
 export interface Subscription {
   id: string;

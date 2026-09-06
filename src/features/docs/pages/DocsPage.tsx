@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   BookOpen,
-  Check,
-  Copy,
   Layers,
   Code2,
   Cpu,
@@ -14,6 +12,7 @@ import {
   FileCode,
 } from 'lucide-react';
 import './DocsPage.css';
+
 
 interface SidebarSection {
   title: string;
