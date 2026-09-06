@@ -75,7 +75,7 @@ export const PricingPage: React.FC = () => {
               trialText: p.trialText || (isEnterprise ? 'Proof of concept on request' : '14-day free trial'),
               ctaText: p.ctaText || (isEnterprise ? 'Contact Sales' : 'Start 14-Day Free Trial'),
               ctaVariant: p.ctaVariant || (p.isPopular ? 'primary' : 'outline'),
-              route: ROUTES.BILLING.TRIAL,
+              route: isEnterprise ? ROUTES.PUBLIC.CONTACT : ROUTES.BILLING.TRIAL,
               specs: p.specs || (isEnterprise ? [
                 { label: 'Unlimited projects', highlight: true },
                 { label: 'Unlimited screens', highlight: true },
@@ -268,7 +268,7 @@ export const PricingPage: React.FC = () => {
         </div>
         <button
           type="button"
-          onClick={() => navigate(ROUTES.BILLING.TRIAL)}
+          onClick={() => navigate(ROUTES.PUBLIC.CONTACT)}
           className="alsm-pricing-enterprise-btn"
         >
           Talk to Enterprise Sales

@@ -35,12 +35,6 @@ export const router = createBrowserRouter([
   // Public Routes (Header & Layout for all visitors)
   {
     element: <PublicLayout />,
-    children: [{ path: '/', element: <LandingPage /> }],
-  },
-
-  // Guest-only Routes (login / register / password recovery)
-  {
-    element: <GuestRoute />,
     children: [
       { path: '/', element: <LandingPage /> },
       { path: '/pricing', element: <PricingPage /> },
@@ -92,7 +86,6 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
 
           // Billing Routes
-          { path: '/pricing', element: <PricingPage /> },
           { path: '/billing/trial', element: <TrialActivationPage /> },
           { path: '/billing/payment', element: <QRPaymentPage /> },
           { path: '/billing/upgrade', element: <UpgradeSubscriptionPage /> },
