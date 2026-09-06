@@ -6,7 +6,8 @@ import AppLayout from '@/shared/layouts/AppLayout';
 import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
 
 // Feature Modules
-import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage } from '@/features/auth';
+import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage } from '@/features/auth';
+import { DocsPage } from '@/features/docs';
 import { ChangePasswordPage, TwoFactorAuthenticationPage, ActiveSessionsPage } from '@/features/account';
 import { CreateProjectPage, DeleteProjectPage } from '@/features/projects';
 import { UploadSourcePage, ScreensListPage } from '@/features/screens';
@@ -35,6 +36,10 @@ export const router = createBrowserRouter([
     element: <PublicLayout />,
     children: [
       { path: '/', element: <LandingPage /> },
+      { path: '/pricing', element: <PricingPage /> },
+      { path: '/faq', element: <FaqPage /> },
+      { path: '/docs', element: <DocsPage /> },
+      { path: '/contact', element: <ContactPage /> },
       { path: '/register', element: <RegisterPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/forgot-password', element: <PasswordRecoveryPage /> },

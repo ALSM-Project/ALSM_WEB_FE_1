@@ -48,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <span className="logo-icon">⚡</span>
-          {!isCollapsed && <span className="logo-text">ALSM Modernize</span>}
+          {!isCollapsed && <span className="logo-text">ALSM</span>}
         </div>
         <button className="toggle-btn" onClick={onToggle} title="Thu gọn / Mở rộng">
           {isCollapsed ? '➔' : '⬅'}

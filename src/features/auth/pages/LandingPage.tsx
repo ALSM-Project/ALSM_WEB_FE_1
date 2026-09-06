@@ -9,15 +9,11 @@ import {
   Code2,
   Layers,
   ShieldCheck,
-  Activity,
   FileCode,
   GitBranch,
   Play,
   Check,
   ChevronDown,
-  Menu,
-  X,
-  Clock,
   Star,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
@@ -98,26 +94,11 @@ const FAQS: FaqItem[] = [
 ];
 
 export const LandingPage: React.FC = () => {
-  const [offerDismissed, setOfferDismissed] = useState(false);
-  const [timeLeft, setTimeLeft] = useState('01:59:45');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePipelineStage, setActivePipelineStage] = useState(0);
   const [activeLegacyNode, setActiveLegacyNode] = useState<'bms' | 'dspf' | 'cobol' | 'ibmi' | 'as400'>('bms');
   const [activeMatrixTab, setActiveMatrixTab] = useState('react');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const [annualBilling, setAnnualBilling] = useState(false);
-
-  // Countdown Timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const hours = String(23 - now.getHours()).padStart(2, '0');
-      const mins = String(59 - now.getMinutes()).padStart(2, '0');
-      const secs = String(59 - now.getSeconds()).padStart(2, '0');
-      setTimeLeft(`${hours}:${mins}:${secs}`);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Auto-cycle pipeline stage
   useEffect(() => {
@@ -285,154 +266,13 @@ public class AccountBalanceService {
 
   return (
     <div className="w-full bg-[#F7F9FC] text-[#091E42] font-sans selection:bg-[#0652CC] selection:text-white relative overflow-x-hidden">
-      
-      {/* ================================================== */}
-      {/* 01. ANNOUNCEMENT TOP BANNER                        */}
-      {/* ================================================== */}
-      {!offerDismissed && (
-        <div
-          role="region"
-          aria-label="Limited-time offer"
-          className="relative top-0 left-0 right-0 h-10 z-50 flex items-center justify-center flex-wrap gap-x-3 gap-y-0.5 px-10 text-center bg-[#091E42] border-b border-[#0652CC]/30 text-xs text-[#F4F5F7]"
-        >
-          <span className="flex items-center gap-2 font-medium">
-            <Clock className="w-3.5 h-3.5 text-[#22D3EE]" />
-            <span>ALSM 2.0 Enterprise Release · 20% off annual licenses</span>
-          </span>
-          <span className="font-semibold tabular-nums text-[#22D3EE]">{timeLeft} left</span>
-          <Link
-            to={ROUTES.BILLING.PRICING}
-            className="hidden sm:inline text-xs font-semibold text-[#F4F5F7] underline underline-offset-2 hover:text-[#22D3EE] transition-colors"
-          >
-            See plans
-          </Link>
-          <button
-            type="button"
-            onClick={() => setOfferDismissed(true)}
-            className="absolute right-3 sm:right-5 w-6 h-6 grid place-items-center text-[#F4F5F7]/60 hover:text-white transition-colors cursor-pointer"
-            aria-label="Dismiss offer bar"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
 
       {/* ================================================== */}
-      {/* 02. PREMIUM FLOATING NAVBAR                        */}
-      {/* ================================================== */}
-      <nav
-        id="navbar"
-        className={`py-2.5 px-6 fixed ${offerDismissed ? 'top-4' : 'top-12'} left-6 right-6 md:left-12 md:right-12 lg:left-20 lg:right-20 xl:left-28 xl:right-28 z-40 rounded-full overflow-hidden transition-all duration-300`}
-      >
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute inset-0 backdrop-blur-xl bg-white/85" />
-          <div className="absolute inset-0 rounded-full border border-[#D9E2EC] shadow-[0_10px_30px_rgba(9,30,66,0.08)]" />
-        </div>
-
-        <div className="relative z-10 w-full mx-auto flex flex-row items-center justify-between font-medium text-sm">
-          {/* Brand Logo */}
-          <Link to="/" className="shrink-0 cursor-pointer flex items-center gap-2 text-[#091E42] font-extrabold tracking-wider text-base hover:text-[#0652CC] transition-colors">
-            <span className="w-7 h-7 rounded-lg bg-[#0652CC] flex items-center justify-center text-white text-xs font-bold shadow-md shadow-[#0652CC]/30">
-              <Cpu className="w-4 h-4" />
-            </span>
-            <span>ALSM <span className="text-[#0655FF]">MODERNIZE</span></span>
-          </Link>
-
-          {/* Desktop Nav Links */}
-          <div className="hidden xl:flex items-center gap-8 absolute left-1/2 -translate-x-1/2 text-[#091E42] font-semibold text-sm">
-            <a href="#platform" className="hover:text-[#0652CC] transition-colors">
-              Platform
-            </a>
-            <a href="#how-it-works" className="hover:text-[#0652CC] transition-colors">
-              How It Works
-            </a>
-            <a href="#solutions" className="hover:text-[#0652CC] transition-colors">
-              Solutions
-            </a>
-            <a href="#ai-parity" className="hover:text-[#0652CC] transition-colors">
-              AI Parity
-            </a>
-            <Link to={ROUTES.BILLING.PRICING} className="hover:text-[#0652CC] transition-colors">
-              Pricing
-            </Link>
-          </div>
-
-          {/* Desktop Auth & CTA */}
-          <div className="hidden xl:flex items-center gap-4">
-            <Link to={ROUTES.PUBLIC.LOGIN} className="text-sm px-3 py-2 text-[#42526E] hover:text-[#091E42] font-semibold transition-colors">
-              Sign In
-            </Link>
-            <Link
-              to={ROUTES.PUBLIC.REGISTER}
-              className="px-5 py-2 text-center text-sm font-semibold text-white bg-[#0652CC] hover:bg-[#0655FF] rounded-full transition-all shadow-[0_4px_15px_rgba(6,82,204,0.25)] hover:shadow-[0_6px_20px_rgba(6,85,255,0.35)]"
-            >
-              Get Started
-            </Link>
-          </div>
-
-          {/* Mobile Right Controls */}
-          <div className="flex xl:hidden items-center gap-2.5">
-            <Link
-              to={ROUTES.PUBLIC.REGISTER}
-              className="inline-flex items-center h-9 px-4 bg-[#0652CC] text-white text-[13px] font-semibold rounded-full hover:bg-[#0655FF] transition-colors"
-            >
-              Get Started
-            </Link>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-9 h-9 rounded-full bg-white border border-[#D9E2EC] flex justify-center items-center text-[#091E42] cursor-pointer hover:bg-gray-50 transition-colors"
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-5 h-5 text-[#091E42]" />}
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-30 bg-[#091E42]/95 backdrop-blur-md xl:hidden flex flex-col pt-24 px-6 pb-8 space-y-4 text-white font-medium text-lg">
-          <a href="#platform" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-white/10">
-            Platform
-          </a>
-          <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-white/10">
-            How It Works
-          </a>
-          <a href="#solutions" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-white/10">
-            Solutions
-          </a>
-          <a href="#ai-parity" onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-white/10">
-            AI Parity
-          </a>
-          <Link to={ROUTES.BILLING.PRICING} onClick={() => setMobileMenuOpen(false)} className="py-2 border-b border-white/10">
-            Pricing
-          </Link>
-          <div className="pt-4 flex flex-col gap-3">
-            <Link
-              to={ROUTES.PUBLIC.LOGIN}
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-3 text-center rounded-full bg-white/10 border border-white/20 text-white font-semibold"
-            >
-              Sign In
-            </Link>
-            <Link
-              to={ROUTES.PUBLIC.REGISTER}
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-3 text-center rounded-full bg-[#0652CC] text-white font-semibold hover:bg-[#0655FF]"
-            >
-              Get Started
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* ================================================== */}
-      {/* 03. HERO SECTION                                   */}
+      {/* 01. HERO SECTION                                   */}
       {/* ================================================== */}
       <section
         id="hero"
-        className="w-full min-h-screen mx-auto flex flex-col justify-center items-center relative overflow-hidden pt-36 pb-20 bg-[#F7F9FC] text-[#091E42]"
+        className="w-full min-h-[calc(100vh-80px)] mx-auto flex flex-col justify-center items-center relative overflow-hidden pt-16 pb-20 bg-[#F7F9FC] text-[#091E42]"
       >
         {/* Soft Blue Ambient Glow */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[400px] bg-[#0652CC]/8 rounded-full blur-[140px] pointer-events-none" />
@@ -1399,7 +1239,7 @@ public class AccountInterestService {
                 <span className="w-7 h-7 rounded-lg bg-[#0652CC] flex items-center justify-center text-white text-xs font-bold">
                   <Cpu className="w-4 h-4 text-[#22D3EE]" />
                 </span>
-                <span>ALSM MODERNIZE</span>
+                <span>ALSM</span>
               </Link>
               <p className="text-[#F4F5F7]/70 max-w-sm text-xs sm:text-sm leading-relaxed">
                 Automating Legacy System Modernization Platform. IBM i, AS400, BMS, DSPF & COBOL to React 19 and Java Spring Boot.
