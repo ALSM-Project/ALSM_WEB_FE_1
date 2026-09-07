@@ -1,5 +1,5 @@
 /* ================================================
-   ALSM Pricing Page Styles
+   ALSM Enterprise Pricing Page Styles
    ================================================ */
 
 .alsm-pricing-page {
@@ -7,13 +7,16 @@
   color: #091E42;
 }
 
-/* Header */
-.alsm-pricing-header {
+/* ─── Hero Section ─── */
+.alsm-pricing-hero {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 56px;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.alsm-pricing-badge {
+.alsm-pricing-eyebrow {
   display: inline-block;
   font-size: 11px;
   font-weight: 700;
@@ -21,111 +24,126 @@
   letter-spacing: 0.1em;
   color: #0652CC;
   background: #E8F1FF;
-  padding: 4px 12px;
+  border: 1px solid rgba(6, 82, 204, 0.2);
+  padding: 4px 14px;
   border-radius: 999px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .alsm-pricing-title {
-  font-size: 40px;
+  font-size: 38px;
   font-weight: 800;
   color: #091E42;
   letter-spacing: -0.02em;
-  margin-bottom: 12px;
+  line-height: 1.2;
+  margin-bottom: 16px;
 }
 
-.alsm-pricing-subtitle {
-  font-size: 16px;
-  color: #42526E;
-  max-width: 520px;
-  margin: 0 auto;
-  line-height: 1.5;
-}
-
-/* Billing Toggle */
-.alsm-pricing-toggle-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 24px;
-}
-
-.alsm-pricing-toggle-label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #42526E;
-  transition: color 0.2s ease;
-  cursor: pointer;
-}
-
-.alsm-pricing-toggle-label.active {
-  color: #091E42;
-  font-weight: 700;
-}
-
-.alsm-pricing-toggle-btn {
-  width: 52px;
-  height: 28px;
-  border-radius: 999px;
-  background: #D9E2EC;
-  border: none;
-  padding: 3px;
-  cursor: pointer;
-  position: relative;
-  transition: background 0.2s ease;
-}
-
-.alsm-pricing-toggle-btn.active {
-  background: #0652CC;
-}
-
-.alsm-pricing-toggle-thumb {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.alsm-pricing-toggle-btn.active .alsm-pricing-toggle-thumb {
-  transform: translateX(24px);
-}
-
-.alsm-pricing-discount-badge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #00875A;
-  background: #E3FCEF;
-  border: 1px solid #ABF5D1;
-  padding: 2px 8px;
-  border-radius: 999px;
-  margin-left: 4px;
-}
-
-/* Cards Grid */
-.alsm-pricing-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 28px;
-  align-items: stretch;
-  max-width: 1160px;
-  margin: 0 auto;
-}
-
-@media (min-width: 1024px) {
-  .alsm-pricing-grid {
-    grid-template-columns: repeat(3, 1fr);
+@media (min-width: 768px) {
+  .alsm-pricing-title {
+    font-size: 46px;
   }
 }
 
-/* Card Component */
-.alsm-pricing-card {
+.alsm-pricing-subtitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0652CC;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.alsm-pricing-description {
+  font-size: 15px;
+  color: #42526E;
+  line-height: 1.6;
+  max-width: 720px;
+  margin: 0 auto 28px;
+}
+
+.alsm-pricing-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+/* ─── Generic Buttons ─── */
+.alsm-pricing-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: none;
+}
+
+.alsm-pricing-btn.primary {
+  background: #0652CC;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(6, 82, 204, 0.25);
+}
+
+.alsm-pricing-btn.primary:hover {
+  background: #0655FF;
+  box-shadow: 0 6px 20px rgba(6, 82, 204, 0.35);
+  transform: translateY(-1px);
+}
+
+.alsm-pricing-btn.outline {
+  background: transparent;
+  color: #0652CC;
+  border: 1.5px solid #0652CC;
+}
+
+.alsm-pricing-btn.outline:hover {
+  background: #E8F1FF;
+}
+
+.alsm-pricing-btn.outline-light {
+  background: transparent;
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+
+.alsm-pricing-btn.outline-light:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+}
+
+/* ─── 4 Commercial Offering Cards Grid ─── */
+.alsm-pricing-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 64px;
+}
+
+@media (min-width: 640px) {
+  .alsm-pricing-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1200px) {
+  .alsm-pricing-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.alsm-offering-card {
   background: #ffffff;
   border: 1px solid #D9E2EC;
   border-radius: 20px;
-  padding: 32px 28px;
+  padding: 28px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -133,29 +151,19 @@
   transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
 }
 
-.alsm-pricing-card:hover {
+.alsm-offering-card:hover {
   box-shadow: 0 12px 32px rgba(9, 30, 66, 0.08);
+  border-color: rgba(6, 82, 204, 0.4);
 }
 
-.alsm-pricing-card.popular {
+.alsm-offering-card.recommended {
   border: 2px solid #0652CC;
-  box-shadow: 0 16px 40px rgba(6, 82, 204, 0.12);
+  box-shadow: 0 16px 40px rgba(6, 82, 204, 0.14);
 }
 
-@media (min-width: 1024px) {
-  .alsm-pricing-card.popular {
-    transform: translateY(-8px);
-  }
-
-  .alsm-pricing-card.popular:hover {
-    transform: translateY(-12px);
-    box-shadow: 0 20px 48px rgba(6, 82, 204, 0.16);
-  }
-}
-
-.alsm-pricing-popular-badge {
+.alsm-recommended-badge {
   position: absolute;
-  top: -14px;
+  top: -13px;
   left: 50%;
   transform: translateX(-50%);
   background: #0652CC;
@@ -164,119 +172,88 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding: 4px 16px;
+  padding: 4px 14px;
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(6, 82, 204, 0.3);
   white-space: nowrap;
 }
 
-.alsm-pricing-card-header {
-  margin-bottom: 20px;
+.alsm-offering-card-header {
+  margin-bottom: 16px;
 }
 
-.alsm-pricing-plan-name {
-  font-size: 22px;
+.alsm-offering-label {
+  display: block;
+  font-size: 16px;
   font-weight: 800;
   color: #091E42;
-  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
 }
 
-.alsm-pricing-plan-desc {
+.alsm-offering-desc {
   font-size: 13px;
   color: #42526E;
   line-height: 1.45;
-  min-height: 38px;
+  min-height: 56px;
 }
 
-/* Price Display */
-.alsm-pricing-price-box {
+.alsm-offering-model-box {
   margin-bottom: 20px;
-  padding-bottom: 20px;
+  padding-bottom: 16px;
   border-bottom: 1px solid #D9E2EC;
 }
 
-.alsm-pricing-amount {
-  font-size: 42px;
-  font-weight: 800;
-  color: #091E42;
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-
-.alsm-pricing-cycle {
-  font-size: 13px;
-  font-weight: 500;
-  color: #42526E;
-  margin-left: 4px;
-}
-
-.alsm-pricing-trial-tag {
+.alsm-offering-model-tag {
   display: inline-block;
-  margin-top: 8px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #0652CC;
   background: #E8F1FF;
-  padding: 3px 10px;
-  border-radius: 6px;
+  border: 1px solid rgba(6, 82, 204, 0.2);
+  padding: 5px 12px;
+  border-radius: 8px;
 }
 
-/* CTA Buttons */
-.alsm-pricing-cta {
+.alsm-offering-cta {
   width: 100%;
-  padding: 12px 20px;
-  font-size: 14px;
+  padding: 12px 16px;
+  font-size: 13px;
   font-weight: 700;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: center;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 24px;
+  text-decoration: none;
 }
 
-.alsm-pricing-cta.primary {
+.alsm-offering-cta.primary {
   background: #0652CC;
   color: #ffffff;
   border: none;
-  box-shadow: 0 4px 12px rgba(6, 82, 204, 0.25);
+  box-shadow: 0 3px 10px rgba(6, 82, 204, 0.2);
 }
 
-.alsm-pricing-cta.primary:hover {
+.alsm-offering-cta.primary:hover {
   background: #0655FF;
-  box-shadow: 0 6px 16px rgba(6, 82, 204, 0.35);
   transform: translateY(-1px);
 }
 
-.alsm-pricing-cta.outline {
+.alsm-offering-cta.outline {
   background: transparent;
   color: #0652CC;
   border: 1.5px solid #0652CC;
 }
 
-.alsm-pricing-cta.outline:hover {
+.alsm-offering-cta.outline:hover {
   background: #E8F1FF;
-  border-color: #0652CC;
 }
 
-.alsm-pricing-cta.secondary {
-  background: #F7F9FC;
-  color: #091E42;
-  border: 1px solid #D9E2EC;
-}
-
-.alsm-pricing-cta.secondary:hover {
-  background: #E8F1FF;
-  border-color: #0652CC;
-  color: #0652CC;
-}
-
-/* Specs & Features List */
-.alsm-pricing-specs-title {
+.alsm-offering-scope-title {
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -285,91 +262,264 @@
   margin-bottom: 12px;
 }
 
-.alsm-pricing-specs-list {
+.alsm-offering-scope-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 20px;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.alsm-pricing-spec-item {
+.alsm-offering-scope-item {
   font-size: 13px;
   color: #091E42;
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.alsm-pricing-spec-item strong {
-  font-weight: 700;
-}
-
-.alsm-pricing-check-icon {
-  width: 18px;
-  height: 18px;
-  color: #00875A;
-  flex-shrink: 0;
-}
-
-/* Enterprise Banner */
-.alsm-pricing-enterprise-banner {
-  background: #091E42;
-  color: #ffffff;
-  border-radius: 20px;
-  padding: 40px;
-  margin-top: 56px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
   align-items: flex-start;
+  gap: 10px;
+  line-height: 1.35;
 }
 
-@media (min-width: 768px) {
-  .alsm-pricing-enterprise-banner {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+.alsm-offering-check-icon {
+  width: 16px;
+  height: 16px;
+  color: #0652CC;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
-.alsm-pricing-enterprise-text h3 {
-  font-size: 22px;
+/* ─── Section Header ─── */
+.alsm-section-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.alsm-section-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0652CC;
+  background: #E8F1FF;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+
+.alsm-section-title {
+  font-size: 30px;
   font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 8px;
+  color: #091E42;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
 }
 
-.alsm-pricing-enterprise-text p {
-  font-size: 14px;
-  color: #D9E2EC;
-  max-width: 560px;
+.alsm-section-desc {
+  font-size: 15px;
+  color: #42526E;
+  max-width: 620px;
+  margin: 0 auto;
   line-height: 1.5;
 }
 
-.alsm-pricing-enterprise-btn {
-  background: #0652CC;
-  color: #ffffff;
+/* ─── Commercial Workflow Section ─── */
+.alsm-workflow-section {
+  background: #ffffff;
+  border: 1px solid #D9E2EC;
+  border-radius: 24px;
+  padding: 48px 32px;
+  margin-bottom: 64px;
+  box-shadow: 0 10px 30px rgba(9, 30, 66, 0.04);
+}
+
+.alsm-workflow-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 20px;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .alsm-workflow-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .alsm-workflow-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.alsm-workflow-card {
+  background: #F7F9FC;
+  border: 1px solid #D9E2EC;
+  border-radius: 16px;
+  padding: 24px 20px;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.alsm-workflow-card:hover {
+  transform: translateY(-3px);
+  border-color: #0652CC;
+}
+
+.alsm-workflow-step-num {
+  font-size: 11px;
+  font-weight: 800;
+  color: #0652CC;
+  background: #E8F1FF;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.alsm-workflow-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #D9E2EC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.alsm-workflow-step-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #091E42;
+  margin-bottom: 6px;
+}
+
+.alsm-workflow-step-desc {
+  font-size: 13px;
+  color: #42526E;
+  line-height: 1.45;
+}
+
+.alsm-workflow-arrow {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  color: #0652CC;
+  z-index: 10;
+}
+
+/* ─── Workload Pricing Factors ─── */
+.alsm-factors-section {
+  margin-bottom: 64px;
+}
+
+.alsm-factors-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+@media (min-width: 640px) {
+  .alsm-factors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .alsm-factors-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.alsm-factor-item {
+  background: #ffffff;
+  border: 1px solid #D9E2EC;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   font-size: 14px;
-  font-weight: 700;
-  padding: 14px 28px;
-  border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s ease, transform 0.2s ease;
-  text-decoration: none;
+  font-weight: 600;
+  color: #091E42;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.alsm-pricing-enterprise-btn:hover {
-  background: #0655FF;
-  transform: scale(1.03);
+.alsm-factor-item:hover {
+  border-color: #0652CC;
+  box-shadow: 0 4px 16px rgba(6, 82, 204, 0.08);
 }
 
-/* FAQ Accordion */
+/* ─── Enterprise Procurement Section ─── */
+.alsm-procurement-section {
+  margin-bottom: 64px;
+}
+
+.alsm-procurement-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 20px;
+}
+
+@media (min-width: 640px) {
+  .alsm-procurement-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .alsm-procurement-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.alsm-procurement-card {
+  background: #ffffff;
+  border: 1px solid #D9E2EC;
+  border-radius: 18px;
+  padding: 28px 24px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.alsm-procurement-card:hover {
+  transform: translateY(-2px);
+  border-color: #0652CC;
+}
+
+.alsm-procurement-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #E8F1FF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.alsm-procurement-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #091E42;
+  margin-bottom: 8px;
+}
+
+.alsm-procurement-desc {
+  font-size: 13px;
+  color: #42526E;
+  line-height: 1.5;
+}
+
+/* ─── FAQ Section ─── */
 .alsm-pricing-faq {
-  margin-top: 64px;
+  margin-bottom: 64px;
   padding-top: 48px;
   border-top: 1px solid #D9E2EC;
 }
@@ -379,14 +529,14 @@
   font-size: 28px;
   font-weight: 800;
   color: #091E42;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
 }
 
 .alsm-pricing-faq-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
 }
 
@@ -399,19 +549,43 @@
 .alsm-pricing-faq-item {
   background: #ffffff;
   border: 1px solid #D9E2EC;
-  border-radius: 14px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 24px;
 }
 
 .alsm-pricing-faq-question {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   color: #091E42;
   margin-bottom: 8px;
 }
 
 .alsm-pricing-faq-answer {
-  font-size: 13px;
+  font-size: 14px;
   color: #42526E;
-  line-height: 1.5;
+  line-height: 1.55;
+}
+
+/* ─── Bottom CTA Banner ─── */
+.alsm-pricing-bottom-cta {
+  background: #091E42;
+  color: #ffffff;
+  border-radius: 24px;
+  padding: 44px 36px;
+  margin-bottom: 32px;
+  box-shadow: 0 16px 48px rgba(9, 30, 66, 0.15);
+}
+
+.alsm-bottom-cta-text h3 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.alsm-bottom-cta-text p {
+  font-size: 15px;
+  color: #D9E2EC;
+  max-width: 620px;
+  line-height: 1.55;
 }

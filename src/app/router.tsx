@@ -55,7 +55,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Authenticated App Routes (Web 1)
+  // Authenticated App Routes (Web 1 Self-Service)
   {
     element: <ProtectedRoute />,
     children: [

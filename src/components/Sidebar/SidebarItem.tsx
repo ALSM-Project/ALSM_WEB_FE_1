@@ -1,65 +1,120 @@
-import React from 'react';
-import type { MenuItem } from '../../features/menus/types/menu';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { MenuItem } from '@/features/menus/types/menu';
+import { DynamicIcon } from './IconResolver';
 
-interface SidebarItemProps {
+export interface SidebarItemProps {
   item: MenuItem;
   isCollapsed?: boolean;
-  isHovered?: boolean;
-  onHover?: () => void;
-  onLeave?: () => void;
-  onClick?: () => void;
-  onPinToggle?: (itemId: string, isPinned: boolean) => void;
+  depth?: number;
+  onTrackUsage?: (id: string) => void;
+  onPinToggle?: (id: string, isPinned: boolean) => void;
 }
 
 export const SidebarItem: React.FC<SidebarItemProps> = ({
   item,
   isCollapsed = false,
-  isHovered = false,
-  onHover,
-  onLeave,
-  onClick,
+  depth = 0,
+  onTrackUsage,
   onPinToggle,
 }) => {
-  const handleClick = () => {
-    if (onClick) onClick();
+  const location = useLocation();
+  const hasChildren = Boolean(item.children && item.children.length > 0);
+
+  // Check if current route matches item or any of its children
+  const isChildActive = (node: MenuItem): boolean => {
+    if (node.path && (location.pathname === node.path || (node.path !== '/' && location.pathname.startsWith(node.path)))) {
+      return true;
+    }
+    if (node.children) {
+      return node.children.some(isChildActive);
+    }
+    return false;
   };
 
-  const handlePinClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (onPinToggle) {
-      onPinToggle(item.id, !item.isPinned);
+  const isActive = isChildActive(item);
+  const [isExpanded, setIsExpanded] = useState<boolean>(isActive);
+
+  useEffect(() => {
+    if (isActive) {
+      setIsExpanded(true);
     }
-  };
+  }, [location.pathname, isActive]);
+
+  if (item.isVisible === false) {
+    return null;
+  }
+
+  const paddingLeftClass = depth === 0 ? 'px-3' : depth === 1 ? 'pl-8 pr-3' : 'pl-12 pr-3';
 
   return (
-    <div
-      className={`sidebar-item ${isHovered ? 'hovered' : ''}`}
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      onClick={handleClick}
-    >
-      <a href={item.path || '#'} className="sidebar-link" title={isCollapsed ? item.label : undefined}>
-        {item.icon && <span className={`sidebar-icon icon-${item.icon}`} />}
-        {!isCollapsed && <span className="sidebar-label">{item.label}</span>}
-        {!isCollapsed && item.badge && (
-          <span
-            className="sidebar-badge"
-            style={{ backgroundColor: item.badgeColor || '#3b82f6' }}
+    <div className="w-full my-0.5">
+      {hasChildren ? (
+        <div className="flex flex-col">
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`w-full flex items-center justify-between py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${paddingLeftClass} ${
+              isActive ? 'text-white bg-[#0652CC]/40 font-bold' : 'text-[#E5EAF0] hover:bg-[#0652CC]/20 hover:text-white'
+            }`}
+            title={isCollapsed ? item.label : undefined}
           >
-            {item.badge}
-          </span>
-        )}
-      </a>
-      {!isCollapsed && onPinToggle && (
-        <button
-          className={`pin-btn ${item.isPinned ? 'pinned' : ''}`}
-          onClick={handlePinClick}
-          title={item.isPinned ? 'Bỏ ghim' : 'Ghim vào danh mục'}
+            <div className="flex items-center space-x-2.5 truncate">
+              <DynamicIcon name={item.icon} className="w-4 h-4 shrink-0 text-[#94A3B8] group-hover:text-white" />
+              {!isCollapsed && <span className="truncate">{item.label}</span>}
+            </div>
+            {!isCollapsed && (
+              <span className="text-[#64748B]">
+                {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              </span>
+            )}
+          </button>
+
+          {!isCollapsed && isExpanded && item.children && (
+            <div className="flex flex-col mt-0.5 space-y-0.5">
+              {item.children.map((child) => (
+                <SidebarItem
+                  key={child.id}
+                  item={child}
+                  isCollapsed={isCollapsed}
+                  depth={depth + 1}
+                  onTrackUsage={onTrackUsage}
+                  onPinToggle={onPinToggle}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <NavLink
+          to={item.path || '#'}
+          onClick={() => onTrackUsage && onTrackUsage(item.id)}
+          className={({ isActive: linkActive }) =>
+            `flex items-center justify-between py-2 text-xs font-medium rounded-lg transition-all ${paddingLeftClass} ${
+              linkActive
+                ? 'bg-[#0652CC] text-white font-semibold shadow-xs'
+                : 'text-[#94A3B8] hover:bg-[#0652CC]/20 hover:text-white'
+            }`
+          }
+          title={isCollapsed ? item.label : undefined}
         >
-          📌
-        </button>
+          <div className="flex items-center space-x-2.5 truncate">
+            <DynamicIcon name={item.icon} className="w-4 h-4 shrink-0" />
+            {!isCollapsed && <span className="truncate">{item.label}</span>}
+          </div>
+          {!isCollapsed && item.badge && (
+            <span
+              className="text-[10px] px-1.5 py-0.5 rounded-full text-white font-bold shrink-0 ml-1"
+              style={{ backgroundColor: item.badgeColor || '#0652CC' }}
+            >
+              {item.badge}
+            </span>
+          )}
+        </NavLink>
       )}
     </div>
   );
 };
+
+export default SidebarItem;

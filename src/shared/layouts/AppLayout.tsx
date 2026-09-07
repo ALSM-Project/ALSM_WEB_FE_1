@@ -1,160 +1,113 @@
 import React, { useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Cpu, Layers, CreditCard, User, LogOut, ChevronDown, Activity, Settings } from 'lucide-react';
-import { useAuth } from '@/app/providers';
-import { ROUTES } from '@/shared/constants/routes';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { Bell, Settings, Sun, ChevronDown } from 'lucide-react';
+import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
+import { Sidebar } from '@/components/Sidebar/Sidebar';
 
 export const AppLayout: React.FC = () => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
-    navigate(ROUTES.PUBLIC.LOGIN);
+    navigate('/login');
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] text-slate-900 flex flex-col font-sans">
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-6 py-3.5 flex items-center justify-between shadow-xs">
-        <div className="flex items-center space-x-8">
-          <Link to={ROUTES.PROJECTS.SCREENS('proj-acme')} className="flex items-center space-x-3 group">
-            <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold shadow-xs">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold tracking-tight text-slate-900 text-lg leading-none">ALSM</span>
-              <span className="text-[10px] font-medium text-slate-500 tracking-wide mt-0.5">Legacy Modernization</span>
-            </div>
-          </Link>
+    <div className="min-h-screen bg-[#F7F9FC] text-[#091E42] flex font-sans">
+      {/* Dynamic Dark Navy Sidebar */}
+      <Sidebar
+        isCollapsed={sidebarCollapsed}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onLogout={handleLogout}
+      />
 
-          <nav className="hidden md:flex items-center space-x-1">
-            <NavLink
-              to={ROUTES.PROJECTS.SCREENS('proj-acme')}
-              className={({ isActive }) =>
-                `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`
-              }
-            >
-              <span className="flex items-center space-x-2">
-                <Layers className="w-4 h-4" />
-                <span>Dashboard</span>
-              </span>
-            </NavLink>
-            <NavLink
-              to={ROUTES.BILLING.USAGE}
-              className={({ isActive }) =>
-                `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`
-              }
-            >
-              <span className="flex items-center space-x-2">
-                <Activity className="w-4 h-4" />
-                <span>Usage</span>
-              </span>
-            </NavLink>
-            <NavLink
-              to={ROUTES.BILLING.PRICING}
-              className={({ isActive }) =>
-                `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`
-              }
-            >
-              <span className="flex items-center space-x-2">
-                <CreditCard className="w-4 h-4" />
-                <span>Pricing</span>
-              </span>
-            </NavLink>
-            <NavLink
-              to={ROUTES.ACCOUNT.PASSWORD}
-              className={({ isActive }) =>
-                `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`
-              }
-            >
-              <span className="flex items-center space-x-2">
-                <Settings className="w-4 h-4" />
-                <span>Account & Security</span>
-              </span>
-            </NavLink>
-          </nav>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <div className="hidden sm:flex items-center space-x-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 text-xs text-slate-600">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Screens: <strong className="text-slate-900 font-semibold">45</strong> / 500</span>
+      {/* Main Container (Header + Content Area, NO FOOTER) */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top Header matching exact screenshot */}
+        <header className="sticky top-0 z-40 bg-white border-b border-[#E5EAF0] px-6 py-3.5 flex items-center justify-between shadow-2xs">
+          {/* Left: Dynamic Breadcrumb */}
+          <div className="flex items-center space-x-2">
+            <Breadcrumb />
           </div>
 
-          <div className="relative">
+          {/* Right: Status, Notifications (3), Settings, Avatar (JD John Doe), Sun icon */}
+          <div className="flex items-center space-x-5 text-xs text-[#42526E]">
+            {/* System Status indicator */}
+            <div className="hidden sm:flex items-center space-x-2 bg-[#F7F9FC] px-3 py-1.5 rounded-full border border-[#E5EAF0]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="font-semibold text-[#091E42]">System Status</span>
+            </div>
+
+            {/* Notifications with badge count 3 */}
             <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              type="button"
+              className="p-1.5 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-lg transition-colors relative"
+              title="Notifications"
             >
-              <img
-                src={user?.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80'}
-                alt="Avatar"
-                className="w-8 h-8 rounded-full border border-slate-300 object-cover"
-              />
-              <span className="hidden sm:inline text-sm font-medium text-slate-700">{user?.fullName || 'Alex Vance'}</span>
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+              <Bell className="w-4 h-4" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-extrabold flex items-center justify-center">
+                3
+              </span>
             </button>
 
-            {profileOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-50">
-                <div className="px-4 py-2 border-b border-slate-100">
-                  <p className="text-sm font-semibold text-slate-900">{user?.fullName}</p>
-                  <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+            {/* Settings button */}
+            <button
+              type="button"
+              className="p-1.5 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-lg transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+
+            {/* User Profile Avatar (JD John Doe) */}
+            <div className="relative">
+              <button
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#F7F9FC] transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+                  JD
                 </div>
-                <Link
-                  to={ROUTES.ACCOUNT.PASSWORD}
-                  onClick={() => setProfileOpen(false)}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                >
-                  <User className="w-4 h-4 text-slate-400" />
-                  <span>Security & Account</span>
-                </Link>
-                <Link
-                  to={ROUTES.BILLING.SUBSCRIPTION}
-                  onClick={() => setProfileOpen(false)}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                >
-                  <CreditCard className="w-4 h-4 text-slate-400" />
-                  <span>Manage Subscription</span>
-                </Link>
-                <div className="border-t border-slate-100 my-1"></div>
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left flex items-center space-x-2 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 font-medium"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+                <span className="hidden sm:inline font-semibold text-[#091E42]">John Doe</span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#6B778C]" />
+              </button>
 
-      <main className="flex-grow p-6 max-w-7xl w-full mx-auto">
-        <Outlet />
-      </main>
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#D9E2EC] rounded-xl shadow-lg py-1.5 z-50 text-xs">
+                  <div className="px-3 py-1.5 border-b border-[#E5EAF0]">
+                    <p className="font-semibold text-[#091E42]">John Doe</p>
+                    <p className="text-[10px] text-[#6B778C]">john.doe@alsm.io</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-3 py-1.5 text-rose-600 hover:bg-rose-50 font-medium"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
 
-      <footer className="bg-[#181A1D] border-t border-slate-800 py-6 px-6 text-xs text-slate-400">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0">
-          <span>ALSM – Automating Legacy System Modernization Platform</span>
-          <div className="flex space-x-6 text-slate-300">
-            <Link to={ROUTES.PUBLIC.LANDING} className="hover:text-white transition-colors">Landing Page</Link>
-            <Link to={ROUTES.BILLING.PRICING} className="hover:text-white transition-colors">Pricing</Link>
-            <Link to={ROUTES.ACCOUNT.PASSWORD} className="hover:text-white transition-colors">Security</Link>
+            {/* Sun / Theme Toggle Icon */}
+            <button
+              type="button"
+              className="p-1.5 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-lg transition-colors"
+              title="Toggle Theme"
+            >
+              <Sun className="w-4 h-4" />
+            </button>
           </div>
-        </div>
-      </footer>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-grow p-6 max-w-[1440px] w-full mx-auto">
+          <Outlet />
+        </main>
+        {/* NO FOOTER AS REQUESTED */}
+      </div>
     </div>
   );
 };
+
 export default AppLayout;

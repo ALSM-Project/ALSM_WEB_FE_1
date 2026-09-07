@@ -1,120 +1,80 @@
-import React, { useState } from 'react';
-import { useNavigation } from '../../hooks/useNavigation';
+import React from 'react';
+import { useNavigation } from '@/hooks/useNavigation';
 import { SidebarItem } from './SidebarItem';
-import { SidebarGroup } from './SidebarGroup';
-import './Sidebar.css';
+import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   isCollapsed?: boolean;
   onToggle?: () => void;
-  onOpenCommandPalette?: () => void;
+  onLogout?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed = false,
   onToggle,
-  onOpenCommandPalette,
+  onLogout,
 }) => {
-  const { navigation, loading, trackMenuItemUsage, pinMenuItem, unpinMenuItem } = useNavigation();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-
-  if (loading && !navigation) {
-    return (
-      <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-loading">Đang tải Menu...</div>
-      </aside>
-    );
-  }
-
-  const { sidebarNav, personalization } = navigation || {
-    sidebarNav: [
-      { id: 'dashboard', label: 'Dashboard', path: '/', isVisible: true },
-      { id: 'projects', label: 'Dự án', path: '/projects', isVisible: true },
-      { id: 'billing', label: 'Billing', path: '/billing/pricing', isVisible: true },
-    ],
-    personalization: { pinnedItems: [], recentItems: [], suggestedItems: [] },
-  };
-
-  const handlePinToggle = (itemId: string, isPinned: boolean) => {
-    if (isPinned) {
-      pinMenuItem(itemId);
-    } else {
-      unpinMenuItem(itemId);
-    }
-  };
+  const { sidebarNav, loading } = useNavigation();
 
   return (
-    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
-      <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <span className="logo-icon">⚡</span>
-          {!isCollapsed && <span className="logo-text">ALSM</span>}
-        </div>
-        <button className="toggle-btn" onClick={onToggle} title="Thu gọn / Mở rộng">
-          {isCollapsed ? '➔' : '⬅'}
+    <aside
+      className={`bg-[#091E42] text-white flex flex-col h-screen sticky top-0 border-r border-[#020817]/40 transition-all duration-300 z-30 shrink-0 ${
+        isCollapsed ? 'w-16' : 'w-64'
+      }`}
+    >
+      {/* Sidebar Top Header Logo matching screenshot */}
+      <div
+        className={`p-4 border-b border-[#020817]/60 flex items-center ${
+          isCollapsed ? 'justify-center' : 'justify-between'
+        }`}
+      >
+        {!isCollapsed && (
+          <div className="flex items-center space-x-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#0652CC] to-[#0655FF] flex items-center justify-center text-white font-extrabold shadow-sm shrink-0">
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+            <span className="font-extrabold text-xl tracking-tight text-white">
+              ALSM
+            </span>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={onToggle}
+          className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-[#0652CC]/20 transition-colors"
+          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+        >
+          {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Command Palette Trigger */}
-      {!isCollapsed && onOpenCommandPalette && (
-        <div className="command-palette-trigger" onClick={onOpenCommandPalette}>
-          <span>🔍 Tìm kiếm lệnh...</span>
-          <kbd>Ctrl K</kbd>
-        </div>
-      )}
-
-      <nav className="sidebar-nav">
-        {/* Pinned Items */}
-        {!isCollapsed && personalization.pinnedItems && personalization.pinnedItems.length > 0 && (
-          <SidebarGroup title="📌 Đã ghim" isCollapsed={isCollapsed}>
-            {personalization.pinnedItems.map(item => (
-              <SidebarItem
-                key={`pinned-${item.id}`}
-                item={item}
-                isCollapsed={isCollapsed}
-                isHovered={hoveredItem === `pinned-${item.id}`}
-                onHover={() => setHoveredItem(`pinned-${item.id}`)}
-                onLeave={() => setHoveredItem(null)}
-                onClick={() => trackMenuItemUsage(item.id)}
-                onPinToggle={handlePinToggle}
-              />
-            ))}
-          </SidebarGroup>
-        )}
-
-        {/* Main Navigation */}
-        <SidebarGroup title="Menu chính" isCollapsed={isCollapsed}>
-          {sidebarNav.map(item => (
-            <SidebarItem
-              key={item.id}
-              item={item}
-              isCollapsed={isCollapsed}
-              isHovered={hoveredItem === item.id}
-              onHover={() => setHoveredItem(item.id)}
-              onLeave={() => setHoveredItem(null)}
-              onClick={() => trackMenuItemUsage(item.id)}
-              onPinToggle={handlePinToggle}
-            />
-          ))}
-        </SidebarGroup>
-
-        {/* Recent Items */}
-        {!isCollapsed && personalization.recentItems && personalization.recentItems.length > 0 && (
-          <SidebarGroup title="🕐 Truy cập gần đây" isCollapsed={isCollapsed}>
-            {personalization.recentItems.map(item => (
-              <SidebarItem
-                key={`recent-${item.id}`}
-                item={item}
-                isCollapsed={isCollapsed}
-                isHovered={hoveredItem === `recent-${item.id}`}
-                onHover={() => setHoveredItem(`recent-${item.id}`)}
-                onLeave={() => setHoveredItem(null)}
-                onClick={() => trackMenuItemUsage(item.id)}
-              />
-            ))}
-          </SidebarGroup>
+      {/* Dynamic Navigation Items */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        {loading ? (
+          <div className="p-4 text-xs text-[#94A3B8] text-center">Loading Menu...</div>
+        ) : (
+          sidebarNav.map((item) => (
+            <SidebarItem key={item.id} item={item} isCollapsed={isCollapsed} />
+          ))
         )}
       </nav>
+
+      {/* Bottom Sidebar Footer: Fixed Sign Out Button matching screenshot */}
+      <div className="p-3 border-t border-[#020817]/60">
+        <button
+          type="button"
+          onClick={onLogout}
+          className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-[#E5EAF0] hover:bg-[#0652CC]/30 hover:text-white transition-colors"
+          title="Sign Out"
+        >
+          <LogOut className="w-4 h-4 shrink-0 text-[#94A3B8]" />
+          {!isCollapsed && <span>Sign Out</span>}
+        </button>
+      </div>
     </aside>
   );
 };
+
+export default Sidebar;

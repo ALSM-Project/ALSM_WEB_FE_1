@@ -1,31 +1,57 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight, Home } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
+import { useNavigation } from '@/hooks/useNavigation';
+import { getBreadcrumbsFromRoute, BreadcrumbNode } from './breadcrumbUtils';
 
-export interface BreadcrumbItem {
-  label: string;
-  href?: string;
+export interface BreadcrumbProps {
+  customItems?: BreadcrumbNode[];
+  className?: string;
 }
 
-export const Breadcrumb: React.FC<{ items: BreadcrumbItem[] }> = ({ items }) => {
+export const Breadcrumb: React.FC<BreadcrumbProps> = ({ customItems, className = '' }) => {
+  const location = useLocation();
+  const { navigation } = useNavigation();
+
+  const menuItems = navigation?.sidebarNav || [];
+  const items = customItems || getBreadcrumbsFromRoute(location.pathname, menuItems);
+
+  if (!items || items.length === 0) {
+    return null;
+  }
+
   return (
-    <nav className="flex items-center space-x-2 text-xs font-medium text-slate-500 mb-2">
-      <Link to="/" className="hover:text-slate-900 flex items-center">
-        <Home className="w-3.5 h-3.5" />
-      </Link>
-      {items.map((item, index) => (
-        <React.Fragment key={index}>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-          {item.href ? (
-            <Link to={item.href} className="hover:text-slate-900 transition-colors">
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-slate-900 font-semibold">{item.label}</span>
-          )}
-        </React.Fragment>
-      ))}
+    <nav
+      aria-label="Breadcrumb"
+      className={`flex items-center space-x-1.5 text-xs font-medium text-[#6B778C] overflow-x-auto py-1 ${className}`}
+    >
+      {items.map((item, index) => {
+        const isLast = index === items.length - 1;
+
+        return (
+          <React.Fragment key={`${item.label}-${index}`}>
+            {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-[#D9E2EC] shrink-0" />}
+            {item.path && !isLast ? (
+              <Link
+                to={item.path}
+                className="hover:text-[#0652CC] text-[#42526E] transition-colors truncate max-w-[160px]"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span
+                className={`truncate max-w-[200px] ${
+                  isLast ? 'text-[#091E42] font-semibold' : 'text-[#42526E]'
+                }`}
+              >
+                {item.label}
+              </span>
+            )}
+          </React.Fragment>
+        );
+      })}
     </nav>
   );
 };
+
 export default Breadcrumb;

@@ -13,6 +13,8 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+import { NavigationProvider } from '@/context/NavigationContext';
+
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -97,7 +99,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         logout: handleLogout,
       }}
     >
-      {children}
+      <NavigationProvider>{children}</NavigationProvider>
     </AuthContext.Provider>
   );
 };
