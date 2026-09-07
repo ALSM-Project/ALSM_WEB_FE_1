@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
@@ -12,12 +12,18 @@ import { AuthLayout } from '../components/AuthLayout';
 export const LoginPage: React.FC = () => {
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('cuongnxde180042@fpt.edu.vn');
+  const [password, setPassword] = useState('Password123@');
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const getRedirectTarget = () => {
+    const returnTo = (location.state as { returnTo?: string })?.returnTo;
+    return returnTo || ROUTES.PROJECTS.SCREENS('proj-acme');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,8 +34,13 @@ export const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await login({ email: email.trim(), password });
-      navigate(ROUTES.PUBLIC.LANDING, { replace: true });
+      const user = await login({ email: email.trim(), password });
+      if (user) {
+        // User is confirmed authenticated — navigate immediately.
+        navigate(getRedirectTarget(), { replace: true });
+      } else {
+        setError('Unable to retrieve account information. Please try again.');
+      }
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
@@ -41,8 +52,12 @@ export const LoginPage: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      await loginWithGoogle(idToken);
-      navigate(ROUTES.PUBLIC.LANDING, { replace: true });
+      const user = await loginWithGoogle(idToken);
+      if (user) {
+        navigate(getRedirectTarget(), { replace: true });
+      } else {
+        setError('Google sign-in failed. Please try again.');
+      }
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {

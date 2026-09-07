@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/app/providers';
 import {
   Cpu,
   ChevronDown,
@@ -174,6 +175,7 @@ const TextRollover: React.FC<{ text: string; className?: string }> = ({ text, cl
    PublicNavbar Component
    ───────────────────────────────────────────── */
 export const PublicNavbar: React.FC = () => {
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<'platform' | 'tools' | null>(null);
@@ -357,30 +359,47 @@ export const PublicNavbar: React.FC = () => {
 
           {/* ─── Right Auth Section ─── */}
           <div className="alsm-nav-right">
-            <Link
-              to={ROUTES.PUBLIC.LOGIN}
-              className={`alsm-login-link ${location.pathname === ROUTES.PUBLIC.LOGIN ? 'active' : ''}`}
-            >
-              <span className="alsm-login-rollover">
-                <span>Log in</span>
-                <span>Log in</span>
-              </span>
-            </Link>
-            <Link
-              to={ROUTES.PUBLIC.REGISTER}
-              className={`alsm-cta-btn ${location.pathname === ROUTES.PUBLIC.REGISTER ? 'active' : ''}`}
-            >
-              <span className="alsm-cta-rollover">
-                <span>Get Started</span>
-                <span>Get Started</span>
-              </span>
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                to={ROUTES.PROJECTS.SCREENS('proj-acme')}
+                className="alsm-cta-btn active"
+              >
+                <span className="alsm-cta-rollover">
+                  <span>Go to Workspace</span>
+                  <span>Go to Workspace</span>
+                </span>
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to={ROUTES.PUBLIC.LOGIN}
+                  className={`alsm-login-link ${location.pathname === ROUTES.PUBLIC.LOGIN ? 'active' : ''}`}
+                >
+                  <span className="alsm-login-rollover">
+                    <span>Log in</span>
+                    <span>Log in</span>
+                  </span>
+                </Link>
+                <Link
+                  to={ROUTES.PUBLIC.REGISTER}
+                  className={`alsm-cta-btn ${location.pathname === ROUTES.PUBLIC.REGISTER ? 'active' : ''}`}
+                >
+                  <span className="alsm-cta-rollover">
+                    <span>Get Started</span>
+                    <span>Get Started</span>
+                  </span>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* ─── Mobile Controls ─── */}
           <div className="alsm-mobile-controls">
-            <Link to={ROUTES.PUBLIC.REGISTER} className="alsm-mobile-cta">
-              Get Started
+            <Link
+              to={isAuthenticated ? ROUTES.PROJECTS.SCREENS('proj-acme') : ROUTES.PUBLIC.REGISTER}
+              className="alsm-mobile-cta"
+            >
+              {isAuthenticated ? 'Workspace' : 'Get Started'}
             </Link>
             <button
               type="button"

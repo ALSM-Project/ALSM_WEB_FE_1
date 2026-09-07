@@ -1,13 +1,13 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { authService } from '@/features/auth/services/auth.service';
 import { apiClient } from '@/services/api/apiClient';
 import { tokenStore } from '@/services/api/tokenStore';
 import type { AuthState, LoginCredentials, RegisterData, User } from '@/features/auth/types/auth';
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<void>;
+  login: (credentials: LoginCredentials) => Promise<User | null>;
+  register: (data: RegisterData) => Promise<User | null>;
+  loginWithGoogle: (idToken: string) => Promise<User | null>;
   logout: () => Promise<void>;
 }
 
@@ -52,37 +52,45 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const handleLogin = async (credentials: LoginCredentials) => {
+  // Returns the logged-in user so the caller (LoginPage) can rely on the
+  // resolved value rather than reading context state after an async gap.
+  const handleLogin = useCallback(async (credentials: LoginCredentials): Promise<User | null> => {
     setIsLoading(true);
     try {
-      setUser(await authService.login(credentials));
+      const loggedInUser = await authService.login(credentials);
+      setUser(loggedInUser);
+      return loggedInUser;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleRegister = async (data: RegisterData) => {
+  const handleRegister = useCallback(async (data: RegisterData): Promise<User | null> => {
     setIsLoading(true);
     try {
-      setUser(await authService.register(data));
+      const registeredUser = await authService.register(data);
+      setUser(registeredUser);
+      return registeredUser;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleLoginWithGoogle = async (idToken: string) => {
+  const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<User | null> => {
     setIsLoading(true);
     try {
-      setUser(await authService.loginWithGoogle(idToken));
+      const loggedInUser = await authService.loginWithGoogle(idToken);
+      setUser(loggedInUser);
+      return loggedInUser;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await authService.logout();
     setUser(null);
-  };
+  }, []);
 
   return (
     <AuthContext.Provider

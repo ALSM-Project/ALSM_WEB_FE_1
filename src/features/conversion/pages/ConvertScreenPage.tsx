@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Play, Download, RefreshCw, CheckCircle2, Shield, Sliders, AlertCircle } from 'lucide-react';
+import { Play, Download, RefreshCw, CheckCircle2, Shield, Sliders, AlertCircle, FileSearch } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { ConversionResult } from '../types/conversion';
 import { ROUTES } from '@/shared/constants/routes';
@@ -82,6 +82,10 @@ export const LoginScreen: React.FC = () => {
         </div>
 
         <div className="flex items-center space-x-3">
+          <Button variant="outline" onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))} className="space-x-1.5 text-xs font-semibold">
+            <FileSearch className="w-4 h-4 text-brand-600" />
+            <span>Review Findings</span>
+          </Button>
           <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))} className="space-x-1.5 text-xs font-semibold">
             <Download className="w-4 h-4" />
             <span>Export Code</span>
@@ -216,10 +220,19 @@ export const LoginScreen: React.FC = () => {
 
       {activeTab === 'findings' && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
-          <h3 className="text-sm font-bold text-slate-900">Parser Findings & Observations</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-900">Parser Findings & Observations</h3>
+            <Link
+              to={ROUTES.PROJECTS.REVIEW(projectId, screenId)}
+              className="text-xs text-brand-600 font-semibold hover:underline flex items-center space-x-1"
+            >
+              <FileSearch className="w-4 h-4 text-brand-600" />
+              <span>Open Full Findings Review Studio &rarr;</span>
+            </Link>
+          </div>
           <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs flex items-center space-x-3 font-medium">
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <span>Found 1 legacy macro reference (@CUSTOM_MACRO_X) resolved cleanly using standard fallback.</span>
+            <span>Found 7 legacy macro findings needing review. 3 of 7 reviewed.</span>
           </div>
         </div>
       )}

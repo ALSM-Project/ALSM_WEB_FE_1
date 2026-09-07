@@ -6,22 +6,38 @@ import type { AuthTokens, LoginCredentials, RegisterData, User } from '../types/
 // the backend response DTOs. No UI, no routing, no token business here —
 // token persistence lives in tokenStore; session state lives in the provider.
 
+// Backend login response may include user data inline (optimization) or
+// require a separate GET /auth/me call. We handle both shapes here.
+interface AuthTokensWithUser extends AuthTokens {
+  user?: User;
+}
+
 export class AuthService {
   async login(credentials: LoginCredentials): Promise<User | null> {
-    const tokens = await apiClient.post<AuthTokens>('/auth/login', credentials, { auth: false });
-    this.applyTokens(tokens);
+    const response = await apiClient.post<AuthTokensWithUser>('/auth/login', credentials, { auth: false });
+    this.applyTokens(response);
+    // If the backend included user inline, use it directly to avoid a round-trip.
+    if (response.user) {
+      return response.user;
+    }
     return this.getCurrentUser();
   }
 
   async register(data: RegisterData): Promise<User | null> {
-    const tokens = await apiClient.post<AuthTokens>('/auth/register', data, { auth: false });
-    this.applyTokens(tokens);
+    const response = await apiClient.post<AuthTokensWithUser>('/auth/register', data, { auth: false });
+    this.applyTokens(response);
+    if (response.user) {
+      return response.user;
+    }
     return this.getCurrentUser();
   }
 
   async loginWithGoogle(idToken: string): Promise<User | null> {
-    const tokens = await apiClient.post<AuthTokens>('/auth/google', { idToken }, { auth: false });
-    this.applyTokens(tokens);
+    const response = await apiClient.post<AuthTokensWithUser>('/auth/google', { idToken }, { auth: false });
+    this.applyTokens(response);
+    if (response.user) {
+      return response.user;
+    }
     return this.getCurrentUser();
   }
 

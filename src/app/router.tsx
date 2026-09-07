@@ -19,6 +19,7 @@ import {
   PreviewStudioPage,
   FieldMappingPage,
   ExportCodePage,
+  ReviewFindingsPage,
 } from '@/features/conversion';
 import { DiagnosticsPage } from '@/features/diagnostics';
 import {
@@ -81,6 +82,7 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/result', element: <ResultInspectionPage /> },
           { path: '/projects/:projectId/screens/:screenId/preview', element: <PreviewStudioPage /> },
           { path: '/projects/:projectId/screens/:screenId/mapping', element: <FieldMappingPage /> },
+          { path: '/projects/:projectId/screens/:screenId/review', element: <ReviewFindingsPage /> },
           { path: '/projects/:projectId/export', element: <ExportCodePage /> },
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },
           { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
