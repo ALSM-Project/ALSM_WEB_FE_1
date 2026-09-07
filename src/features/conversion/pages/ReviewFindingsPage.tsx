@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AlertTriangle, Plus } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';

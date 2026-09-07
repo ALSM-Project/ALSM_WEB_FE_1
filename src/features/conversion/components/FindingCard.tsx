@@ -33,7 +33,6 @@ export const FindingCard: React.FC<FindingCardProps> = ({
   // Helper to render text with highlighted code tokens
   const renderFormattedDescription = (text: string) => {
     const tokens = ['TextField', 'NUM', 'NumberField', 'PASSWD', '15-20', 'USER ID', 'CUSTID'];
-    let result = text;
     // Replace known code tokens with styled spans if present
     const parts = text.split(/(`[^`]+`|\bTextField\b|\bNUM\b|\bNumberField\b|\bPASSWD\b)/g);
     return parts.map((part, index) => {
