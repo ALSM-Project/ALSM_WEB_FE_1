@@ -10,7 +10,7 @@ import {
   ArrowDown,
   MoreVertical,
 } from 'lucide-react';
-import { MenuItem } from '../types/menu';
+import type { MenuItem } from '../types/menu';
 import { DynamicIcon } from '@/components/Sidebar/IconResolver';
 
 export interface MenuTreeItemProps {

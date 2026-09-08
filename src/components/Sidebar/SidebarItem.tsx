@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { MenuItem } from '@/features/menus/types/menu';
+import type { MenuItem } from '@/features/menus/types/menu';
 import { DynamicIcon } from './IconResolver';
 
 export interface SidebarItemProps {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Modal } from '@/shared/ui';
 import { LivePreviewPanel } from './LivePreviewPanel';
-import { MenuItem } from '../types/menu';
+import type { MenuItem } from '../types/menu';
 
 export interface PreviewNavigationModalProps {
   isOpen: boolean;

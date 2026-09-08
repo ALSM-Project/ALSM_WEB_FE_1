@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Play, Download, RefreshCw, CheckCircle2, Shield, Sliders, AlertCircle, FileSearch } from 'lucide-react';
+import { Play, Download, RefreshCw, CheckCircle2, Shield, Sliders, AlertCircle, FileSearch, Eye } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { ConversionResult } from '../types/conversion';
+import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Tabs } from '@/shared/ui/Tabs';
@@ -13,41 +14,28 @@ export const ConvertScreenPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
+  const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [activeTab, setActiveTab] = useState('preview');
   const [isRunning, setIsRunning] = useState(false);
-  const [result, setResult] = useState<ConversionResult | null>({
-    screenId: 'scr-login',
-    screenName: 'LoginScreen.bms',
-    targetFramework: 'React TypeScript',
-    timestamp: 'Oct 12, 2023 10:45 AM',
-    executionDuration: '1m 15s',
-    astNodesCount: 242,
-    generatedLoc: 1240,
-    metrics: {
-      fieldsProcessed: 23,
-      componentsGenerated: 18,
-      linesOfCode: 1240,
-      sizeKb: 48,
-      duration: '1m 15s',
-    },
-    generatedCode: `// Generated React Component from LoginScreen.bms
-import React, { useState } from 'react';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+  const [result, setResult] = useState<ConversionResult | null>(null);
 
-export const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    conversionService.getScreenById(screenId).then((data) => {
+      if (cancelled) return;
+      setScreen(data);
+      if (data?.status === 'Completed') {
+        conversionService.convertScreen(screenId).then((res) => {
+          if (!cancelled) setResult(res);
+        });
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [screenId]);
 
-  return (
-    <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm space-y-4">
-      <h2 className="text-xl font-bold text-slate-900">Sign In to Enterprise Workspace</h2>
-      <input type="email" placeholder="admin@acmecorp.com" className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900" />
-      <input type="password" placeholder="••••••••" className="w-full p-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900" />
-      <button className="w-full py-2.5 bg-[#175CD3] hover:bg-[#1849A9] text-white font-semibold rounded-lg shadow-xs">Sign In</button>
-    </div>
-  );
-};`,
-  });
+  const screenName = screen?.name ?? screenId;
 
   const handleRunConverter = async () => {
     setIsRunning(true);
@@ -66,16 +54,16 @@ export const LoginScreen: React.FC = () => {
           { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
           { label: 'Acme Corp Modernization', href: ROUTES.PROJECTS.SCREENS(projectId) },
           { label: 'Screens', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'LoginScreen.bms' },
+          { label: screenName },
         ]}
       />
 
       <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-slate-900 font-mono">LoginScreen.bms</h1>
+            <h1 className="text-2xl font-bold text-slate-900 font-mono">{screenName}</h1>
             <span className="bg-brand-50 text-brand-700 border border-brand-200 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-              Target: React TypeScript
+              Target: {screen?.framework ?? 'React'} TypeScript
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">Convert legacy BMS map set into clean React TypeScript frontend component.</p>
@@ -99,9 +87,19 @@ export const LoginScreen: React.FC = () => {
 
       {result && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
-          <div className="flex items-center space-x-2 text-[#079455] font-bold text-sm">
-            <CheckCircle2 className="w-5 h-5 text-[#079455]" />
-            <span>Conversion Complete! Your screen has been successfully converted to React.</span>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center space-x-2 text-[#079455] font-bold text-sm">
+              <CheckCircle2 className="w-5 h-5 text-[#079455]" />
+              <span>Conversion Complete! Your screen has been successfully converted to React.</span>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}
+              className="space-x-1.5 text-xs font-semibold"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>View Full Result</span>
+            </Button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 border-t border-slate-100 text-center">
@@ -151,7 +149,12 @@ export const LoginScreen: React.FC = () => {
             <div className="bg-white px-4 py-1 rounded-md border border-slate-200 text-slate-600 text-center w-80 truncate font-mono">
               http://localhost:3000/login
             </div>
-            <span className="text-xs text-brand-600 font-semibold">100% Zoom</span>
+            <button
+              onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
+              className="text-xs text-brand-600 font-semibold hover:underline"
+            >
+              Open Preview Studio
+            </button>
           </div>
 
           <div className="p-8 md:p-12 flex justify-center bg-slate-100 min-h-[400px]">
@@ -193,7 +196,13 @@ export const LoginScreen: React.FC = () => {
       )}
 
       {activeTab === 'code' && (
-        <CodeViewer code={result?.generatedCode || ''} filename="LoginScreen.tsx" />
+        result ? (
+          <CodeViewer code={result.generatedCode} filename={screenName.replace(/\.(bms|dspf)$/i, '.tsx')} />
+        ) : (
+          <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+            Run the converter to generate React code for this screen.
+          </div>
+        )
       )}
 
       {activeTab === 'mapping' && (

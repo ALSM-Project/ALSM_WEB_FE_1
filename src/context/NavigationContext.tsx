@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { MenuItem, NavigationData } from '@/features/menus/types/menu';
+import type { MenuItem, NavigationData } from '@/features/menus/types/menu';
 import {
   DEFAULT_SIDEBAR_NAV,
   findMenuItemInTree,

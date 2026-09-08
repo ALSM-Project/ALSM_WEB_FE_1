@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Shield, AlertCircle, Link as LinkIcon } from 'lucide-react';
-import { MenuItem } from '../types/menu';
+import type { MenuItem } from '../types/menu';
 import {
   findMenuItemInTree,
   flattenMenuItems,

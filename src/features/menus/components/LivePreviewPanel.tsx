@@ -1,6 +1,6 @@
 import React from 'react';
 import { Cpu, ChevronRight, Layers, Bell } from 'lucide-react';
-import { MenuItem } from '../types/menu';
+import type { MenuItem } from '../types/menu';
 import { findMenuItemInTree } from '../utils/navigationTreeUtils';
 import { DynamicIcon } from '@/components/Sidebar/IconResolver';
 import { Card } from '@/shared/ui';

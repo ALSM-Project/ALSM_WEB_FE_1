@@ -1,4 +1,4 @@
-import { MenuItem } from '@/features/menus/types/menu';
+import type { MenuItem } from '@/features/menus/types/menu';
 
 export interface BreadcrumbNode {
   label: string;

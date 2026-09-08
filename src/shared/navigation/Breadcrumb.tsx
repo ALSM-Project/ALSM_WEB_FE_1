@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { useNavigation } from '@/hooks/useNavigation';
-import { getBreadcrumbsFromRoute, BreadcrumbNode } from './breadcrumbUtils';
+import { getBreadcrumbsFromRoute } from './breadcrumbUtils';
+import type { BreadcrumbNode } from './breadcrumbUtils';
 
 export interface BreadcrumbProps {
   customItems?: BreadcrumbNode[];

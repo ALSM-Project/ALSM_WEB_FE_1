@@ -1,4 +1,4 @@
-import { MenuItem } from '../types/menu';
+import type { MenuItem } from '../types/menu';
 
 export const DEFAULT_SIDEBAR_NAV: MenuItem[] = [
   {
