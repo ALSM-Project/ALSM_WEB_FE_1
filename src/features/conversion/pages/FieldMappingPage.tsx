@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Search, AlertTriangle, Save, CheckCircle2 } from 'lucide-react';
-import { mockFieldMappings } from '@/mocks/conversions.mock';
 import { conversionService } from '../services/conversion.service';
 import type { FieldMapping } from '../types/conversion';
 import { ROUTES } from '@/shared/constants/routes';
@@ -13,13 +12,28 @@ export const FieldMappingPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
-  const [mappings, setMappings] = useState<FieldMapping[]>([...mockFieldMappings]);
-  const [selectedId, setSelectedId] = useState<string>('fm-1');
+  const [mappings, setMappings] = useState<FieldMapping[]>([]);
+  const [mappingsLoading, setMappingsLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<string>('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
 
-  const selectedMapping = mappings.find((m) => m.id === selectedId) || mappings[0];
+  useEffect(() => {
+    let cancelled = false;
+    setMappingsLoading(true);
+    conversionService.getFieldMappings(projectId, screenId).then((data) => {
+      if (cancelled) return;
+      setMappings(data);
+      setSelectedId(data[0]?.id ?? '');
+      setMappingsLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, screenId]);
+
+  const selectedMapping = mappings.find((m) => m.id === selectedId) ?? mappings[0];
 
   const handleUpdateCurrent = (fieldKey: string, value: any) => {
     setMappings((prev) =>
@@ -41,7 +55,7 @@ export const FieldMappingPage: React.FC = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await conversionService.saveFieldMapping(screenId, mappings);
+      await conversionService.saveFieldMapping(projectId, screenId, mappings);
       setSavedMsg('Field mapping updated! Code re-generated successfully.');
       setTimeout(() => {
         navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
@@ -77,7 +91,12 @@ export const FieldMappingPage: React.FC = () => {
           <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId))} className="text-xs font-semibold">
             Cancel
           </Button>
-          <Button onClick={handleSave} isLoading={loading} className="space-x-1.5 text-xs font-semibold">
+          <Button
+            onClick={handleSave}
+            isLoading={loading}
+            disabled={mappingsLoading}
+            className="space-x-1.5 text-xs font-semibold"
+          >
             <Save className="w-4 h-4" />
             <span>Save Mapping & Re-generate</span>
           </Button>
@@ -96,6 +115,15 @@ export const FieldMappingPage: React.FC = () => {
         <span>Modifying this mapping will trigger a re-generation of the screen code upon saving.</span>
       </div>
 
+      {mappingsLoading ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+          Loading field mapping…
+        </div>
+      ) : !selectedMapping ? (
+        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+          No field mapping has been saved for this screen yet.
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-sm">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Legacy Source Fields</h3>
@@ -201,6 +229,7 @@ export const FieldMappingPage: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 };
