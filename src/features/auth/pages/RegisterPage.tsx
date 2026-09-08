@@ -53,8 +53,13 @@ export const RegisterPage: React.FC = () => {
 
     setLoading(true);
     try {
-      await register({ fullName: fullName.trim(), email: email.trim(), password });
-      navigate(ROUTES.PUBLIC.LANDING, { replace: true });
+      const user = await register({ fullName: fullName.trim(), email: email.trim(), password });
+      if (user) {
+        navigate(ROUTES.PROJECTS.SCREENS('proj-acme'), { replace: true });
+      } else {
+        setError('Account created but sign-in failed. Please sign in manually.');
+        navigate(ROUTES.PUBLIC.LOGIN, { replace: true });
+      }
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
@@ -66,8 +71,12 @@ export const RegisterPage: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      await loginWithGoogle(idToken);
-      navigate(ROUTES.PUBLIC.LANDING, { replace: true });
+      const user = await loginWithGoogle(idToken);
+      if (user) {
+        navigate(ROUTES.PROJECTS.SCREENS('proj-acme'), { replace: true });
+      } else {
+        setError('Google sign-in failed. Please try again.');
+      }
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
