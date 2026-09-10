@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Plus, FileCode, ArrowRight, Layers, AlertTriangle, CheckCircle2, XCircle, Play } from 'lucide-react';
+import { Search, Plus, FileCode, ArrowRight, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Stethoscope } from 'lucide-react';
 import { screenService } from '../services/screen.service';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -98,15 +98,21 @@ export const ScreensListPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200 p-5 rounded-xl flex items-center space-x-4 shadow-sm">
-          <div className="p-3 bg-[#FEF3F2] text-[#D92D20] rounded-lg border border-[#FECDCA]">
+        <Link
+          to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
+          className="bg-white border border-slate-200 hover:border-rose-300 p-5 rounded-xl flex items-center space-x-4 shadow-sm transition-all group cursor-pointer"
+        >
+          <div className="p-3 bg-[#FEF3F2] text-[#D92D20] rounded-lg border border-[#FECDCA] group-hover:scale-105 transition-transform">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-500">Failed</p>
-            <p className="text-2xl font-extrabold text-[#D92D20] font-sans mt-0.5">1</p>
+            <p className="text-xs font-medium text-slate-500">Failed (Diagnostics)</p>
+            <p className="text-2xl font-extrabold text-[#D92D20] font-sans mt-0.5 flex items-center gap-1.5">
+              <span>1</span>
+              <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">View Logs &rarr;</span>
+            </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <Tabs
@@ -189,13 +195,24 @@ export const ScreensListPage: React.FC = () => {
                   <td className="p-4 text-slate-700 font-medium">{screen.framework}</td>
                   <td className="p-4 text-slate-500">{screen.lastUpdated}</td>
                   <td className="p-4 text-right space-x-2">
-                    <Link
-                      to={ROUTES.PROJECTS.CONVERT(projectId, screen.id)}
-                      className="inline-flex items-center space-x-1 text-xs text-brand-600 font-medium hover:text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-200 transition-colors"
-                    >
-                      <span>Studio</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    {screen.status === 'Failed' ? (
+                      <Link
+                        to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
+                        className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
+                      >
+                        <Stethoscope className="w-3.5 h-3.5" />
+                        <span>Diagnostics</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    ) : (
+                      <Link
+                        to={ROUTES.PROJECTS.CONVERT(projectId, screen.id)}
+                        className="inline-flex items-center space-x-1 text-xs text-brand-600 font-medium hover:text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg border border-brand-200 transition-colors"
+                      >
+                        <span>Studio</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}

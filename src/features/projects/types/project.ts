@@ -1,4 +1,4 @@
-export type ProjectStatus = 'ACTIVE' | 'ARCHIVED' | 'SOFT_DELETED';
+export type ProjectStatus = 'ACTIVE' | 'DRAFT' | 'ARCHIVED' | 'SOFT_DELETED';
 
 export interface WorkspaceQuota {
   screensUsed: number;
