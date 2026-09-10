@@ -10,7 +10,7 @@ import { GuestRoute, ProtectedRoute } from './guards';
 import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage } from '@/features/auth';
 import { DocsPage } from '@/features/docs';
 import { ChangePasswordPage, TwoFactorAuthenticationPage, ActiveSessionsPage } from '@/features/account';
-import { CreateProjectPage, DeleteProjectPage } from '@/features/projects';
+import { ProjectsListPage, CreateProjectPage, DeleteProjectPage } from '@/features/projects';
 import { UploadSourcePage, ScreensListPage } from '@/features/screens';
 import {
   ConvertScreenPage,
@@ -74,6 +74,7 @@ export const router = createBrowserRouter([
           },
 
           // Project & Conversion Routes
+          { path: '/projects', element: <ProjectsListPage /> },
           { path: '/projects/new', element: <CreateProjectPage /> },
           { path: '/projects/:projectId/upload', element: <UploadSourcePage /> },
           { path: '/projects/:projectId/screens', element: <ScreensListPage /> },

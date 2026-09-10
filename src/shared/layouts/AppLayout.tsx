@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Cpu, Layers, CreditCard, User, LogOut, ChevronDown, Activity, Settings } from 'lucide-react';
+import { Cpu, Layers, Folder, CreditCard, User, LogOut, ChevronDown, Activity, Settings, Stethoscope } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
 
@@ -40,6 +40,32 @@ export const AppLayout: React.FC = () => {
               <span className="flex items-center space-x-2">
                 <Layers className="w-4 h-4" />
                 <span>Dashboard</span>
+              </span>
+            </NavLink>
+            <NavLink
+              to={ROUTES.PROJECTS.LIST}
+              className={({ isActive }) =>
+                `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`
+              }
+            >
+              <span className="flex items-center space-x-2">
+                <Folder className="w-4 h-4" />
+                <span>Projects</span>
+              </span>
+            </NavLink>
+            <NavLink
+              to={ROUTES.PROJECTS.DIAGNOSTICS('proj-acme')}
+              className={({ isActive }) =>
+                `px-3.5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive ? 'bg-brand-50 text-brand-600 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`
+              }
+            >
+              <span className="flex items-center space-x-2">
+                <Stethoscope className="w-4 h-4 text-rose-600" />
+                <span>Diagnostics</span>
               </span>
             </NavLink>
             <NavLink

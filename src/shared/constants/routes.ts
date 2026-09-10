@@ -15,7 +15,9 @@ export const ROUTES = {
     SESSIONS: '/account/security/sessions',
   },
   PROJECTS: {
+    LIST: '/projects',
     NEW: '/projects/new',
+    DELETE: (id = ':projectId') => `/projects/${id}/delete`,
     UPLOAD: (id = ':projectId') => `/projects/${id}/upload`,
     SCREENS: (id = ':projectId') => `/projects/${id}/screens`,
     CONVERT: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/convert`,
