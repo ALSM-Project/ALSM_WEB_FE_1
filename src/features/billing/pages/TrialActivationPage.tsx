@@ -1,89 +1,123 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Mail, CreditCard, Lock, Check } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
 
 export const TrialActivationPage: React.FC = () => {
   const navigate = useNavigate();
   const [activated, setActivated] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleActivate = () => {
-    setActivated(true);
+    setLoading(true);
     setTimeout(() => {
-      navigate(ROUTES.PROJECTS.SCREENS('proj-acme'));
-    }, 1200);
+      setActivated(true);
+      setLoading(false);
+      setTimeout(() => {
+        navigate(ROUTES.PROJECTS.SCREENS('proj-acme'));
+      }, 1500);
+    }, 600);
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8 py-8">
-      <div className="text-center space-y-3">
-        <div className="w-12 h-12 rounded-2xl bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto text-brand-600 shadow-xs">
-          <Sparkles className="w-6 h-6" />
+    <div className="py-8 px-4 flex items-center justify-center">
+      <div className="max-w-md w-full bg-white border border-slate-200/90 rounded-2xl p-8 shadow-xs space-y-6">
+        {/* Title Header & Badge */}
+        <div className="text-center space-y-2.5">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Activate Your Trial</h1>
+          <div>
+            <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Professional Trial — $0 Due Today</span>
+            </span>
+          </div>
         </div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Activate Your Trial</h1>
-        <p className="text-brand-600 font-semibold text-sm">Professional Trial — 0₫ Due Today</p>
-      </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-8 space-y-6 shadow-sm">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Included in your 14-day trial:</h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-medium text-slate-800">
-          <div className="flex items-center space-x-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+        {/* Feature List */}
+        <div className="space-y-3.5 pt-2 pl-2">
+          <div className="flex items-center space-x-3 text-sm font-semibold text-slate-800">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 fill-emerald-100" />
             <span>Unlimited Projects</span>
           </div>
-          <div className="flex items-center space-x-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span>100 Screens / mo</span>
+          <div className="flex items-center space-x-3 text-sm font-semibold text-slate-800">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 fill-emerald-100" />
+            <span>100 Screens/mo</span>
           </div>
-          <div className="flex items-center space-x-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-            <span>AI-assisted validation</span>
+          <div className="flex items-center space-x-3 text-sm font-semibold text-slate-800">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 fill-emerald-100" />
+            <span>AI-assisted structural mapping</span>
           </div>
-          <div className="flex items-center space-x-2.5 p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <div className="flex items-center space-x-3 text-sm font-semibold text-slate-800">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0 fill-emerald-100" />
             <span>Full platform access</span>
           </div>
         </div>
 
-        <div className="border-t border-slate-100 pt-6 space-y-4">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Trial Timeline</h4>
-          <div className="relative pl-6 space-y-6 border-l-2 border-slate-200 text-xs">
-            <div className="relative">
-              <span className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-brand-600 border-4 border-white shadow-xs"></span>
-              <p className="font-bold text-slate-900">Day 1</p>
-              <p className="text-slate-500">Full Pro features unlocked immediately</p>
+        {/* Timeline Section */}
+        <div className="space-y-3 pt-2">
+          <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Timeline</h3>
+
+          <div className="relative flex items-center justify-between pt-1">
+            {/* Step 1 Node */}
+            <div className="flex flex-col items-center text-center z-10 w-24">
+              <div className="w-7 h-7 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                <Check className="w-4 h-4 stroke-[3]" />
+              </div>
+              <span className="text-xs font-bold text-brand-600 mt-2">Day 1</span>
+              <span className="text-[11px] text-slate-500 mt-0.5 leading-tight">Full platform access</span>
             </div>
-            <div className="relative">
-              <span className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-slate-300 border-4 border-white"></span>
-              <p className="font-bold text-slate-900">Day 12</p>
-              <p className="text-slate-500">Trial expiration reminder email sent</p>
+
+            {/* Connecting Line 1 */}
+            <div className="h-0.5 flex-1 bg-slate-200 -mt-8"></div>
+
+            {/* Step 2 Node */}
+            <div className="flex flex-col items-center text-center z-10 w-24">
+              <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 text-slate-500 flex items-center justify-center text-xs">
+                <Mail className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-xs font-bold text-slate-500 mt-2">Day 12</span>
+              <span className="text-[11px] text-slate-500 mt-0.5 leading-tight">Trial expiration reminder</span>
             </div>
-            <div className="relative">
-              <span className="absolute -left-[31px] top-0.5 w-4 h-4 rounded-full bg-slate-300 border-4 border-white"></span>
-              <p className="font-bold text-slate-900">Day 14</p>
-              <p className="text-slate-500">Billing starts unless cancelled</p>
+
+            {/* Connecting Line 2 */}
+            <div className="h-0.5 flex-1 bg-slate-200 -mt-8"></div>
+
+            {/* Step 3 Node */}
+            <div className="flex flex-col items-center text-center z-10 w-24">
+              <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 text-slate-500 flex items-center justify-center text-xs">
+                <CreditCard className="w-3.5 h-3.5" />
+              </div>
+              <span className="text-xs font-bold text-slate-500 mt-2">Day 14</span>
+              <span className="text-[11px] text-slate-500 mt-0.5 leading-tight">Billing starts unless cancelled</span>
             </div>
           </div>
         </div>
 
+        {/* Action Button & Lock Notice */}
         {activated ? (
-          <div className="bg-[#ECFDF3] border border-[#ABEFC6] text-[#079455] p-4 rounded-xl text-center text-sm font-bold flex items-center justify-center space-x-2">
-            <CheckCircle2 className="w-5 h-5 text-[#079455]" />
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-xl text-center text-xs font-bold flex items-center justify-center space-x-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
             <span>Trial Activated! Redirecting to Workspace...</span>
           </div>
         ) : (
-          <div className="pt-4 space-y-3">
-            <Button onClick={handleActivate} className="w-full py-3 space-x-2 text-base font-semibold shadow-xs">
-              <span>Activate Free Trial</span>
-              <ArrowRight className="w-5 h-5" />
+          <div className="space-y-2.5 pt-2">
+            <Button
+              onClick={handleActivate}
+              isLoading={loading}
+              className="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm transition-colors shadow-xs"
+            >
+              Activate Free Trial
             </Button>
-            <p className="text-center text-xs text-slate-500">No credit card required</p>
+            <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-400 font-medium">
+              <Lock className="w-3.5 h-3.5" />
+              <span>No credit card required</span>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 };
+
 export default TrialActivationPage;
