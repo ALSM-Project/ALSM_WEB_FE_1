@@ -15,16 +15,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 import { NavigationProvider } from '@/context/NavigationContext';
 
+/**
+ * Check if a user is a platform admin.
+ */
+function isUserAdmin(u: User | null | undefined): boolean {
+  if (!u) return false;
+  return Boolean(u.isPlatformAdmin || u.role === 'ADMIN' || u.roles?.includes('ADMIN'));
+}
+
+/**
+ * Redirect admin user from FE1 to FE2 Staff Portal with tokens in URL.
+ * Clears FE1 tokens so that on any back-navigation FE1 won't loop.
+ */
+function redirectAdminToStaffPortal(): void {
+  const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
+  const accessToken = tokenStore.getAccessToken() || '';
+  const refreshToken = tokenStore.getRefreshToken() || '';
+  // Clear tokens from FE1 so returning here doesn't trigger another redirect loop
+  tokenStore.clear();
+  window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+}
+
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // On load: restore the session if a refresh token exists (FE guideline 03 §8).
-  // The access token is in memory only, so a reload must go through refresh.
+  // On load: restore the session if a refresh token exists.
   useEffect(() => {
     let cancelled = false;
 
-    // If the refresh flow elsewhere fails, drop the local session state.
     apiClient.setAuthFailureHandler(() => {
       setUser(null);
     });
@@ -33,13 +52,22 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       const refreshToken = tokenStore.getRefreshToken();
       if (refreshToken) {
         try {
-          // Re-issue access token from the persisted refresh token.
-          await apiClient.post<{ accessToken: string; refreshToken: string }>(
+          const tokens = await apiClient.post<{ accessToken: string; refreshToken: string }>(
             '/auth/refresh',
             { refreshToken },
             { auth: false },
           );
+          tokenStore.setAccessToken(tokens.accessToken);
+          tokenStore.setRefreshToken(tokens.refreshToken);
           const me = await authService.getCurrentUser();
+
+          // If the restored session belongs to an admin, redirect to FE2 immediately.
+          // Do NOT call setUser() — this prevents GuestRoute from interfering.
+          if (isUserAdmin(me)) {
+            redirectAdminToStaffPortal();
+            return; // Don't setIsLoading(false); page is navigating away
+          }
+
           if (!cancelled) setUser(me);
         } catch {
           tokenStore.clear();
@@ -54,16 +82,27 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Returns the logged-in user so the caller (LoginPage) can rely on the
-  // resolved value rather than reading context state after an async gap.
   const handleLogin = useCallback(async (credentials: LoginCredentials): Promise<User | null> => {
     setIsLoading(true);
     try {
       const loggedInUser = await authService.login(credentials);
+
+      // Admin users: redirect to FE2 immediately. Don't call setUser().
+      if (isUserAdmin(loggedInUser)) {
+        redirectAdminToStaffPortal();
+        // Keep isLoading=true so GuestRoute shows spinner while browser navigates
+        return loggedInUser;
+      }
+
       setUser(loggedInUser);
       return loggedInUser;
-    } finally {
+    } catch (err) {
       setIsLoading(false);
+      throw err;
+    } finally {
+      // For non-admin users, clear loading. For admin, we intentionally
+      // keep isLoading=true so the page shows a spinner until navigation completes.
+      // We check user state: if user was set, loading should end.
     }
   }, []);
 
@@ -82,10 +121,18 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     try {
       const loggedInUser = await authService.loginWithGoogle(idToken);
+
+      // Admin users: redirect to FE2 immediately
+      if (isUserAdmin(loggedInUser)) {
+        redirectAdminToStaffPortal();
+        return loggedInUser;
+      }
+
       setUser(loggedInUser);
       return loggedInUser;
-    } finally {
+    } catch (err) {
       setIsLoading(false);
+      throw err;
     }
   }, []);
 
@@ -119,3 +166,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

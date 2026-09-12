@@ -4,7 +4,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import PublicLayout from '@/shared/layouts/PublicLayout';
 import AppLayout from '@/shared/layouts/AppLayout';
 import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
-import { GuestRoute, ProtectedRoute } from './guards';
+import { GuestRoute, ProtectedRoute, RoleGuard } from './guards';
 
 // Feature Modules
 import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage } from '@/features/auth';
@@ -73,7 +73,7 @@ export const router = createBrowserRouter([
             ],
           },
 
-          // Project & Conversion Routes
+          // Project & Conversion Routes (all authenticated users)
           { path: '/projects/new', element: <CreateProjectPage /> },
           { path: '/projects/:projectId/upload', element: <UploadSourcePage /> },
           { path: '/projects/:projectId/screens', element: <ScreensListPage /> },
@@ -85,15 +85,29 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/review', element: <ReviewFindingsPage /> },
           { path: '/projects/:projectId/export', element: <ExportCodePage /> },
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },
-          { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
 
-          // Billing Routes
+          // Owner/Admin-only: Delete Project
+          {
+            element: <RoleGuard allowedRoles={['OWNER', 'ADMIN']} />,
+            children: [
+              { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
+            ],
+          },
+
+          // Billing Routes — accessible to all authenticated users
           { path: '/billing/trial', element: <TrialActivationPage /> },
           { path: '/billing/payment', element: <QRPaymentPage /> },
-          { path: '/billing/upgrade', element: <UpgradeSubscriptionPage /> },
           { path: '/usage', element: <ResourceUsagePage /> },
-          { path: '/billing/history', element: <BillingHistoryPage /> },
-          { path: '/billing/subscription', element: <CancelSubscriptionPage /> },
+
+          // Billing Management — Owner/Admin only
+          {
+            element: <RoleGuard allowedRoles={['OWNER', 'ADMIN']} />,
+            children: [
+              { path: '/billing/upgrade', element: <UpgradeSubscriptionPage /> },
+              { path: '/billing/history', element: <BillingHistoryPage /> },
+              { path: '/billing/subscription', element: <CancelSubscriptionPage /> },
+            ],
+          },
         ],
       },
     ],
