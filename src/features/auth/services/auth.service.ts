@@ -16,11 +16,10 @@ export class AuthService {
   async login(credentials: LoginCredentials): Promise<User | null> {
     const response = await apiClient.post<AuthTokensWithUser>('/auth/login', credentials, { auth: false });
     this.applyTokens(response);
-    // If the backend included user inline, use it directly to avoid a round-trip.
     if (response.user) {
       return response.user;
     }
-    return this.getCurrentUser();
+    return apiClient.get<User>('/auth/me');
   }
 
   async register(data: RegisterData): Promise<User | null> {
