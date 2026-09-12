@@ -12,6 +12,8 @@ const mocks = vi.hoisted(() => ({
 
   getRefreshToken: vi.fn(),
   getAccessToken: vi.fn(),
+  setAccessToken: vi.fn(),
+  setRefreshToken: vi.fn(),
   clearTokens: vi.fn(),
 
   refreshSession: vi.fn(),
@@ -32,6 +34,8 @@ vi.mock('@/services/api/tokenStore', () => ({
   tokenStore: {
     getRefreshToken: mocks.getRefreshToken,
     getAccessToken: mocks.getAccessToken,
+    setAccessToken: mocks.setAccessToken,
+    setRefreshToken: mocks.setRefreshToken,
     clear: mocks.clearTokens,
   },
 }));
