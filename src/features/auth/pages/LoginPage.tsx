@@ -22,7 +22,7 @@ export const LoginPage: React.FC = () => {
 
   const getRedirectTarget = () => {
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
-    return returnTo || ROUTES.PROJECTS.SCREENS('proj-acme');
+    return returnTo || ROUTES.PUBLIC.LANDING;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
