@@ -3,13 +3,24 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Bell, Settings, Sun, ChevronDown } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
+import { useAuth } from '@/app/providers';
+
+const getInitials = (name?: string) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return 'U';
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
 export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -60,24 +71,24 @@ export const AppLayout: React.FC = () => {
               <Settings className="w-4 h-4" />
             </button>
 
-            {/* User Profile Avatar (JD John Doe) */}
+            {/* User Profile Avatar */}
             <div className="relative">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#F7F9FC] transition-colors"
               >
                 <div className="w-7 h-7 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-2xs">
-                  JD
+                  {getInitials(user?.fullName)}
                 </div>
-                <span className="hidden sm:inline font-semibold text-[#091E42]">John Doe</span>
+                <span className="hidden sm:inline font-semibold text-[#091E42]">{user?.fullName || 'User'}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-[#6B778C]" />
               </button>
 
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-[#D9E2EC] rounded-xl shadow-lg py-1.5 z-50 text-xs">
                   <div className="px-3 py-1.5 border-b border-[#E5EAF0]">
-                    <p className="font-semibold text-[#091E42]">John Doe</p>
-                    <p className="text-[10px] text-[#6B778C]">john.doe@alsm.io</p>
+                    <p className="font-semibold text-[#091E42]">{user?.fullName || 'User'}</p>
+                    <p className="text-[10px] text-[#6B778C]">{user?.email || ''}</p>
                   </div>
                   <button
                     onClick={handleLogout}
