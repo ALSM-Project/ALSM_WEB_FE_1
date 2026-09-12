@@ -6,16 +6,21 @@ import { getBreadcrumbsFromRoute } from './breadcrumbUtils';
 import type { BreadcrumbNode } from './breadcrumbUtils';
 
 export interface BreadcrumbProps {
+  items?: BreadcrumbNode[];
   customItems?: BreadcrumbNode[];
   className?: string;
 }
 
-export const Breadcrumb: React.FC<BreadcrumbProps> = ({ customItems, className = '' }) => {
+export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items: propItems, customItems, className = '' }) => {
   const location = useLocation();
   const { navigation } = useNavigation();
 
   const menuItems = navigation?.sidebarNav || [];
-  const items = customItems || getBreadcrumbsFromRoute(location.pathname, menuItems);
+  const rawItems = customItems || propItems || getBreadcrumbsFromRoute(location.pathname, menuItems);
+  const items = rawItems.map((item) => ({
+    ...item,
+    path: item.path || item.href,
+  }));
 
   if (!items || items.length === 0) {
     return null;
