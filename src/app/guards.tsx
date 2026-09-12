@@ -33,7 +33,7 @@ export const GuestRoute: React.FC = () => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/projects/new" replace />;
+    return <Navigate to={ROUTES.PROJECTS.SCREENS('proj-acme')} replace />;
   }
 
   return <Outlet />;
