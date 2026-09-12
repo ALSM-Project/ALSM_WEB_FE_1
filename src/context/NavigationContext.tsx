@@ -282,10 +282,34 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
+const defaultContextValue: NavigationContextType = {
+  sidebarNav: DEFAULT_SIDEBAR_NAV,
+  navigation: {
+    topNav: [],
+    sidebarNav: DEFAULT_SIDEBAR_NAV,
+    secondaryNav: {},
+    contextualNav: [],
+    personalization: { pinnedItems: [], recentItems: [], suggestedItems: [] },
+    metadata: { totalItems: DEFAULT_SIDEBAR_NAV.length, isDefault: true, lastUpdated: new Date().toISOString() },
+  },
+  loading: false,
+  selectedItemId: null,
+  setSelectedItemId: () => {},
+  addItem: () => ({ id: '', label: '', icon: '', path: '', isVisible: true, order: 0 }),
+  updateItem: () => {},
+  deleteItem: () => ({ success: false }),
+  moveItem: () => ({ success: false }),
+  reorderSibling: () => {},
+  duplicateItem: () => null,
+  resetToDefault: () => {},
+  saveChanges: async () => {},
+  isDirty: false,
+  trackMenuItemUsage: async () => {},
+  pinMenuItem: async () => {},
+  unpinMenuItem: async () => {},
+};
+
 export const useNavigationContext = (): NavigationContextType => {
   const context = useContext(NavigationContext);
-  if (!context) {
-    throw new Error('useNavigationContext must be used within NavigationProvider');
-  }
-  return context;
+  return context || defaultContextValue;
 };
