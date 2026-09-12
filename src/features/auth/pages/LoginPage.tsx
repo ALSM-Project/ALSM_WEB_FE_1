@@ -14,15 +14,15 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState('cuongnxde180042@fpt.edu.vn');
-  const [password, setPassword] = useState('Password123@');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const getRedirectTarget = () => {
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
-    return returnTo || ROUTES.PROJECTS.SCREENS('proj-acme');
+    return returnTo || ROUTES.PROJECTS.NEW;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +36,8 @@ export const LoginPage: React.FC = () => {
     try {
       const user = await login({ email: email.trim(), password });
       if (user) {
-        // User is confirmed authenticated — navigate immediately.
+        // Admin users are already being redirected to FE2 by AppProviders.
+        // For non-admin users, navigate within FE1.
         navigate(getRedirectTarget(), { replace: true });
       } else {
         setError('Unable to retrieve account information. Please try again.');
@@ -54,6 +55,7 @@ export const LoginPage: React.FC = () => {
     try {
       const user = await loginWithGoogle(idToken);
       if (user) {
+        // Admin users are already being redirected to FE2 by AppProviders.
         navigate(getRedirectTarget(), { replace: true });
       } else {
         setError('Google sign-in failed. Please try again.');
@@ -157,10 +159,26 @@ export const LoginPage: React.FC = () => {
 
 function toErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
-    if (err.code === 'INVALID_CREDENTIALS') return 'Invalid email or password';
+    if (err.code === 'INVALID_CREDENTIALS') return 'Email hoặc mật khẩu không chính xác';
     return err.message;
   }
-  return 'Unable to sign in. Please try again.';
+  if (err && typeof err === 'object') {
+    const errorObj = err as any;
+    if (errorObj.code === 'INVALID_CREDENTIALS' || errorObj.response?.data?.code === 'INVALID_CREDENTIALS') {
+      return 'Email hoặc mật khẩu không chính xác';
+    }
+    if (errorObj.response?.data?.message) {
+      return errorObj.response.data.message;
+    }
+    if (errorObj.message) {
+      if (errorObj.message.includes('Network Error') || errorObj.message.includes('ERR_FAILED')) {
+        return 'Không thể kết nối đến máy chủ Backend (http://localhost:3000). Vui lòng kiểm tra lại dịch vụ Backend.';
+      }
+      return errorObj.message;
+    }
+  }
+  if (typeof err === 'string') return err;
+  return 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.';
 }
 
 export default LoginPage;
