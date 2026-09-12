@@ -2,7 +2,6 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 // Layouts from Shared Foundation
 import PublicLayout from '@/shared/layouts/PublicLayout';
-import AppLayout from '@/shared/layouts/AppLayout';
 import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
 import { GuestRoute, ProtectedRoute, RoleGuard } from './guards';
 
@@ -61,7 +60,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        element: <AppLayout />,
+        element: <PublicLayout />,
         children: [
           // Account Security Nested Subroutes
           {

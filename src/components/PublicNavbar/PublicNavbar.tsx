@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/app/providers';
 import {
   Cpu,
@@ -18,6 +18,9 @@ import {
   Code,
   Terminal,
   Coffee,
+  LogOut,
+  Shield,
+  PieChart,
 } from 'lucide-react';
 import logo2 from '@/assets/logo2.png';
 import { ROUTES } from '@/shared/constants/routes';
@@ -171,18 +174,34 @@ const TextRollover: React.FC<{ text: string; className?: string }> = ({ text, cl
   </span>
 );
 
+const getInitials = (name?: string) => {
+  if (!name) return 'U';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0 || !parts[0]) return 'U';
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 /* ─────────────────────────────────────────────
    PublicNavbar Component
    ───────────────────────────────────────────── */
 export const PublicNavbar: React.FC = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<'platform' | 'tools' | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobilePlatformOpen, setMobilePlatformOpen] = useState(false);
   const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const handleLogout = async () => {
+    setProfileOpen(false);
+    await logout();
+    navigate('/');
+  };
 
   // Scroll listener
   useEffect(() => {
@@ -358,17 +377,84 @@ export const PublicNavbar: React.FC = () => {
           </nav>
 
           {/* ─── Right Auth Section ─── */}
-          <div className="alsm-nav-right">
+          <div className="alsm-nav-right flex items-center space-x-3">
             {isAuthenticated ? (
-              <Link
-                to={ROUTES.PROJECTS.SCREENS('proj-acme')}
-                className="alsm-cta-btn active"
-              >
-                <span className="alsm-cta-rollover">
-                  <span>Go to Workspace</span>
-                  <span>Go to Workspace</span>
-                </span>
-              </Link>
+              <>
+                <Link
+                  to={ROUTES.PROJECTS.SCREENS('proj-acme')}
+                  className="alsm-cta-btn active"
+                >
+                  <span className="alsm-cta-rollover">
+                    <span>Go to Workspace</span>
+                    <span>Go to Workspace</span>
+                  </span>
+                </Link>
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-slate-100 transition-colors border border-slate-200"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-xs">
+                      {getInitials(user?.fullName)}
+                    </div>
+                    <span className="hidden sm:inline font-semibold text-xs text-[#091E42] max-w-[120px] truncate">
+                      {user?.fullName || 'Account'}
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                  </button>
+
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 text-xs">
+                      <div className="px-4 py-2.5 border-b border-slate-100">
+                        <p className="font-bold text-slate-900 text-sm">{user?.fullName || 'User'}</p>
+                        <p className="text-slate-500 text-[11px] truncate mt-0.5">{user?.email || ''}</p>
+                      </div>
+
+                      <div className="py-1">
+                        <Link
+                          to={ROUTES.PROJECTS.SCREENS('proj-acme')}
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 font-medium"
+                        >
+                          <FolderKanban className="w-4 h-4 text-slate-400" />
+                          <span>Projects Workspace</span>
+                        </Link>
+
+                        <Link
+                          to={ROUTES.BILLING.USAGE}
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 font-medium"
+                        >
+                          <PieChart className="w-4 h-4 text-slate-400" />
+                          <span>Resource Usage</span>
+                        </Link>
+
+                        <Link
+                          to={ROUTES.ACCOUNT.PASSWORD}
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 font-medium"
+                        >
+                          <Shield className="w-4 h-4 text-slate-400" />
+                          <span>Account & Security</span>
+                        </Link>
+                      </div>
+
+                      <div className="border-t border-slate-100 pt-1 mt-1">
+                        <button
+                          type="button"
+                          onClick={handleLogout}
+                          className="w-full flex items-center space-x-2.5 px-4 py-2 text-rose-600 hover:bg-rose-50 font-semibold"
+                        >
+                          <LogOut className="w-4 h-4 text-rose-500" />
+                          <span>Sign Out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <>
                 <Link
