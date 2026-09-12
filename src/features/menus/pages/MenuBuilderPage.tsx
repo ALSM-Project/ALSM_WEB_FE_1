@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@/hooks/useNavigation';
 import { MenuTreeItem } from '../components/MenuTreeItem';
-import { AvailablePagesPanel, AvailablePage } from '../components/AvailablePagesPanel';
+import { AvailablePagesPanel } from '../components/AvailablePagesPanel';
+import type { AvailablePage } from '../components/AvailablePagesPanel';
 import { MenuItemEditor } from '../components/MenuItemEditor';
 import { PreviewNavigationModal } from '../components/PreviewNavigationModal';
 import { Button, Input, Card } from '@/shared/ui';
