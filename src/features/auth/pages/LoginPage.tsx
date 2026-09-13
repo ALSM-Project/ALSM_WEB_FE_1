@@ -18,16 +18,18 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const getRedirectTarget = () => {
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
-    return returnTo || ROUTES.PUBLIC.LANDING;
+    return returnTo || ROUTES.DASHBOARD;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setUnverifiedEmail('');
 
     if (!email.trim()) return setError('Please enter your email');
     if (!password) return setError('Please enter your password');
@@ -42,8 +44,14 @@ export const LoginPage: React.FC = () => {
       } else {
         setError('Unable to retrieve account information. Please try again.');
       }
-    } catch (err) {
-      setError(toErrorMessage(err));
+    } catch (err: any) {
+      if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
+        setUnverifiedEmail(email.trim());
+      } else if (err?.code === 'EMAIL_NOT_VERIFIED' || err?.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        setUnverifiedEmail(email.trim());
+      } else {
+        setError(toErrorMessage(err));
+      }
     } finally {
       setLoading(false);
     }
@@ -80,7 +88,19 @@ export const LoginPage: React.FC = () => {
           <p className="text-slate-500 text-sm mt-1">Sign in to your ALSM Platform account</p>
         </div>
 
-        {error && (
+        {unverifiedEmail ? (
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl text-xs space-y-1">
+            <p className="font-semibold text-amber-900">Email chưa được xác thực!</p>
+            <p>Vui lòng kiểm tra hộp thư email của bạn hoặc nhập mã xác minh để hoàn tất kích hoạt tài khoản.</p>
+            <button
+              type="button"
+              onClick={() => navigate(`${ROUTES.PUBLIC.VERIFY_EMAIL}?email=${encodeURIComponent(unverifiedEmail)}`)}
+              className="mt-1 text-[#0652CC] font-bold underline cursor-pointer hover:text-[#0655FF]"
+            >
+              Nhấn vào đây để nhập mã xác minh →
+            </button>
+          </div>
+        ) : error && (
           <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-3 rounded-xl text-sm font-medium">
             {error}
           </div>

@@ -5,16 +5,20 @@ export const ROUTES = {
     DOCS: '/docs',
     CONTACT: '/contact',
     REGISTER: '/register',
+    VERIFY_EMAIL: '/verify-email',
     LOGIN: '/login',
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
   },
+  DASHBOARD: '/dashboard',
   ACCOUNT: {
     PASSWORD: '/account/security/password',
     TWO_FACTOR: '/account/security/2fa',
     SESSIONS: '/account/security/sessions',
   },
   PROJECTS: {
+    LIST: '/projects',
+    OVERVIEW: (id = ':projectId') => `/projects/${id}`,
     NEW: '/projects/new',
     UPLOAD: (id = ':projectId') => `/projects/${id}/upload`,
     SCREENS: (id = ':projectId') => `/projects/${id}/screens`,
@@ -27,13 +31,11 @@ export const ROUTES = {
     EXPORT: (id = ':projectId') => `/projects/${id}/export`,
     DIAGNOSTICS: (id = ':projectId') => `/projects/${id}/diagnostics`,
   },
-  BILLING: {
-    PRICING: '/pricing',
-    TRIAL: '/billing/trial',
-    PAYMENT: '/billing/payment',
-    UPGRADE: '/billing/upgrade',
-    USAGE: '/usage',
-    HISTORY: '/billing/history',
-    SUBSCRIPTION: '/billing/subscription',
+  RESOURCES: {
+    DOCS: '/workspace/docs',
+    POC_GUIDE: '/workspace/docs#how-it-works',
+    MODERNIZATION_GUIDE: '/workspace/docs#bms-dspf',
+    CONTACT: '/workspace/contact',
   },
 };
+

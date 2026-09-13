@@ -28,6 +28,7 @@ declare global {
 const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
 let scriptLoading: Promise<void> | null = null;
+let initializedClientId: string | null = null;
 
 function loadGisScript(): Promise<void> {
   if (window.google?.accounts?.id) {
@@ -44,6 +45,19 @@ function loadGisScript(): Promise<void> {
     });
   }
   return scriptLoading;
+}
+
+function initializeGis(clientId: string, callback: (response: { credential?: string }) => void) {
+  if (initializedClientId === clientId && window.google?.accounts?.id) {
+    return;
+  }
+  if (window.google?.accounts?.id) {
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback,
+    });
+    initializedClientId = clientId;
+  }
 }
 
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCredential, onError }) => {
@@ -69,15 +83,13 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
       .then(() => {
         if (cancelled || !containerRef.current || !window.google?.accounts?.id) return;
 
-        window.google.accounts.id.initialize({
-          client_id: env.googleClientId,
-          callback: (response: { credential?: string }) => {
-            if (response.credential) {
-              onCredentialRef.current(response.credential);
-            }
-          },
+        initializeGis(env.googleClientId, (response: { credential?: string }) => {
+          if (response.credential) {
+            onCredentialRef.current(response.credential);
+          }
         });
 
+        containerRef.current.innerHTML = '';
         window.google.accounts.id.renderButton(containerRef.current, {
           type: 'standard',
           theme: 'outline',

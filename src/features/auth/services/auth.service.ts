@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api/apiClient';
 import { tokenStore } from '@/services/api/tokenStore';
-import type { AuthTokens, LoginCredentials, RegisterData, User } from '../types/auth';
+import type { AuthTokens, LoginCredentials, RegisterData, RegisterResponse, User } from '../types/auth';
 
 // Auth feature service (FE guideline 04 §7): owns the auth endpoints and maps
 // the backend response DTOs. No UI, no routing, no token business here —
@@ -22,13 +22,21 @@ export class AuthService {
     return apiClient.get<User>('/auth/me');
   }
 
-  async register(data: RegisterData): Promise<User | null> {
-    const response = await apiClient.post<AuthTokensWithUser>('/auth/register', data, { auth: false });
+  async register(data: RegisterData): Promise<RegisterResponse> {
+    return apiClient.post<RegisterResponse>('/auth/register', data, { auth: false });
+  }
+
+  async verifyEmail(email: string, code: string): Promise<User | null> {
+    const response = await apiClient.post<AuthTokensWithUser>('/auth/verify-email', { email, code }, { auth: false });
     this.applyTokens(response);
     if (response.user) {
       return response.user;
     }
     return this.getCurrentUser();
+  }
+
+  async resendVerification(email: string): Promise<void> {
+    await apiClient.post<{ ok: true }>('/auth/resend-verification', { email }, { auth: false });
   }
 
   async loginWithGoogle(idToken: string): Promise<User | null> {

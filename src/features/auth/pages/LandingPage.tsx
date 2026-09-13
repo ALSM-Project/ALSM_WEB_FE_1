@@ -17,8 +17,6 @@ import {
   Star,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
-import { billingService } from '@/features/billing/services/billing.service';
-import type { SubscriptionPlan } from '@/features/billing/types/billing';
 import './LandingPage.css';
 
 interface ReviewItem {
@@ -100,32 +98,6 @@ export const LandingPage: React.FC = () => {
   const [activeLegacyNode, setActiveLegacyNode] = useState<'bms' | 'dspf' | 'cobol' | 'ibmi' | 'as400'>('bms');
   const [activeMatrixTab, setActiveMatrixTab] = useState('react');
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-  const [annualBilling, setAnnualBilling] = useState(false);
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [loadingPlans, setLoadingPlans] = useState(true);
-
-  // Fetch subscription plans dynamically from backend API / MongoDB
-  useEffect(() => {
-    let isMounted = true;
-    setLoadingPlans(true);
-    billingService
-      .getSubscriptionPlans()
-      .then((data) => {
-        if (isMounted && data && Array.isArray(data)) {
-          setPlans(data);
-        }
-      })
-      .catch((err) => {
-        console.warn('Failed to load plans on LandingPage:', err);
-        if (isMounted) setPlans([]);
-      })
-      .finally(() => {
-        if (isMounted) setLoadingPlans(false);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
 
   // Auto-cycle pipeline stage
   useEffect(() => {
@@ -428,10 +400,10 @@ public class AccountBalanceService {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 w-full max-w-md px-4">
             <Link
-              to={ROUTES.PUBLIC.REGISTER}
-              className="w-full sm:w-auto text-center bg-[#0652CC] text-white px-8 py-4 rounded-full text-base font-semibold hover:bg-[#0655FF] transition-all shadow-[0_10px_25px_rgba(6,82,204,0.25)] hover:shadow-[0_12px_30px_rgba(6,85,255,0.35)] cursor-pointer flex items-center justify-center gap-2"
+              to={ROUTES.DASHBOARD}
+              className="w-full sm:w-auto text-center bg-[#0652CC] text-white px-8 py-4 rounded-full text-base font-bold hover:bg-[#0655FF] transition-all shadow-[0_10px_25px_rgba(6,82,204,0.25)] hover:shadow-[0_12px_30px_rgba(6,85,255,0.35)] cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>Start Modernization</span>
+              <span>Explore PoC Workspace</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <a
@@ -439,7 +411,7 @@ public class AccountBalanceService {
               className="w-full sm:w-auto text-center text-[#0652CC] bg-[#E8F1FF] px-8 py-4 rounded-full text-base font-semibold hover:bg-[#0652CC]/15 transition-colors border border-[#0652CC]/25 cursor-pointer flex items-center justify-center gap-2"
             >
               <Play className="w-4 h-4 text-[#0652CC]" />
-              <span>Explore Platform</span>
+              <span>Explore Pipeline</span>
             </a>
           </div>
         </div>
@@ -1006,130 +978,6 @@ public class AccountInterestService {
       </section>
 
       {/* ================================================== */}
-      {/* 12. PRICING SECTION                                */}
-      {/* ================================================== */}
-      <section id="pricing" className="w-full py-24 bg-[#F7F9FC] text-[#091E42] relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#0652CC] bg-[#E8F1FF] px-3.5 py-1.5 rounded-full border border-[#0652CC]/20">
-              TRANSPARENT PRICING
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-[#091E42] mt-4">
-              One subscription. Full platform access.
-            </h2>
-            <p className="text-[#42526E] mt-4 text-base sm:text-lg">
-              Deploy enterprise-grade AI modernization tools with zero friction. Upgrade or cancel anytime.
-            </p>
-
-            {/* Billing Switch */}
-            <div className="flex items-center justify-center gap-3 mt-8">
-              <span className={`text-sm font-semibold ${!annualBilling ? 'text-[#091E42]' : 'text-[#42526E]'}`}>
-                Monthly
-              </span>
-              <button
-                type="button"
-                onClick={() => setAnnualBilling(!annualBilling)}
-                className="w-12 h-6 rounded-full bg-[#E8F1FF] p-1 flex items-center transition-colors border border-[#0652CC]/30 cursor-pointer"
-              >
-                <div
-                  className={`w-4 h-4 rounded-full bg-[#0652CC] transition-transform ${
-                    annualBilling ? 'translate-x-6' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-              <span className={`text-sm font-semibold ${annualBilling ? 'text-[#091E42]' : 'text-[#42526E]'}`}>
-                Annual <span className="text-xs font-bold text-[#0652CC] bg-[#E8F1FF] px-2 py-0.5 rounded-full border border-[#0652CC]/20">Save 20%</span>
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-            {loadingPlans ? (
-              [1, 2, 3].map((idx) => (
-                <div key={idx} className="p-8 rounded-3xl bg-white border border-[#D9E2EC] animate-pulse">
-                  <div className="h-6 w-1/3 bg-gray-200 rounded mb-4" />
-                  <div className="h-4 w-3/4 bg-gray-200 rounded mb-6" />
-                  <div className="h-10 w-1/2 bg-gray-200 rounded mb-6" />
-                  <div className="space-y-3">
-                    <div className="h-4 w-full bg-gray-200 rounded" />
-                    <div className="h-4 w-5/6 bg-gray-200 rounded" />
-                    <div className="h-4 w-2/3 bg-gray-200 rounded" />
-                  </div>
-                </div>
-              ))
-            ) : plans.length === 0 ? (
-              <div className="col-span-full p-12 text-center bg-white rounded-3xl border border-[#D9E2EC]">
-                <h3 className="text-xl font-bold text-[#091E42]">Không có gói dịch vụ nào</h3>
-                <p className="text-sm text-[#42526E] mt-2">
-                  Dữ liệu gói dịch vụ sẽ được tải tự động từ hệ thống quản trị MongoDB.
-                </p>
-              </div>
-            ) : (
-              plans.map((plan) => {
-                const isEnterprise = plan.id === 'ENTERPRISE';
-                const priceVal = annualBilling ? plan.annualPrice : plan.monthlyPrice;
-                const formatPrice = (val: number) => {
-                  if (isEnterprise || val === 0) return 'Contact Sales';
-                  return `${val.toLocaleString('vi-VN')}₫`;
-                };
-
-                return (
-                  <div
-                    key={plan.id}
-                    className={`p-8 rounded-3xl bg-white flex flex-col justify-between relative transition-all ${
-                      plan.isPopular
-                        ? 'border-2 border-[#0652CC] shadow-[0_15px_45px_rgba(6,82,204,0.18)] scale-[1.02]'
-                        : 'border border-[#D9E2EC] shadow-[0_10px_30px_rgba(9,30,66,0.06)] hover:border-[#0652CC]/40'
-                    }`}
-                  >
-                    {plan.isPopular && (
-                      <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-bold uppercase tracking-wider bg-[#0652CC] text-white px-3.5 py-1 rounded-full shadow-md">
-                        Most Popular
-                      </span>
-                    )}
-                    <div>
-                      <h3 className="text-xl font-bold text-[#091E42]">{plan.name}</h3>
-                      <p className={`text-xs mt-1 ${plan.isPopular ? 'text-[#0652CC] font-semibold' : 'text-[#42526E]'}`}>
-                        {plan.description}
-                      </p>
-                      <div className="my-6">
-                        <span className="text-4xl font-extrabold text-[#091E42]">
-                          {formatPrice(priceVal)}
-                        </span>
-                        {!isEnterprise && priceVal !== 0 && (
-                          <span className="text-[#42526E] text-sm"> / month</span>
-                        )}
-                      </div>
-
-                      <ul className="space-y-3.5 text-sm text-[#091E42]">
-                        {plan.features.map((feat, idx) => (
-                          <li key={idx} className="flex items-center gap-2.5">
-                            <Check className="w-4 h-4 text-[#0652CC] shrink-0" />
-                            <span>{feat}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    <Link
-                      to={ROUTES.PUBLIC.REGISTER}
-                      className={`w-full mt-8 py-3.5 text-center text-sm font-bold rounded-full transition-all ${
-                        plan.isPopular
-                          ? 'bg-[#0652CC] text-white hover:bg-[#0655FF] shadow-[0_4px_20px_rgba(6,82,204,0.3)]'
-                          : 'bg-[#E8F1FF] text-[#0652CC] hover:bg-[#0652CC] hover:text-white border border-[#0652CC]/25'
-                      }`}
-                    >
-                      {isEnterprise ? 'Contact Sales' : plan.isPopular ? 'Get Pro Access' : 'Get Started'}
-                    </Link>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ================================================== */}
       {/* 13. FAQ ACCORDION                                  */}
       {/* ================================================== */}
       <section id="faq" className="w-full py-24 bg-white text-[#091E42] border-t border-[#D9E2EC]">
@@ -1204,10 +1052,10 @@ public class AccountInterestService {
               Get Started Now
             </Link>
             <Link
-              to={ROUTES.BILLING.PRICING}
+              to={ROUTES.PUBLIC.DOCS}
               className="w-full sm:w-auto px-9 py-4 rounded-full bg-[#091E42] text-[#F4F5F7] text-base font-semibold hover:bg-[#091E42]/80 transition-colors border border-[#0652CC]/40"
             >
-              View Pricing
+              Explore Documentation
             </Link>
           </div>
         </div>
@@ -1236,7 +1084,7 @@ public class AccountInterestService {
               <ul className="space-y-2.5 text-xs sm:text-sm font-medium">
                 <li><a href="#platform" className="hover:text-[#22D3EE] transition-colors">Platform Overview</a></li>
                 <li><a href="#how-it-works" className="hover:text-[#22D3EE] transition-colors">How It Works</a></li>
-                <li><Link to={ROUTES.BILLING.PRICING} className="hover:text-[#22D3EE] transition-colors">Pricing Plans</Link></li>
+                <li><Link to={ROUTES.PUBLIC.DOCS} className="hover:text-[#22D3EE] transition-colors">Documentation</Link></li>
                 <li><a href="#solutions" className="hover:text-[#22D3EE] transition-colors">Solutions</a></li>
               </ul>
             </div>

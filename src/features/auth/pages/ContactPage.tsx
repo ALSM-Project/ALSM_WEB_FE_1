@@ -94,7 +94,7 @@ export const ContactPage: React.FC = () => {
               </div>
               <button
                 type="button"
-                onClick={() => navigate(ROUTES.BILLING.PRICING)}
+                onClick={() => navigate(ROUTES.PUBLIC.DOCS)}
                 className="alsm-contact-meeting-btn"
               >
                 <span>Book a Meeting</span>
