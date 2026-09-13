@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, FileSearch, Cpu } from 'lucide-react';
+import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, FileSearch, Cpu, Stethoscope } from 'lucide-react';
 import { screenService } from '../services/screen.service';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -121,17 +121,21 @@ export const ScreensListPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white border border-[#D9E2EC] p-4 rounded-2xl flex items-center space-x-4 shadow-2xs">
-          <div className="p-3 bg-rose-50 text-rose-700 rounded-xl border border-rose-200">
+        <Link
+          to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
+          className="bg-white border border-[#D9E2EC] p-4 rounded-2xl flex items-center space-x-4 shadow-2xs hover:border-rose-300 transition-all group"
+        >
+          <div className="p-3 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 group-hover:scale-105 transition-transform">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#42526E]">Failed</p>
-            <p className="text-2xl font-extrabold text-rose-800 mt-0.5">
-              {activeTab === 'screens' ? '1' : '1'}
+            <p className="text-xs font-medium text-[#42526E]">Failed (Diagnostics)</p>
+            <p className="text-2xl font-extrabold text-rose-800 mt-0.5 flex items-center gap-1.5">
+              <span>{activeTab === 'screens' ? '1' : '1'}</span>
+              <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">View Logs &rarr;</span>
             </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <Tabs
@@ -199,7 +203,6 @@ export const ScreensListPage: React.FC = () => {
                       </Link>
                     </div>
                   </td>
-                  <td className="p-4 text-[#42526E] font-semibold">{item.sourceType}</td>
                   <td className="p-4">
                     <StatusBadge status={item.status} />
                   </td>
@@ -207,32 +210,44 @@ export const ScreensListPage: React.FC = () => {
                   <td className="p-4 text-[#6B778C]">{item.lastUpdated}</td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      <Link
-                        to={ROUTES.PROJECTS.MAPPING(projectId, item.id)}
-                        className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
-                        title={activeTab === 'screens' ? 'Inspect Field Mapping' : 'Inspect Paragraph Mapping'}
-                      >
-                        <FileSearch className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">Mapping</span>
-                      </Link>
+                      {item.status === 'FAILED' ? (
+                        <Link
+                          to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
+                          className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
+                        >
+                          <Stethoscope className="w-3.5 h-3.5" />
+                          <span>Diagnostics</span>
+                        </Link>
+                      ) : (
+                        <>
+                          <Link
+                            to={ROUTES.PROJECTS.MAPPING(projectId, item.id)}
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
+                            title={activeTab === 'screens' ? 'Inspect Field Mapping' : 'Inspect Paragraph Mapping'}
+                          >
+                            <FileSearch className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Mapping</span>
+                          </Link>
 
-                      <Link
-                        to={ROUTES.PROJECTS.CONVERT(projectId, item.id)}
-                        className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
-                        title="Algorithm Conversion Engine"
-                      >
-                        <Cpu className="w-3.5 h-3.5" />
-                        <span>Convert</span>
-                      </Link>
+                          <Link
+                            to={ROUTES.PROJECTS.CONVERT(projectId, item.id)}
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+                            title="Algorithm Conversion Engine"
+                          >
+                            <Cpu className="w-3.5 h-3.5" />
+                            <span>Convert</span>
+                          </Link>
 
-                      <Link
-                        to={ROUTES.PROJECTS.RESULT(projectId, item.id)}
-                        className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
-                        title="View Modernized Output"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Result</span>
-                      </Link>
+                          <Link
+                            to={ROUTES.PROJECTS.RESULT(projectId, item.id)}
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                            title="View Modernized Output"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Result</span>
+                          </Link>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

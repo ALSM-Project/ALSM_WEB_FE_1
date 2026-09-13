@@ -27,13 +27,15 @@ export const ProtectedRoute: React.FC = () => {
 /** Wraps guest-only routes (login/register); redirects authenticated users away. */
 export const GuestRoute: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return <RouteLoading />;
   }
 
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.DASHBOARD} replace />;
+    const returnTo = (location.state as { returnTo?: string })?.returnTo;
+    return <Navigate to={returnTo || ROUTES.DASHBOARD} replace />;
   }
 
   return <Outlet />;
