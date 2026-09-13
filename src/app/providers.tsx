@@ -2,16 +2,20 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { authService } from '@/features/auth/services/auth.service';
 import { apiClient } from '@/services/api/apiClient';
 import { tokenStore } from '@/services/api/tokenStore';
-import type { AuthState, LoginCredentials, RegisterData, User } from '@/features/auth/types/auth';
+import type { AuthState, LoginCredentials, RegisterData, RegisterResponse, User } from '@/features/auth/types/auth';
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<User | null>;
-  register: (data: RegisterData) => Promise<User | null>;
+  register: (data: RegisterData) => Promise<RegisterResponse>;
+  verifyEmail: (email: string, code: string) => Promise<User | null>;
+  resendVerification: (email: string) => Promise<void>;
   loginWithGoogle: (idToken: string) => Promise<User | null>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 
 import { NavigationProvider } from '@/context/NavigationContext';
 
@@ -95,26 +99,45 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setUser(loggedInUser);
+      setIsLoading(false);
       return loggedInUser;
     } catch (err) {
       setIsLoading(false);
       throw err;
-    } finally {
-      // For non-admin users, clear loading. For admin, we intentionally
-      // keep isLoading=true so the page shows a spinner until navigation completes.
-      // We check user state: if user was set, loading should end.
     }
   }, []);
 
-  const handleRegister = useCallback(async (data: RegisterData): Promise<User | null> => {
+  const handleRegister = useCallback(async (data: RegisterData): Promise<RegisterResponse> => {
     setIsLoading(true);
     try {
-      const registeredUser = await authService.register(data);
-      setUser(registeredUser);
-      return registeredUser;
-    } finally {
+      const res = await authService.register(data);
       setIsLoading(false);
+      return res;
+    } catch (err) {
+      setIsLoading(false);
+      throw err;
     }
+  }, []);
+
+  const handleVerifyEmail = useCallback(async (email: string, code: string): Promise<User | null> => {
+    setIsLoading(true);
+    try {
+      const verifiedUser = await authService.verifyEmail(email, code);
+      if (isUserAdmin(verifiedUser)) {
+        redirectAdminToStaffPortal();
+        return verifiedUser;
+      }
+      setUser(verifiedUser);
+      setIsLoading(false);
+      return verifiedUser;
+    } catch (err) {
+      setIsLoading(false);
+      throw err;
+    }
+  }, []);
+
+  const handleResendVerification = useCallback(async (email: string): Promise<void> => {
+    await authService.resendVerification(email);
   }, []);
 
   const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<User | null> => {
@@ -129,6 +152,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setUser(loggedInUser);
+      setIsLoading(false);
       return loggedInUser;
     } catch (err) {
       setIsLoading(false);
@@ -141,6 +165,16 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   }, []);
 
+  const handleRefreshUser = useCallback(async (): Promise<User | null> => {
+    try {
+      const me = await authService.getCurrentUser();
+      setUser(me);
+      return me;
+    } catch {
+      return null;
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -150,10 +184,14 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         token: tokenStore.getAccessToken(),
         login: handleLogin,
         register: handleRegister,
+        verifyEmail: handleVerifyEmail,
+        resendVerification: handleResendVerification,
         loginWithGoogle: handleLoginWithGoogle,
         logout: handleLogout,
+        refreshUser: handleRefreshUser,
       }}
     >
+
       <NavigationProvider>{children}</NavigationProvider>
     </AuthContext.Provider>
   );

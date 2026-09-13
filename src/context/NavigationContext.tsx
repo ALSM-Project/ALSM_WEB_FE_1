@@ -9,7 +9,7 @@ import {
 } from '@/features/menus/utils/navigationTreeUtils';
 import { apiClient } from '@/services/api/apiClient';
 
-const LOCAL_STORAGE_KEY = 'alsm_navigation_tree_v1';
+const LOCAL_STORAGE_KEY = 'alsm_workspace_navigation_tree_v5';
 
 export interface NavigationContextType {
   sidebarNav: MenuItem[];
@@ -33,13 +33,43 @@ export interface NavigationContextType {
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
+function filterForbiddenItems(items: MenuItem[]): MenuItem[] {
+  const forbidden = ['billing', 'subscription', 'usage', 'pricing', 'payment', 'plan'];
+  return items
+    .filter((item) => {
+      const label = item.label.toLowerCase();
+      const id = item.id.toLowerCase();
+      const path = (item.path || '').toLowerCase();
+      return !forbidden.some((term) => label.includes(term) || id.includes(term) || path.includes(term));
+    })
+    .map((item) => {
+      let path = item.path;
+      if (item.id === 'docs' && path === '/docs') path = '/workspace/docs';
+      if ((item.id === 'poc-guide' || item.id === 'user-guide') && (path === '/docs#how-it-works' || path === '/workspace/docs#how-it-works')) path = '/workspace/docs#how-it-works';
+      if (item.id === 'modernization-guide' && (path === '/docs#bms-dspf' || path === '/workspace/docs#bms-dspf')) path = '/workspace/docs#bms-dspf';
+      return {
+        ...item,
+        path,
+        children: item.children ? filterForbiddenItems(item.children) : undefined,
+      };
+    });
+}
+
 function loadInitialTree(): MenuItem[] {
   try {
+    // Purge old legacy storage keys if present
+    localStorage.removeItem('alsm_navigation_tree_v1');
+    localStorage.removeItem('alsm_poc_navigation_tree_v2');
+    localStorage.removeItem('alsm_poc_navigation_tree_v3');
+
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        const sanitized = filterForbiddenItems(parsed);
+        if (sanitized.length > 0) {
+          return sanitized;
+        }
       }
     }
   } catch (e) {
