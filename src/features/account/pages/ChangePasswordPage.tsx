@@ -3,8 +3,12 @@ import { Lock, AlertTriangle, Info, CheckCircle2, Check, X } from 'lucide-react'
 import { accountService } from '../services/account.service';
 import { PasswordInput } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { useAuth } from '@/app/providers';
 
 export const ChangePasswordPage: React.FC = () => {
+  const { user, refreshUser } = useAuth();
+  const hasPassword = user?.hasPassword !== false;
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -50,26 +54,36 @@ export const ChangePasswordPage: React.FC = () => {
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (!currentPassword) return setErrorMsg('Current password is required');
+    if (hasPassword && !currentPassword) return setErrorMsg('Current password is required');
     if (rulesPassedCount < 4) return setErrorMsg('Please ensure all password strength requirements are satisfied');
     if (newPassword !== confirmNewPassword) return setErrorMsg('Passwords must match exactly');
     if (!acknowledgeLogout) return setErrorMsg('Please acknowledge the device logout warning');
 
     setLoading(true);
     try {
-      await accountService.changePassword({
-        currentPassword,
-        newPassword,
-        confirmNewPassword,
-        acknowledgeLogout,
-      });
-      setSuccessMsg('Your password has been updated successfully!');
+      if (hasPassword) {
+        await accountService.changePassword({
+          currentPassword,
+          newPassword,
+          confirmNewPassword,
+          acknowledgeLogout,
+        });
+        setSuccessMsg('Your password has been updated successfully!');
+      } else {
+        await accountService.setPassword(newPassword);
+        setSuccessMsg('Your ALSM password has been set successfully!');
+        await refreshUser();
+      }
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
       setAcknowledgeLogout(false);
     } catch {
-      setErrorMsg('Failed to update password. Please check your current password.');
+      setErrorMsg(
+        hasPassword
+          ? 'Failed to update password. Please check your current password.'
+          : 'Failed to set password. Please try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -78,8 +92,14 @@ export const ChangePasswordPage: React.FC = () => {
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 space-y-6 shadow-sm">
       <div>
-        <h2 className="text-xl font-bold text-slate-900 tracking-tight">Change Password</h2>
-        <p className="text-sm text-slate-500 mt-1">Update your account password to maintain security.</p>
+        <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+          {hasPassword ? 'Change Password' : 'Set Password'}
+        </h2>
+        <p className="text-sm text-slate-500 mt-1">
+          {hasPassword
+            ? 'Your ALSM password is set. Update your account password to maintain security.'
+            : "You haven't set an ALSM password yet. Create a password to enable email & password sign in."}
+        </p>
       </div>
 
       {successMsg && (
@@ -96,13 +116,15 @@ export const ChangePasswordPage: React.FC = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 max-w-lg">
-        <PasswordInput
-          label="Current Password"
-          placeholder="••••••••••••"
-          value={currentPassword}
-          onChange={(e) => setCurrentPassword(e.target.value)}
-          icon={<Lock className="w-4 h-4 text-slate-400" />}
-        />
+        {hasPassword && (
+          <PasswordInput
+            label="Current Password"
+            placeholder="••••••••••••"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            icon={<Lock className="w-4 h-4 text-slate-400" />}
+          />
+        )}
 
         <div className="space-y-2">
           <PasswordInput
@@ -198,11 +220,14 @@ export const ChangePasswordPage: React.FC = () => {
             Cancel
           </Button>
           <Button type="submit" isLoading={loading}>
-            Update Password
+            {hasPassword ? 'Update Password' : 'Set Password'}
           </Button>
         </div>
       </form>
     </div>
   );
 };
+
 export default ChangePasswordPage;
+
+

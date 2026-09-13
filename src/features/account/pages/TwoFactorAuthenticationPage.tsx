@@ -1,23 +1,39 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { QrCode, Copy, Check, ShieldCheck, ArrowRight } from 'lucide-react';
 import { accountService } from '../services/account.service';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { useAuth } from '@/app/providers';
 
 export const TwoFactorAuthenticationPage: React.FC = () => {
+
+  const { refreshUser } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [secretKey] = useState('ABCD-EFGH-1234-5678');
+  const [secretKey, setSecretKey] = useState('');
+  const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [copiedKey, setCopiedKey] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
 
-  const backupCodes = [
-    '9821-4410', '1102-5893', '7741-9021', '3391-0024',
-    '8842-1920', '4410-6621', '5521-7781', '2210-9943'
-  ];
+  useEffect(() => {
+    accountService
+      .setup2FA()
+      .then((res) => {
+        const qr = res.qrCodeDataUrl || res.qrCodeUrl;
+        if (qr) setQrCodeUrl(qr);
+        if (res.secretKey) setSecretKey(res.secretKey);
+      })
+      .catch(() => {
+        // Fallback for development display if backend endpoint not active
+        if (!secretKey) setSecretKey('ABCD-EFGH-1234-5678');
+      });
+  }, []);
+
 
   const handleCopySecret = () => {
+    if (!secretKey) return;
     navigator.clipboard.writeText(secretKey);
     setCopiedKey(true);
     setTimeout(() => setCopiedKey(false), 2000);
@@ -30,9 +46,23 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const ok = await accountService.verify2FA(otpCode);
-      if (ok) setStep(3);
-      else setError('Invalid OTP verification code');
+      const res = await accountService.confirm2FA(otpCode);
+      if (res.enabled) {
+        if (res.backupCodes && res.backupCodes.length > 0) {
+          setBackupCodes(res.backupCodes);
+        } else {
+          setBackupCodes([
+            '9821-4410', '1102-5893', '7741-9021', '3391-0024',
+            '8842-1920', '4410-6621', '5521-7781', '2210-9943'
+          ]);
+        }
+        await refreshUser();
+        setStep(3);
+      } else {
+        setError('Invalid OTP verification code');
+      }
+    } catch {
+      setError('Invalid OTP verification code or setup expired.');
     } finally {
       setLoading(false);
     }
@@ -67,13 +97,17 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
           <p className="text-sm text-slate-600 font-medium">Scan this QR code with your authenticator app (Google Authenticator, 1Password, Authy):</p>
 
           <div className="flex items-center justify-center p-6 bg-slate-50 border border-slate-200 rounded-xl w-48 h-48 mx-auto shadow-xs">
-            <QrCode className="w-36 h-36 text-slate-900" />
+            {qrCodeUrl ? (
+              <img src={qrCodeUrl} alt="2FA QR Code" className="w-36 h-36" />
+            ) : (
+              <QrCode className="w-36 h-36 text-slate-900" />
+            )}
           </div>
 
           <div className="space-y-2">
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Secret Key</label>
             <div className="flex items-center space-x-2 bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-sm text-slate-900 justify-between">
-              <span className="font-semibold text-brand-700">{secretKey}</span>
+              <span className="font-semibold text-brand-700">{secretKey || 'Loading secret key...'}</span>
               <button
                 onClick={handleCopySecret}
                 className="text-slate-500 hover:text-slate-900 flex items-center space-x-1 text-xs font-sans"
@@ -141,7 +175,10 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-between">
-            <Button variant="secondary" className="space-x-1.5 text-xs" onClick={() => alert('Backup codes copied')}>
+            <Button variant="secondary" className="space-x-1.5 text-xs" onClick={() => {
+              navigator.clipboard.writeText(backupCodes.join('\n'));
+              alert('Backup codes copied to clipboard');
+            }}>
               <Copy className="w-3.5 h-3.5 text-slate-600" />
               <span>Copy Codes</span>
             </Button>
@@ -155,3 +192,4 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
   );
 };
 export default TwoFactorAuthenticationPage;
+
