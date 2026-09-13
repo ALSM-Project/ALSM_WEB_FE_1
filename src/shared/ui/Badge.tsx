@@ -36,10 +36,18 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'neutral', cla
 
 export const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   let variant: BadgeProps['variant'] = 'neutral';
-  if (['Completed', 'Active', 'Paid', 'Ready', 'Success'].includes(status)) variant = 'success';
-  else if (['Processing', 'Uploading', 'Pending Parse', 'Queued'].includes(status)) variant = 'processing';
-  else if (['Review Required', 'Warning', 'Trial'].includes(status)) variant = 'warning';
-  else if (['Failed', 'Danger', 'Fatal', 'Failed to parse', 'Expired'].includes(status)) variant = 'danger';
+  const lower = status.toLowerCase();
+  if (['completed', 'passed', 'active', 'ready', 'success', 'converted'].some((s) => lower.includes(s))) {
+    variant = 'success';
+  } else if (['processing', 'uploading', 'converting', 'analyzing', 'validating', 'queued'].some((s) => lower.includes(s))) {
+    variant = 'processing';
+  } else if (['review', 'required', 'warning', 'pending'].some((s) => lower.includes(s))) {
+    variant = 'warning';
+  } else if (['failed', 'error', 'danger', 'fatal'].some((s) => lower.includes(s))) {
+    variant = 'danger';
+  } else if (['draft'].some((s) => lower.includes(s))) {
+    variant = 'neutral';
+  }
 
   return <Badge variant={variant}>{status}</Badge>;
 };

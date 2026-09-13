@@ -19,12 +19,9 @@ export interface MenuItemEditorProps {
 }
 
 const COMMON_ICONS = [
-  { value: 'LayoutDashboard', label: 'LayoutDashboard (Dashboard)' },
-  { value: 'Layers', label: 'Layers (Projects)' },
-  { value: 'Activity', label: 'Activity (Resource Usage)' },
-  { value: 'Sparkles', label: 'Sparkles (Pricing & Plans)' },
-  { value: 'CreditCard', label: 'CreditCard (Subscriptions)' },
-  { value: 'Receipt', label: 'Receipt (Invoices)' },
+  { value: 'LayoutDashboard', label: 'LayoutDashboard (Overview)' },
+  { value: 'Layers', label: 'Layers (Projects Workspace)' },
+  { value: 'Activity', label: 'Activity (Diagnostics)' },
   { value: 'Settings', label: 'Settings (Configuration)' },
   { value: 'KeyRound', label: 'KeyRound (Passwords)' },
   { value: 'Shield', label: 'Shield (Security & 2FA)' },
@@ -34,8 +31,7 @@ const COMMON_ICONS = [
 
 const PERMISSION_OPTIONS = [
   { value: 'NONE', label: 'No restriction' },
-  { value: 'CUSTOMER_ONLY', label: 'Customer Only' },
-  { value: 'SUBSCRIBED_USER', label: 'Subscribed User' },
+  { value: 'ADMIN_ONLY', label: 'Admin Only' },
 ];
 
 export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({

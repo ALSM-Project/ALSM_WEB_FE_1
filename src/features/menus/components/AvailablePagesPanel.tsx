@@ -12,14 +12,11 @@ export interface AvailablePage {
 }
 
 const AVAILABLE_PAGES_LIBRARY: AvailablePage[] = [
-  { id: 'page-dashboard', label: 'Dashboard', module: 'Dashboard', icon: 'LayoutDashboard', path: '/' },
-  { id: 'page-[#projects]', label: 'Projects & Workspaces', module: 'Projects', icon: 'Layers', path: '/projects/proj-acme/screens' },
+  { id: 'page-dashboard', label: 'Dashboard', module: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard' },
+  { id: 'page-[#projects]', label: 'Projects & Workspaces', module: 'Projects', icon: 'Layers', path: '/projects' },
   { id: 'page-upload', label: 'Upload BMS/DSPF', module: 'Projects', icon: 'UploadCloud', path: '/projects/proj-acme/upload' },
   { id: 'page-convert', label: 'Screen Converter', module: 'Conversion', icon: 'Cpu', path: '/projects/proj-acme/screens/scr-01/convert' },
   { id: 'page-bulk', label: 'Bulk Conversion', module: 'Conversion', icon: 'Layers', path: '/projects/proj-acme/screens/bulk-convert' },
-  { id: 'page-usage', label: 'Resource Usage', module: 'Usage', icon: 'Activity', path: '/usage' },
-  { id: 'page-pricing', label: 'Pricing & Plans', module: 'Subscription', icon: 'Sparkles', path: '/billing/pricing' },
-  { id: 'page-invoices', label: 'Invoices & History', module: 'Subscription', icon: 'Receipt', path: '/billing/history' },
   { id: 'page-password', label: 'Change Password', module: 'Account & Security', icon: 'KeyRound', path: '/account/security/password' },
   { id: 'page-2fa', label: 'Two-Factor Auth', module: 'Account & Security', icon: 'Shield', path: '/account/security/2fa' },
   { id: 'page-sessions', label: 'Active Sessions', module: 'Account & Security', icon: 'Laptop', path: '/account/security/sessions' },
@@ -31,8 +28,6 @@ const MODULE_OPTIONS = [
   { value: 'Dashboard', label: 'Dashboard' },
   { value: 'Projects', label: 'Projects' },
   { value: 'Conversion', label: 'Conversion' },
-  { value: 'Usage', label: 'Usage' },
-  { value: 'Subscription', label: 'Subscription' },
   { value: 'Account & Security', label: 'Account & Security' },
   { value: 'Support', label: 'Support' },
 ];

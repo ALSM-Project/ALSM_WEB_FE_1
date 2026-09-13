@@ -9,3 +9,4 @@ export * from './PageHeader';
 export * from './Select';
 export * from './Toggle';
 export * from './Tooltip';
+export * from './ModernizationWorkflow';

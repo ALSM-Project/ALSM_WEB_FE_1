@@ -20,7 +20,6 @@ import {
   Coffee,
   LogOut,
   Shield,
-  PieChart,
 } from 'lucide-react';
 import logo2 from '@/assets/logo2.png';
 import { ROUTES } from '@/shared/constants/routes';
@@ -362,14 +361,11 @@ export const PublicNavbar: React.FC = () => {
             </div>
 
             {/* Simple Links */}
-            <Link to={ROUTES.BILLING.PRICING} className="alsm-nav-item">
-              <TextRollover text="Pricing" />
+            <Link to={ROUTES.PUBLIC.DOCS} className="alsm-nav-item">
+              <TextRollover text="Docs" />
             </Link>
             <Link to={ROUTES.PUBLIC.FAQ} className="alsm-nav-item">
               <TextRollover text="FAQ" />
-            </Link>
-            <Link to={ROUTES.PUBLIC.DOCS} className="alsm-nav-item">
-              <TextRollover text="Docs" />
             </Link>
             <Link to={ROUTES.PUBLIC.CONTACT} className="alsm-nav-item">
               <TextRollover text="Contact" />
@@ -381,7 +377,7 @@ export const PublicNavbar: React.FC = () => {
             {isAuthenticated ? (
               <>
                 <Link
-                  to={ROUTES.PROJECTS.SCREENS('proj-acme')}
+                  to={ROUTES.DASHBOARD}
                   className="alsm-cta-btn active"
                 >
                   <span className="alsm-cta-rollover">
@@ -414,21 +410,21 @@ export const PublicNavbar: React.FC = () => {
 
                       <div className="py-1">
                         <Link
-                          to={ROUTES.PROJECTS.SCREENS('proj-acme')}
+                          to={ROUTES.DASHBOARD}
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center space-x-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 font-medium"
+                        >
+                          <Activity className="w-4 h-4 text-slate-400" />
+                          <span>Modernization Overview</span>
+                        </Link>
+
+                        <Link
+                          to={ROUTES.PROJECTS.LIST}
                           onClick={() => setProfileOpen(false)}
                           className="flex items-center space-x-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 font-medium"
                         >
                           <FolderKanban className="w-4 h-4 text-slate-400" />
                           <span>Projects Workspace</span>
-                        </Link>
-
-                        <Link
-                          to={ROUTES.BILLING.USAGE}
-                          onClick={() => setProfileOpen(false)}
-                          className="flex items-center space-x-2.5 px-4 py-2 text-slate-700 hover:bg-slate-50 font-medium"
-                        >
-                          <PieChart className="w-4 h-4 text-slate-400" />
-                          <span>Resource Usage</span>
                         </Link>
 
                         <Link
@@ -579,15 +575,6 @@ export const PublicNavbar: React.FC = () => {
           </li>
 
           {/* Simple links */}
-          <li>
-            <Link
-              to={ROUTES.BILLING.PRICING}
-              className="alsm-mobile-nav-link"
-              onClick={() => setMobileOpen(false)}
-            >
-              Pricing
-            </Link>
-          </li>
           <li>
             <Link
               to={ROUTES.PUBLIC.FAQ}

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { Bell, Settings, Sun, ChevronDown } from 'lucide-react';
+import { Bell, Settings, ChevronDown, Sparkles } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
+import { Web1ThemeProvider, useWeb1Theme } from '@/context/Web1ThemeContext';
 
 const getInitials = (name?: string) => {
   if (!name) return 'U';
@@ -13,9 +14,10 @@ const getInitials = (name?: string) => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-export const AppLayout: React.FC = () => {
+export const AppLayoutContent: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { theme } = useWeb1Theme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -25,7 +27,10 @@ export const AppLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] text-[#091E42] flex font-sans">
+    <div
+      className="min-h-screen flex font-sans transition-colors"
+      style={{ backgroundColor: theme.colors.background.main, color: theme.colors.text.primary }}
+    >
       {/* Dynamic Dark Navy Sidebar */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -35,47 +40,60 @@ export const AppLayout: React.FC = () => {
 
       {/* Main Container (Header + Content Area, NO FOOTER) */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header matching exact screenshot */}
-        <header className="sticky top-0 z-40 bg-white border-b border-[#E5EAF0] px-6 py-3.5 flex items-center justify-between shadow-2xs">
+        {/* Top Header matching PoC design */}
+        <header className="sticky top-0 z-40 bg-white border-b border-[#E5EAF0] px-6 lg:px-8 py-3 flex items-center justify-between shadow-2xs gap-4">
           {/* Left: Dynamic Breadcrumb */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0 min-w-0">
             <Breadcrumb />
           </div>
 
-          {/* Right: Status, Notifications (3), Settings, Avatar (JD John Doe), Sun icon */}
-          <div className="flex items-center space-x-5 text-xs text-[#42526E]">
-            {/* System Status indicator */}
-            <div className="hidden sm:flex items-center space-x-2 bg-[#F7F9FC] px-3 py-1.5 rounded-full border border-[#E5EAF0]">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-semibold text-[#091E42]">System Status</span>
+          {/* Center: HorizonX-inspired Prominent Global Search */}
+          <div className="hidden md:flex items-center justify-center flex-1 max-w-md mx-4">
+            <div className="w-full relative flex items-center bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl px-3.5 py-1.5 text-xs text-[#6B778C] focus-within:bg-white focus-within:border-[#0652CC] focus-within:ring-2 focus-within:ring-[#0652CC]/20 transition-all">
+              <svg className="w-4 h-4 text-[#6B778C] mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search projects, screens, commands..."
+                className="w-full bg-transparent border-none p-0 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none"
+              />
+              <kbd className="hidden lg:inline-flex items-center bg-white border border-[#D9E2EC] rounded px-1.5 py-0.5 text-[10px] font-mono text-[#091E42] shadow-2xs shrink-0 ml-2">
+                Ctrl K
+              </kbd>
             </div>
+          </div>
 
-            {/* Notifications with badge count 3 */}
+          {/* Right: Notifications, Avatar, Upgrade Button */}
+          <div className="flex items-center space-x-3 text-xs text-[#42526E] shrink-0">
+            {/* Notifications with badge count */}
             <button
               type="button"
-              className="p-1.5 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-lg transition-colors relative"
+              className="p-2 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-xl transition-colors relative"
               title="Notifications"
             >
-              <Bell className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[9px] font-extrabold flex items-center justify-center">
-                3
+              <Bell className="w-4.5 h-4.5" />
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#0652CC] text-white text-[9px] font-extrabold flex items-center justify-center">
+                2
               </span>
             </button>
 
-            {/* Settings button */}
+            {/* Account Settings button */}
             <button
               type="button"
-              className="p-1.5 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-lg transition-colors"
-              title="Settings"
+              onClick={() => navigate('/account/security/password')}
+              className="p-2 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-xl transition-colors"
+              title="Account Settings"
             >
-              <Settings className="w-4 h-4" />
+              <Settings className="w-4.5 h-4.5" />
             </button>
 
-            {/* User Profile Avatar */}
-            <div className="relative">
+            {/* User Profile Avatar & Dropdown */}
+            <div className="relative border-l border-[#E5EAF0] pl-3">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#F7F9FC] transition-colors"
+                className="flex items-center space-x-2 p-1 rounded-xl hover:bg-[#F7F9FC] transition-colors"
               >
                 <div className="w-7 h-7 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-2xs">
                   {getInitials(user?.fullName)}
@@ -85,14 +103,33 @@ export const AppLayout: React.FC = () => {
               </button>
 
               {profileOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-[#D9E2EC] rounded-xl shadow-lg py-1.5 z-50 text-xs">
-                  <div className="px-3 py-1.5 border-b border-[#E5EAF0]">
-                    <p className="font-semibold text-[#091E42]">{user?.fullName || 'User'}</p>
-                    <p className="text-[10px] text-[#6B778C]">{user?.email || ''}</p>
+                <div className="absolute right-0 mt-2 w-52 bg-white border border-[#D9E2EC] rounded-xl shadow-lg py-1.5 z-50 text-xs">
+                  <div className="px-3.5 py-2 border-b border-[#E5EAF0]">
+                    <p className="font-semibold text-[#091E42] truncate">{user?.fullName || 'User Account'}</p>
+                    <p className="text-[10px] text-[#6B778C] truncate">{user?.email || 'poc@alsm.io'}</p>
                   </div>
                   <button
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate('/workspace/contact');
+                    }}
+                    className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Contact & Upgrade</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setProfileOpen(false);
+                      navigate('/account/security/password');
+                    }}
+                    className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors"
+                  >
+                    Account Settings
+                  </button>
+                  <button
                     onClick={handleLogout}
-                    className="w-full text-left px-3 py-1.5 text-rose-600 hover:bg-rose-50 font-medium"
+                    className="w-full text-left px-3.5 py-2 text-rose-600 hover:bg-rose-50 font-medium transition-colors border-t border-[#E5EAF0]"
                   >
                     Sign Out
                   </button>
@@ -100,19 +137,21 @@ export const AppLayout: React.FC = () => {
               )}
             </div>
 
-            {/* Sun / Theme Toggle Icon */}
+            {/* Upgrade Button to the right of Avatar */}
             <button
               type="button"
-              className="p-1.5 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-lg transition-colors"
-              title="Toggle Theme"
+              onClick={() => navigate('/workspace/contact')}
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              title="Reach limit? Click to Contact & Upgrade"
             >
-              <Sun className="w-4 h-4" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Upgrade</span>
             </button>
           </div>
         </header>
 
         {/* Content Area */}
-        <main className="flex-grow p-6 max-w-[1440px] w-full mx-auto">
+        <main className="flex-grow p-6 lg:p-8 w-full min-w-0">
           <Outlet />
         </main>
         {/* NO FOOTER AS REQUESTED */}
@@ -120,5 +159,11 @@ export const AppLayout: React.FC = () => {
     </div>
   );
 };
+
+export const AppLayout: React.FC = () => (
+  <Web1ThemeProvider>
+    <AppLayoutContent />
+  </Web1ThemeProvider>
+);
 
 export default AppLayout;
