@@ -121,10 +121,10 @@ export const ReviewFindingsPage: React.FC = () => {
         {/* Page Title & Meta Info */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Review Findings</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Rule-based & AI-assisted Validation</h1>
             <span className="bg-amber-50 text-amber-700 border border-amber-200/80 text-xs px-3 py-1 rounded-full font-semibold inline-flex items-center space-x-1.5 shadow-2xs">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-              <span>Review Required</span>
+              <span>Human Review Required</span>
             </span>
           </div>
 

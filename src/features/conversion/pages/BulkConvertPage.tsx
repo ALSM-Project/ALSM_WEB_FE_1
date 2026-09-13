@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, CheckSquare, Square, Clock, ArrowUpRight } from 'lucide-react';
+import { Play, CheckSquare, Square, Clock } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -147,16 +147,10 @@ export const BulkConvertPage: React.FC = () => {
 
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
               <div className="flex justify-between items-center font-medium">
-                <span className="text-slate-600">Resource Utilization</span>
-                <a href={ROUTES.BILLING.PRICING} className="text-brand-600 font-semibold hover:underline flex items-center">
-                  <span>Upgrade plan</span>
-                  <ArrowUpRight className="w-3 h-3 ml-0.5" />
-                </a>
+                <span className="text-slate-600">PoC Execution Engine</span>
+                <span className="text-brand-600 font-semibold">Active Workspace</span>
               </div>
-              <p className="text-brand-700 font-semibold">This operation will use {selectedIds.length} credits.</p>
-              <div className="text-slate-500 pt-1.5 border-t border-slate-200">
-                Monthly Usage: <strong className="text-slate-900">48 / 500 credits</strong>
-              </div>
+              <p className="text-brand-700 font-semibold">{selectedIds.length} screen(s) selected for bulk modernization synthesis.</p>
             </div>
 
             <div className="space-y-2">

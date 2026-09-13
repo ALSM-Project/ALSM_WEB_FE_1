@@ -83,8 +83,8 @@ export const FieldMappingPage: React.FC = () => {
 
       <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Edit Field Mapping</h1>
-          <p className="text-xs text-slate-500 mt-1">Configure structural component mapping and field validation rules.</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Automated Field Mapping</h1>
+          <p className="text-xs text-slate-500 mt-1">Configure structural component mapping and field validation rules between legacy fields and target React props.</p>
         </div>
 
         <div className="flex space-x-3">

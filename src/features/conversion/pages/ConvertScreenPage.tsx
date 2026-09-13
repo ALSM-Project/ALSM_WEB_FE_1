@@ -66,7 +66,7 @@ export const ConvertScreenPage: React.FC = () => {
               Target: {screen?.framework ?? 'React'} TypeScript
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Convert legacy BMS map set into clean React TypeScript frontend component.</p>
+          <p className="text-xs text-slate-500 mt-1">Algorithm-based Conversion of legacy BMS maps into modular React TypeScript components.</p>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -80,7 +80,7 @@ export const ConvertScreenPage: React.FC = () => {
           </Button>
           <Button onClick={handleRunConverter} isLoading={isRunning} className="space-x-2 text-xs font-semibold">
             <Play className="w-4 h-4" />
-            <span>Run Converter</span>
+            <span>Run Conversion Algorithm</span>
           </Button>
         </div>
       </div>

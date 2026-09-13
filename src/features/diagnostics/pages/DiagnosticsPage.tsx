@@ -3,9 +3,9 @@ import { useParams } from 'react-router-dom';
 import { Search, Sparkles } from 'lucide-react';
 import { diagnosticsService } from '../services/diagnostics.service';
 import type { DiagnosticLog } from '../types/diagnostics';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
+import { PageHeader } from '@/shared/ui/PageHeader';
 
 export const DiagnosticsPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
@@ -39,19 +39,11 @@ export const DiagnosticsPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 py-2">
-      <Breadcrumb
-        items={[
-          { label: 'Projects' },
-          { label: 'CoreBanking_Legacy' },
-          { label: 'Error Logs & Diagnostics' },
-        ]}
+    <div className="space-y-6">
+      <PageHeader
+        title="Diagnostics & Error Logs"
+        subtitle="Analyze parsing failures, syntax diagnostics, and rule-based validation findings."
       />
-
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Error Logs & Diagnostics</h1>
-        <p className="text-slate-500 text-sm mt-1">Analyze and resolve parsing and modernization failures.</p>
-      </div>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <div className="relative flex-1">
