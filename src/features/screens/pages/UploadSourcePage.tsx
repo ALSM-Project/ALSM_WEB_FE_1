@@ -8,17 +8,26 @@ import { Tabs } from '@/shared/ui/Tabs';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
+import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
+import { PageHeader } from '@/shared/ui/PageHeader';
 
 export const UploadSourcePage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('screens');
-  const [files, setFiles] = useState<SourceFile[]>([
+  
+  const [screenFiles, setScreenFiles] = useState<SourceFile[]>([
     { id: '1', fileName: 'LoginScreen.bms', sizeKb: 245, uploadedAt: 'Oct 12, 2023 10:30 AM', status: 'Ready' },
     { id: '2', fileName: 'ReportScreen.dspf', sizeKb: 189, uploadedAt: 'Oct 12, 2023 10:32 AM', status: 'Failed to parse' },
   ]);
+
+  const [programFiles, setProgramFiles] = useState<SourceFile[]>([
+    { id: 'p1', fileName: 'ACCTPROC.cbl', sizeKb: 412, uploadedAt: 'Oct 12, 2023 11:15 AM', status: 'Ready' },
+    { id: 'p2', fileName: 'LEDGERENG.cob', sizeKb: 328, uploadedAt: 'Oct 12, 2023 11:20 AM', status: 'Ready' },
+  ]);
+
+  const files = activeTab === 'screens' ? screenFiles : programFiles;
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -53,35 +62,58 @@ export const UploadSourcePage: React.FC = () => {
       clearInterval(timer);
       setUploadProgress(100);
       const newFile = await screenService.uploadFile(file);
-      setFiles((prev) => [newFile, ...prev]);
+      if (activeTab === 'screens') {
+        setScreenFiles((prev) => [newFile, ...prev]);
+      } else {
+        setProgramFiles((prev) => [newFile, ...prev]);
+      }
       setIsUploading(false);
       setUploadProgress(0);
     }, 1000);
   };
 
   const handleRemove = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
+    if (activeTab === 'screens') {
+      setScreenFiles((prev) => prev.filter((f) => f.id !== id));
+    } else {
+      setProgramFiles((prev) => prev.filter((f) => f.id !== id));
+    }
   };
 
   return (
-    <div className="space-y-6 py-2 max-w-5xl mx-auto">
-      <Breadcrumb
-        items={[
-          { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Acme Corp Modernization', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Upload Source File' },
-        ]}
+    <div className="space-y-6">
+      {/* Page Header */}
+      <PageHeader
+        title="Upload Source File"
+        subtitle={`Add legacy ${activeTab === 'screens' ? 'BMS/DSPF screen map' : 'COBOL/RPG program source'} files to start modernization pipeline.`}
+        actions={
+          <Button
+            onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}
+            className="bg-[#0652CC] hover:bg-[#0655FF] text-white space-x-1.5 text-xs font-bold shadow-xs"
+          >
+            <span>Proceed to {activeTab === 'screens' ? 'Screens List' : 'Programs List'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        }
       />
 
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Upload Source File</h1>
-        <p className="text-slate-500 text-sm mt-1">Add BMS/DSPF legacy files to start conversion pipeline.</p>
-      </div>
+      {/* Modernization Step-by-Step Workflow Bar */}
+      <ModernizationWorkflow
+        currentStep="upload"
+        completedSteps={[]}
+        onStepClick={(stepId) => {
+          if (stepId === 'analysis') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+          if (stepId === 'mapping') navigate(ROUTES.PROJECTS.MAPPING(projectId, 'scr-acct010'));
+          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, 'scr-acct010'));
+          if (stepId === 'validation' || stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, 'scr-acct010'));
+          if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+        }}
+      />
 
       <Tabs
         tabs={[
-          { id: 'screens', label: 'Screens (BMS / DSPF)' },
-          { id: 'programs', label: 'Programs (COBOL / RPG)' },
+          { id: 'screens', label: 'Screens (BMS / DSPF)', count: screenFiles.length },
+          { id: 'programs', label: 'Programs (COBOL / RPG)', count: programFiles.length },
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}

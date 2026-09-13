@@ -1,65 +1,60 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { KeyRound, ShieldCheck, Laptop, Link as LinkIcon, User, CreditCard, Sliders } from 'lucide-react';
+import { KeyRound, ShieldCheck, Laptop, User, Sliders } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
+import { PageHeader } from '@/shared/ui/PageHeader';
+import { useAuth } from '@/app/providers';
 
 export const AccountSettingsLayout: React.FC = () => {
+  const { user } = useAuth();
+  const hasPassword = user?.hasPassword !== false;
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Account Settings</h1>
-        <p className="text-sm text-slate-500">Manage your profile, security preferences, and active devices.</p>
-      </div>
+      <PageHeader
+        title="Account & Security"
+        subtitle="Manage your profile settings, security credentials, and active workspace sessions."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Account Sidebar */}
+        {/* Account Secondary Nav Sidebar */}
         <aside className="lg:col-span-1 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-sm">
+          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 space-y-4 shadow-2xs">
             <div>
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Account</p>
+              <p className="text-[10px] font-extrabold text-[#6B778C] uppercase tracking-wider px-3 mb-2">Profile</p>
               <nav className="space-y-1">
-                <span className="flex items-center space-x-2.5 px-3 py-2 text-sm rounded-lg text-slate-400 cursor-not-allowed">
-                  <User className="w-4 h-4" />
+                <span className="flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold rounded-xl text-[#091E42] bg-[#F7F9FC] border border-[#D9E2EC]">
+                  <User className="w-4 h-4 text-[#0652CC]" />
                   <span>Profile Info</span>
                 </span>
-                <NavLink
-                  to={ROUTES.BILLING.SUBSCRIPTION}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-2.5 px-3 py-2 text-sm rounded-lg transition-colors ${
-                      isActive ? 'bg-brand-50 text-brand-600 border border-brand-200 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`
-                  }
-                >
-                  <CreditCard className="w-4 h-4" />
-                  <span>Billing & Plan</span>
-                </NavLink>
-                <span className="flex items-center space-x-2.5 px-3 py-2 text-sm rounded-lg text-slate-400 cursor-not-allowed">
+                <span className="flex items-center space-x-2.5 px-3 py-2 text-xs rounded-xl text-[#6B778C] hover:bg-[#F7F9FC] cursor-not-allowed">
                   <Sliders className="w-4 h-4" />
                   <span>Preferences</span>
                 </span>
               </nav>
             </div>
 
-            <div className="border-t border-slate-100 pt-3">
-              <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-3 mb-2">Security</p>
+            <div className="border-t border-[#E5EAF0] pt-3">
+              <p className="text-[10px] font-extrabold text-[#6B778C] uppercase tracking-wider px-3 mb-2">Security</p>
               <nav className="space-y-1">
                 <NavLink
                   to={ROUTES.ACCOUNT.PASSWORD}
                   className={({ isActive }) =>
-                    `flex items-center space-x-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive ? 'bg-brand-50 text-brand-600 border border-brand-200 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    `flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                      isActive ? 'bg-[#E8F1FF] text-[#0652CC] border border-blue-200' : 'text-[#42526E] hover:bg-[#F7F9FC] hover:text-[#091E42]'
                     }`
                   }
                 >
                   <KeyRound className="w-4 h-4" />
-                  <span>Change Password</span>
+                  <span>{hasPassword ? 'Change Password' : 'Set Password'}</span>
                 </NavLink>
+
 
                 <NavLink
                   to={ROUTES.ACCOUNT.TWO_FACTOR}
                   className={({ isActive }) =>
-                    `flex items-center space-x-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive ? 'bg-brand-50 text-brand-600 border border-brand-200 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    `flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                      isActive ? 'bg-[#E8F1FF] text-[#0652CC] border border-blue-200' : 'text-[#42526E] hover:bg-[#F7F9FC] hover:text-[#091E42]'
                     }`
                   }
                 >
@@ -70,19 +65,14 @@ export const AccountSettingsLayout: React.FC = () => {
                 <NavLink
                   to={ROUTES.ACCOUNT.SESSIONS}
                   className={({ isActive }) =>
-                    `flex items-center space-x-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      isActive ? 'bg-brand-50 text-brand-600 border border-brand-200 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    `flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                      isActive ? 'bg-[#E8F1FF] text-[#0652CC] border border-blue-200' : 'text-[#42526E] hover:bg-[#F7F9FC] hover:text-[#091E42]'
                     }`
                   }
                 >
                   <Laptop className="w-4 h-4" />
                   <span>Active Sessions</span>
                 </NavLink>
-
-                <span className="flex items-center space-x-2.5 px-3 py-2 text-sm rounded-lg text-slate-400 cursor-not-allowed opacity-60">
-                  <LinkIcon className="w-4 h-4" />
-                  <span>Connected Apps</span>
-                </span>
               </nav>
             </div>
           </div>

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, MessageSquare, Calendar, HelpCircle, Layers, Sparkles, FolderKanban, CreditCard } from 'lucide-react';
+import { ChevronDown, MessageSquare, Calendar, HelpCircle, Layers, Sparkles, FolderKanban } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import './FaqPage.css';
 
 interface FaqItem {
   id: string;
-  category: 'GENERAL' | 'MODERNIZATION' | 'AI & VALIDATION' | 'PROJECTS' | 'BILLING';
+  category: 'GENERAL' | 'MODERNIZATION' | 'AI & VALIDATION' | 'PROJECTS';
   question: string;
   answer: string;
 }
@@ -18,7 +18,7 @@ const FAQ_DATA: FaqItem[] = [
     category: 'GENERAL',
     question: 'What is ALSM?',
     answer:
-      'ALSM (Automated Legacy Screen & Code Modernization) is an enterprise SaaS platform designed to automate the conversion of legacy mainframe screens (BMS, DSPF) into modern React components and legacy COBOL business logic into maintainable Java microservices.',
+      'ALSM (Automated Legacy Screen & Code Modernization) is an enterprise legacy modernization platform designed to automate the conversion of legacy mainframe screens (BMS, DSPF) into modern React components and legacy COBOL business logic into maintainable Java microservices.',
   },
   {
     id: 'gen-2',
@@ -131,36 +131,6 @@ const FAQ_DATA: FaqItem[] = [
     answer:
       'Yes. Once conversion is complete, you can download complete project ZIP archives containing formatted React components, CSS stylesheets, Java service classes, and configuration metadata.',
   },
-
-  // ─── BILLING ───
-  {
-    id: 'bill-1',
-    category: 'BILLING',
-    question: 'How does the free trial work?',
-    answer:
-      'ALSM offers a 14-day free trial for Starter and Professional tiers with full access to conversion features. No credit card is required to begin.',
-  },
-  {
-    id: 'bill-2',
-    category: 'BILLING',
-    question: 'How are screen and COBOL usage limits calculated?',
-    answer:
-      'Usage is tracked monthly based on the total number of unique BMS/DSPF screens and COBOL programs processed through the conversion engine.',
-  },
-  {
-    id: 'bill-3',
-    category: 'BILLING',
-    question: 'How can I upgrade my subscription?',
-    answer:
-      'Go to Billing & Usage in your account settings or visit the Pricing page to upgrade your plan tier. Prorated adjustments are calculated automatically.',
-  },
-  {
-    id: 'bill-4',
-    category: 'BILLING',
-    question: 'How can I manage my subscription?',
-    answer:
-      'You can view usage statistics, update billing info, download invoices, or pause/cancel your subscription at any time under Account Settings → Subscription.',
-  },
 ];
 
 const CATEGORIES: { id: string; name: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -169,7 +139,6 @@ const CATEGORIES: { id: string; name: string; icon: React.ComponentType<{ classN
   { id: 'MODERNIZATION', name: 'Modernization', icon: Layers },
   { id: 'AI & VALIDATION', name: 'AI & Validation', icon: Sparkles },
   { id: 'PROJECTS', name: 'Projects', icon: FolderKanban },
-  { id: 'BILLING', name: 'Billing', icon: CreditCard },
 ];
 
 export const FaqPage: React.FC = () => {
@@ -194,7 +163,7 @@ export const FaqPage: React.FC = () => {
   // Group by category if "ALL" is selected
   const categoriesToDisplay =
     selectedCategory === 'ALL'
-      ? ['GENERAL', 'MODERNIZATION', 'AI & VALIDATION', 'PROJECTS', 'BILLING']
+      ? ['GENERAL', 'MODERNIZATION', 'AI & VALIDATION', 'PROJECTS']
       : [selectedCategory];
 
   return (
@@ -289,7 +258,7 @@ export const FaqPage: React.FC = () => {
             </a>
             <button
               type="button"
-              onClick={() => navigate(ROUTES.BILLING.PRICING)}
+              onClick={() => navigate(ROUTES.PUBLIC.CONTACT)}
               className="alsm-faq-btn-secondary"
             >
               <Calendar className="w-4 h-4" />

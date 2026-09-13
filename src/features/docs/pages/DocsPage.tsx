@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   BookOpen,
   Layers,
@@ -12,7 +13,6 @@ import {
   FileCode,
 } from 'lucide-react';
 import './DocsPage.css';
-
 
 interface SidebarSection {
   title: string;
@@ -58,11 +58,9 @@ const SIDEBAR_NAV: SidebarSection[] = [
     ],
   },
   {
-    title: 'ACCOUNT & BILLING',
+    title: 'ACCOUNT & SECURITY',
     items: [
-      { id: 'usage', label: 'Usage', icon: Workflow },
-      { id: 'billing', label: 'Billing', icon: BookOpen },
-      { id: 'security', label: 'Security', icon: ShieldCheck },
+      { id: 'security', label: 'Security & 2FA', icon: ShieldCheck },
     ],
   },
 ];
@@ -77,6 +75,7 @@ const PIPELINE_STEPS = [
 ];
 
 export const DocsPage: React.FC = () => {
+  const location = useLocation();
   const [activeId, setActiveId] = useState<string>('introduction');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -95,6 +94,13 @@ export const DocsPage: React.FC = () => {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  useEffect(() => {
+    const hash = location.hash.replace('#', '');
+    if (hash) {
+      scrollToSection(hash);
+    }
+  }, [location.hash]);
 
   const bmsSnippet = `* BMS Screen Definition Sample (ACCTMAP.bms)
 ACCTMAP  DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,    X

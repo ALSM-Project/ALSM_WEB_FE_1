@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Shield, Lock, Mail, ArrowRight, RefreshCcw } from 'lucide-react';
+import { conversionService } from '../services/conversion.service';
+import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { DeviceSwitcher } from '../components/DeviceSwitcher';
@@ -12,6 +14,19 @@ export const PreviewStudioPage: React.FC = () => {
   const navigate = useNavigate();
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [zoom] = useState(100);
+  const [screen, setScreen] = useState<LegacyScreen | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    conversionService.getScreenById(screenId).then((data) => {
+      if (!cancelled) setScreen(data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [screenId]);
+
+  const previewTitle = screen ? screen.name.replace(/\.(bms|dspf)$/i, '.tsx') : screenId;
 
   const containerWidths = {
     desktop: 'w-full max-w-5xl',
@@ -32,7 +47,7 @@ export const PreviewStudioPage: React.FC = () => {
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center space-x-3">
-          <h1 className="text-xl font-bold text-slate-900 font-mono">Preview: LoginScreen.tsx</h1>
+          <h1 className="text-xl font-bold text-slate-900 font-mono">Preview: {previewTitle}</h1>
           <span className="bg-[#FFFAEB] text-[#DC6803] border border-[#FEDF89] text-xs font-semibold px-2 py-0.5 rounded uppercase">
             Draft
           </span>

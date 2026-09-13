@@ -50,7 +50,7 @@ export const CommandPaletteModal: React.FC = () => {
           <input
             type="text"
             className="command-palette-input"
-            placeholder="Nhập lệnh hoặc từ khóa (ví dụ: BMS, Project, Billing, Upgrade)..."
+            placeholder="Nhập lệnh hoặc từ khóa (ví dụ: BMS, Project, Mapping, Convert)..."
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoFocus

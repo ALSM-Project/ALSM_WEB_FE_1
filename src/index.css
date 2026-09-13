@@ -3,26 +3,70 @@
 @tailwind utilities;
 
 :root {
-  --color-background: #F7F9FC;
-  --color-surface: #FFFFFF;
-  --color-text-primary: #091E42;
-  --color-text-secondary: #42526E;
-  --color-primary-blue: #0652CC;
-  --color-electric-blue: #0655FF;
-  --color-soft-blue: #E8F1FF;
+  /* Core Brand Colors */
+  --alsm-primary: #0652CC;
+  --alsm-electric: #0655FF;
+  --alsm-soft-blue: #E8F1FF;
+
+  /* Dark Navy Palette */
+  --alsm-navy: #091E42;
+  --alsm-deep-navy: #020817;
+
+  /* Background & Surfaces */
+  --alsm-background: #F7F9FC;
+  --alsm-surface: #FFFFFF;
+
+  /* Typography Colors */
+  --alsm-text-primary: #091E42;
+  --alsm-text-secondary: #42526E;
+  --alsm-text-muted: #6B778C;
+
+  /* Borders */
+  --alsm-border: #D9E2EC;
+  --alsm-border-subtle: #E5EAF0;
+
+  /* Semantic Colors */
+  --alsm-success: #10B981;
+  --alsm-success-bg: #ECFDF5;
+  --alsm-warning: #F59E0B;
+  --alsm-warning-bg: #FFFBEB;
+  --alsm-error: #EF4444;
+  --alsm-error-bg: #FEF2F2;
+  --alsm-info: #3B82F6;
+  --alsm-info-bg: #EFF6FF;
+
+  /* Border Radii */
+  --alsm-radius-card: 12px;
+  --alsm-radius-input: 8px;
+  --alsm-radius-button: 8px;
+  --alsm-radius-badge: 9999px;
+
+  /* Enterprise Shadows */
+  --alsm-shadow-sm: 0 1px 2px 0 rgba(9, 30, 66, 0.05);
+  --alsm-shadow-md: 0 4px 12px -2px rgba(9, 30, 66, 0.08), 0 2px 4px -1px rgba(9, 30, 66, 0.04);
+  --alsm-shadow-lg: 0 12px 24px -4px rgba(9, 30, 66, 0.12), 0 4px 6px -2px rgba(9, 30, 66, 0.04);
+
+  /* Legacy Backward Compatibility Mappings */
+  --color-background: var(--alsm-background);
+  --color-surface: var(--alsm-surface);
+  --color-text-primary: var(--alsm-text-primary);
+  --color-text-secondary: var(--alsm-text-secondary);
+  --color-primary-blue: var(--alsm-primary);
+  --color-electric-blue: var(--alsm-electric);
+  --color-soft-blue: var(--alsm-soft-blue);
   --color-cyan: #22D3EE;
   --color-violet: #8B5CF6;
-  --color-border: #D9E2EC;
-  --color-dark-section: #020817;
-  --color-dark-surface: #091E42;
+  --color-border: var(--alsm-border);
+  --color-dark-section: var(--alsm-deep-navy);
+  --color-dark-surface: var(--alsm-navy);
 
   --sans: Inter, system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', Consolas, monospace;
 
   font-family: var(--sans);
   color-scheme: light;
-  color: var(--color-text-secondary);
-  background: var(--color-background);
+  color: var(--alsm-text-secondary);
+  background: var(--alsm-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

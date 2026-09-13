@@ -1,27 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, CheckSquare, Square, Clock, ArrowUpRight } from 'lucide-react';
+import { Play, CheckSquare, Square, Clock } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
+import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
+import { StatusBadge } from '@/shared/ui/Badge';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 
 export const BulkConvertPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
 
-  const [selectedIds, setSelectedIds] = useState<string[]>(['1', '2', '4']);
+  const [screens, setScreens] = useState<LegacyScreen[]>([]);
+  const [screensLoading, setScreensLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [targetFramework, setTargetFramework] = useState('React');
   const [scheduleMode, setScheduleMode] = useState<'immediately' | 'later'>('immediately');
   const [loading, setLoading] = useState(false);
 
-  const screens = [
-    { id: '1', name: 'DashboardOverview.java', path: '/src/main/ui/views', status: 'Ready' },
-    { id: '2', name: 'UserSettingsDialog.jsp', path: '/web/pages/dialogs', status: 'Pending Parse' },
-    { id: '3', name: 'ReportGeneratorLayout.xml', path: '/res/layout/reports', status: 'Ready' },
-    { id: '4', name: 'LegacyAuthFlow.aspx', path: '/legacy/auth', status: 'Queued' },
-    { id: '5', name: 'DataTableWidget.js', path: '/scripts/widgets', status: 'Ready' },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    setScreensLoading(true);
+    conversionService.getScreens(projectId).then((data) => {
+      if (cancelled) return;
+      setScreens(data);
+      setSelectedIds(data.filter((s) => s.status !== 'Completed').map((s) => s.id));
+      setScreensLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
 
   const handleToggleSelectAll = () => {
     if (selectedIds.length === screens.length) setSelectedIds([]);
@@ -37,7 +47,7 @@ export const BulkConvertPage: React.FC = () => {
   const handleStartConversion = async () => {
     setLoading(true);
     try {
-      await conversionService.bulkConvertScreens(selectedIds);
+      await conversionService.bulkConvertScreens(projectId, selectedIds);
       navigate(ROUTES.PROJECTS.SCREENS(projectId));
     } finally {
       setLoading(false);
@@ -64,9 +74,10 @@ export const BulkConvertPage: React.FC = () => {
           <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
             <button
               onClick={handleToggleSelectAll}
-              className="flex items-center space-x-2 text-xs font-semibold text-slate-700 hover:text-slate-900"
+              disabled={screensLoading || screens.length === 0}
+              className="flex items-center space-x-2 text-xs font-semibold text-slate-700 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {selectedIds.length === screens.length ? (
+              {selectedIds.length === screens.length && screens.length > 0 ? (
                 <CheckSquare className="w-4 h-4 text-brand-600" />
               ) : (
                 <Square className="w-4 h-4 text-slate-400" />
@@ -82,34 +93,38 @@ export const BulkConvertPage: React.FC = () => {
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 shadow-sm">
-            {screens.map((screen) => {
-              const isSelected = selectedIds.includes(screen.id);
-              return (
-                <div
-                  key={screen.id}
-                  onClick={() => handleToggleOne(screen.id)}
-                  className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${
-                    isSelected ? 'bg-brand-50/60' : 'hover:bg-slate-50'
-                  }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    {isSelected ? (
-                      <CheckSquare className="w-4 h-4 text-brand-600 flex-shrink-0" />
-                    ) : (
-                      <Square className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    )}
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 font-mono">{screen.name}</p>
-                      <p className="text-xs text-slate-500 font-mono">{screen.path}</p>
+            {screensLoading ? (
+              <div className="p-8 text-center text-sm text-slate-500">Loading screens…</div>
+            ) : screens.length === 0 ? (
+              <div className="p-8 text-center text-sm text-slate-500">No screens available for this project.</div>
+            ) : (
+              screens.map((screen) => {
+                const isSelected = selectedIds.includes(screen.id);
+                return (
+                  <div
+                    key={screen.id}
+                    onClick={() => handleToggleOne(screen.id)}
+                    className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${
+                      isSelected ? 'bg-brand-50/60' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      {isSelected ? (
+                        <CheckSquare className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                      ) : (
+                        <Square className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                      )}
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900 font-mono">{screen.name}</p>
+                        <p className="text-xs text-slate-500 font-mono">{screen.path}</p>
+                      </div>
                     </div>
-                  </div>
 
-                  <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200">
-                    {screen.status}
-                  </span>
-                </div>
-              );
-            })}
+                    <StatusBadge status={screen.status} />
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -132,16 +147,10 @@ export const BulkConvertPage: React.FC = () => {
 
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
               <div className="flex justify-between items-center font-medium">
-                <span className="text-slate-600">Resource Utilization</span>
-                <a href={ROUTES.BILLING.PRICING} className="text-brand-600 font-semibold hover:underline flex items-center">
-                  <span>Upgrade plan</span>
-                  <ArrowUpRight className="w-3 h-3 ml-0.5" />
-                </a>
+                <span className="text-slate-600">PoC Execution Engine</span>
+                <span className="text-brand-600 font-semibold">Active Workspace</span>
               </div>
-              <p className="text-brand-700 font-semibold">This operation will use {selectedIds.length} credits.</p>
-              <div className="text-slate-500 pt-1.5 border-t border-slate-200">
-                Monthly Usage: <strong className="text-slate-900">48 / 500 credits</strong>
-              </div>
+              <p className="text-brand-700 font-semibold">{selectedIds.length} screen(s) selected for bulk modernization synthesis.</p>
             </div>
 
             <div className="space-y-2">
@@ -179,7 +188,7 @@ export const BulkConvertPage: React.FC = () => {
               <Button
                 onClick={handleStartConversion}
                 isLoading={loading}
-                disabled={selectedIds.length === 0}
+                disabled={selectedIds.length === 0 || screensLoading}
                 className="w-full py-2.5 space-x-2 font-semibold"
               >
                 <Play className="w-4 h-4" />

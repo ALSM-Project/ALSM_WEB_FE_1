@@ -17,17 +17,15 @@ describe('DiagnosticsPage', () => {
   it('renders heading, status pill badge, search, and action buttons', async () => {
     renderWithRouter();
 
-    expect(await screen.findByRole('heading', { name: /Error Logs & Diagnostics/i })).toBeInTheDocument();
-    expect(screen.getByText(/Failed/i)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/Search error codes, screens.../i)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /(Diagnostics|Error Logs)/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Search/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Download Full Log/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Download Log Archive/i })).toBeInTheDocument();
   });
 
   it('renders log table entries and displays details for selected log', async () => {
     renderWithRouter();
 
-    await screen.findByRole('heading', { name: /Error Logs & Diagnostics/i });
+    await screen.findByRole('heading', { name: /(Diagnostics|Error Logs)/i });
 
     expect(screen.getByText('ERR_BMS_UNSUPPORTED_MACRO')).toBeInTheDocument();
     expect(screen.getByText('WARN_DEPRECATED_SYSCALL')).toBeInTheDocument();
@@ -38,7 +36,7 @@ describe('DiagnosticsPage', () => {
   it('switches log selection when a row is clicked', async () => {
     renderWithRouter();
 
-    await screen.findByRole('heading', { name: /Error Logs & Diagnostics/i });
+    await screen.findByRole('heading', { name: /(Diagnostics|Error Logs)/i });
 
     const secondRowCode = screen.getByText('WARN_DEPRECATED_SYSCALL');
     fireEvent.click(secondRowCode);
@@ -49,9 +47,9 @@ describe('DiagnosticsPage', () => {
   it('filters logs by search input', async () => {
     renderWithRouter();
 
-    await screen.findByRole('heading', { name: /Error Logs & Diagnostics/i });
+    await screen.findByRole('heading', { name: /(Diagnostics|Error Logs)/i });
 
-    const searchInput = screen.getByPlaceholderText(/Search error codes, screens.../i);
+    const searchInput = screen.getByPlaceholderText(/Search/i);
     fireEvent.change(searchInput, { target: { value: 'WARN_DEPRECATED' } });
 
     expect(screen.getByText('WARN_DEPRECATED_SYSCALL')).toBeInTheDocument();
@@ -61,7 +59,7 @@ describe('DiagnosticsPage', () => {
   it('applies diagnostic patch when Apply Patch button is clicked', async () => {
     renderWithRouter();
 
-    await screen.findByRole('heading', { name: /Error Logs & Diagnostics/i });
+    await screen.findByRole('heading', { name: /(Diagnostics|Error Logs)/i });
 
     const applyBtn = screen.getByRole('button', { name: /Apply Patch & Retry/i });
     fireEvent.click(applyBtn);

@@ -1,17 +1,56 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Download, RefreshCw, Sliders, FileCode, Tag } from 'lucide-react';
-import { mockASTData, mockConversionResult } from '@/mocks/conversions.mock';
+import { conversionService } from '../services/conversion.service';
+import type { ConversionJob } from '../services/conversion.service';
+import type { ASTNode, ConversionResult } from '../types/conversion';
+import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { CodeViewer } from '../components/CodeViewer';
 import { ASTTree } from '../components/ASTTree';
 import { Button } from '@/shared/ui/Button';
+import { StatusBadge } from '@/shared/ui/Badge';
+
+const JOB_STATUS_LABELS: Record<ConversionJob['status'], string> = {
+  QUEUED: 'Queued',
+  PROCESSING: 'Processing',
+  COMPLETED: 'Completed',
+  FAILED: 'Failed',
+  DEAD: 'Failed',
+  CANCELLED: 'Failed',
+};
 
 export const ResultInspectionPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
   const [validating, setValidating] = useState(false);
+  const [screen, setScreen] = useState<LegacyScreen | null>(null);
+  const [job, setJob] = useState<ConversionJob | null>(null);
+  const [result, setResult] = useState<ConversionResult | null>(null);
+  const [astData, setAstData] = useState<ASTNode | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      conversionService.getScreenById(screenId),
+      conversionService.getLatestConversion(projectId, screenId),
+      conversionService.convertScreen(screenId),
+      conversionService.getASTData(screenId),
+    ]).then(([screenData, jobData, resultData, ast]) => {
+      if (cancelled) return;
+      setScreen(screenData);
+      setJob(jobData);
+      setResult(resultData);
+      setAstData(ast);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, screenId]);
+
+  const screenName = screen?.name ?? screenId;
+  const hasRealResult = Boolean(job?.status === 'COMPLETED' && job.resultReference);
 
   const handleReRunValidator = () => {
     setValidating(true);
@@ -32,10 +71,12 @@ export const ResultInspectionPage: React.FC = () => {
       <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
           <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-slate-900 font-mono">LoginScreen.bms</h1>
-            <span className="bg-[#ECFDF3] text-[#079455] border border-[#ABEFC6] text-xs font-semibold px-2.5 py-0.5 rounded-full">
-              Converted Successfully
-            </span>
+            <h1 className="text-2xl font-bold text-slate-900 font-mono">{screenName}</h1>
+            {job ? (
+              <StatusBadge status={JOB_STATUS_LABELS[job.status]} />
+            ) : (
+              <StatusBadge status="Queued" />
+            )}
           </div>
           <p className="text-xs text-slate-500 mt-1">Inspecting AST structure and generated React source code.</p>
         </div>
@@ -46,26 +87,36 @@ export const ResultInspectionPage: React.FC = () => {
         </Button>
       </div>
 
+      {!hasRealResult && (
+        <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs font-medium">
+          {job
+            ? `This screen's conversion job is currently "${JOB_STATUS_LABELS[job.status]}" — no external conversion tool is configured yet, so no real output exists. The code and AST below are illustrative example output.`
+            : 'No conversion job has been run for this screen yet. The code and AST below are illustrative example output.'}
+        </div>
+      )}
+
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">SCREEN NAME</p>
-          <p className="font-bold text-slate-900 font-mono truncate mt-0.5">LoginScreen.bms</p>
+          <p className="font-bold text-slate-900 font-mono truncate mt-0.5">{screenName}</p>
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">TIMESTAMP</p>
-          <p className="font-bold text-slate-700 mt-0.5">Oct 12, 2023</p>
+          <p className="font-bold text-slate-700 mt-0.5">
+            {job ? new Date(job.createdAt).toLocaleString() : (result?.timestamp ?? '—')}
+          </p>
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">EXECUTION</p>
-          <p className="font-bold text-[#079455] mt-0.5">1.1s</p>
+          <p className="font-bold text-[#079455] mt-0.5">{result?.executionDuration ?? '—'}</p>
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">AST NODES</p>
-          <p className="font-bold text-brand-600 mt-0.5">242</p>
+          <p className="font-bold text-brand-600 mt-0.5">{result?.astNodesCount ?? '—'}</p>
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">GENERATED LOC</p>
-          <p className="font-bold text-brand-600 mt-0.5">420 lines</p>
+          <p className="font-bold text-brand-600 mt-0.5">{result?.generatedLoc ?? '—'} lines</p>
         </div>
       </div>
 
@@ -77,7 +128,10 @@ export const ResultInspectionPage: React.FC = () => {
               <span>Generated Code (React)</span>
             </span>
           </div>
-          <CodeViewer code={mockConversionResult.generatedCode} filename="LoginScreen.tsx" />
+          <CodeViewer
+            code={result?.generatedCode ?? ''}
+            filename={screenName.replace(/\.(bms|dspf)$/i, '.tsx')}
+          />
         </div>
 
         <div className="space-y-3">
@@ -87,7 +141,7 @@ export const ResultInspectionPage: React.FC = () => {
               <span>Abstract Syntax Tree (BMS Legacy)</span>
             </span>
           </div>
-          <ASTTree data={mockASTData} />
+          {astData && <ASTTree data={astData} />}
         </div>
       </div>
 

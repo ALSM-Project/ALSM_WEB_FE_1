@@ -20,6 +20,7 @@ import { diagnosticsService } from '../services/diagnostics.service';
 import type { DiagnosticLog } from '../types/diagnostics';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Button } from '@/shared/ui/Button';
+import { PageHeader } from '@/shared/ui/PageHeader';
 
 export const DiagnosticsPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
@@ -116,16 +117,11 @@ export const DiagnosticsPage: React.FC = () => {
         ]}
       />
 
-      {/* Header Bar with Title, Status Pill, and Download Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center space-x-3">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Error Logs & Diagnostics</h1>
-          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 space-x-1.5 shadow-xs">
-            <span className="h-2 w-2 rounded-full bg-rose-600 animate-pulse"></span>
-            <span>Failed</span>
-          </span>
-        </div>
-
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <PageHeader
+          title="Diagnostics & Error Logs"
+          subtitle="Analyze parsing failures, syntax diagnostics, and rule-based validation findings."
+        />
         <Button
           variant="secondary"
           onClick={handleDownloadFullLog}
