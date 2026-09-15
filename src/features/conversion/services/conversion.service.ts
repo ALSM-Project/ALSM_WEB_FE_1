@@ -42,6 +42,29 @@ export class ConversionService {
     return this.screens.find((s) => s.id === screenId) || this.screens[0] || null;
   }
 
+  /** Registers a just-uploaded file as a convertible screen carrying its real inputReference, so it shows up wherever screens are listed/converted instead of only living in the Upload page's local file list. */
+  async registerUploadedScreen(
+    projectId: string,
+    fileName: string,
+    inputReference: string,
+  ): Promise<LegacyScreen> {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    const sourceType: LegacyScreen['sourceType'] =
+      extension === 'bms' ? 'BMS' : extension === 'dspf' ? 'DSPF' : extension === 'cpy' ? 'RPG' : 'COBOL';
+    const screen: LegacyScreen = {
+      id: `scr-upload-${Date.now()}-${Math.round(Math.random() * 1000)}`,
+      projectId,
+      name: fileName,
+      sourceType,
+      status: 'Ready',
+      framework: 'React',
+      lastUpdated: 'Just now',
+      inputReference,
+    };
+    this.screens = [screen, ...this.screens];
+    return screen;
+  }
+
   async uploadFile(file: File): Promise<SourceFile> {
     const newFile: SourceFile = {
       id: `file-${Date.now()}`,

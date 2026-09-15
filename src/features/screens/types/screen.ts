@@ -24,4 +24,6 @@ export interface SourceFile {
   status: 'Ready' | 'Uploading' | 'Failed to parse';
   /** Storage reference returned by the real conversion-sources upload endpoint. Undefined for pre-seeded mock rows. */
   inputReference?: string;
+  /** Id of the LegacyScreen registered for this upload, so the row can link straight to its Convert page. */
+  screenId?: string;
 }
