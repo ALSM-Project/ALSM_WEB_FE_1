@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Search, Bell, Settings, LogOut, User, CreditCard, Sparkles, ChevronDown } from 'lucide-react';
-import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
-import { Web1ThemeProvider, useWeb1Theme } from '@/context/Web1ThemeContext';
 import LogoImg from '@/assets/logo.png';
 
 const getInitials = (name?: string) => {
@@ -15,12 +13,10 @@ const getInitials = (name?: string) => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-export const AppLayoutContent: React.FC = () => {
+export const AppLayout: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { theme } = useWeb1Theme();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -28,200 +24,161 @@ export const AppLayoutContent: React.FC = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex font-sans transition-colors"
-      style={{ backgroundColor: theme.colors.background.main, color: theme.colors.text.primary }}
-    >
-      {/* Sidebar */}
-      <Sidebar
-        isCollapsed={sidebarCollapsed}
-        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-        onLogout={handleLogout}
-      />
+    <div className="min-h-screen bg-[#F7F9FC] text-slate-900 flex flex-col font-sans">
+      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between relative">
+        {/* Left: Logo */}
+        <div className="flex items-center h-full">
+          <Link to={ROUTES.PROJECTS.SCREENS('proj-acme')} className="flex items-center h-full">
+            <img src={LogoImg} alt="ALSM Logo" className="h-10 object-contain" />
+          </Link>
+        </div>
 
-      {/* Main Container */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header */}
-        <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between relative">
-          {/* Left: Logo */}
-          <div className="flex items-center h-full">
-            <Link to={ROUTES.PROJECTS.SCREENS('proj-acme')} className="flex items-center h-full">
-              <img src={LogoImg} alt="ALSM Logo" className="h-10 object-contain" />
-            </Link>
-          </div>
+        {/* Center: Nav Links */}
+        <nav className="hidden md:flex items-center h-full space-x-8 absolute left-1/2 transform -translate-x-1/2">
+          <NavLink
+            to={ROUTES.PROJECTS.SCREENS('proj-acme')}
+            className={({ isActive }) =>
+              `relative h-full flex items-center text-[14px] transition-colors ${
+                isActive ? 'text-[#0652CC] font-semibold' : 'text-slate-500 hover:text-slate-900'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                Dashboard
+                {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
+              </>
+            )}
+          </NavLink>
+          <NavLink
+            to={ROUTES.PROJECTS.LIST}
+            end
+            className={({ isActive }) =>
+              `relative h-full flex items-center text-[14px] transition-colors ${
+                isActive ? 'text-[#0652CC] font-semibold' : 'text-slate-500 hover:text-slate-900'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                Projects
+                {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
+              </>
+            )}
+          </NavLink>
+          <NavLink
+            to={ROUTES.BILLING.USAGE}
+            className={({ isActive }) =>
+              `relative h-full flex items-center text-[14px] transition-colors ${
+                isActive ? 'text-[#0652CC] font-semibold' : 'text-slate-500 hover:text-slate-900'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                Usage
+                {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
+              </>
+            )}
+          </NavLink>
+          <NavLink
+            to={ROUTES.BILLING.PRICING}
+            className={({ isActive }) =>
+              `relative h-full flex items-center text-[14px] transition-colors ${
+                isActive ? 'text-[#0652CC] font-semibold' : 'text-slate-500 hover:text-slate-900'
+              }`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                Pricing
+                {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
+              </>
+            )}
+          </NavLink>
+        </nav>
 
-          {/* Center: Nav Links */}
-          <nav className="hidden md:flex items-center h-full space-x-8 absolute left-1/2 transform -translate-x-1/2">
-            <NavLink
-              to={ROUTES.PROJECTS.SCREENS('proj-acme')}
-              className={({ isActive }) =>
-                `relative h-full flex items-center text-[14px] transition-colors ${
-                  isActive
-                    ? 'text-[#0652CC] font-semibold'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  Dashboard
-                  {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
-                </>
-              )}
-            </NavLink>
-            <NavLink
-              to={ROUTES.PROJECTS.LIST}
-              end
-              className={({ isActive }) =>
-                `relative h-full flex items-center text-[14px] transition-colors ${
-                  isActive
-                    ? 'text-[#0652CC] font-semibold'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  Projects
-                  {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
-                </>
-              )}
-            </NavLink>
-            <NavLink
-              to={ROUTES.BILLING.USAGE}
-              className={({ isActive }) =>
-                `relative h-full flex items-center text-[14px] transition-colors ${
-                  isActive
-                    ? 'text-[#0652CC] font-semibold'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  Usage
-                  {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
-                </>
-              )}
-            </NavLink>
-            <NavLink
-              to={ROUTES.BILLING.PRICING}
-              className={({ isActive }) =>
-                `relative h-full flex items-center text-[14px] transition-colors ${
-                  isActive
-                    ? 'text-[#0652CC] font-semibold'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  Pricing
-                  {isActive && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-[#0652CC]" />}
-                </>
-              )}
-            </NavLink>
-          </nav>
+        {/* Right: Actions */}
+        <div className="flex items-center space-x-3">
+          <button
+            className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+            title="Search"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+          <button
+            className="relative w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+            title="Notifications"
+          >
+            <Bell className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => navigate(ROUTES.ACCOUNT.PASSWORD)}
+            className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
+            title="Account Settings"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
 
-          {/* Right: Actions */}
-          <div className="flex items-center space-x-3">
+          {/* Avatar Dropdown */}
+          <div className="relative">
             <button
-              className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
-              title="Search"
+              onClick={() => setProfileOpen(!profileOpen)}
+              className="flex items-center space-x-2 p-1 rounded-xl hover:bg-slate-100 transition-colors focus:outline-none"
             >
-              <Search className="w-5 h-5" />
-            </button>
-            <button
-              className="relative w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
-              title="Notifications"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#0652CC]" />
-            </button>
-            <button
-              onClick={() => navigate(ROUTES.ACCOUNT.PASSWORD)}
-              className="w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition-colors"
-              title="Account Settings"
-            >
-              <Settings className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                {getInitials(user?.fullName)}
+              </div>
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             </button>
 
-            {/* Avatar Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center space-x-2 p-1 rounded-xl hover:bg-slate-100 transition-colors focus:outline-none"
-              >
-                <div className="w-9 h-9 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-sm shadow-sm">
-                  {getInitials(user?.fullName)}
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-50">
+                <div className="px-4 py-2 border-b border-slate-100">
+                  <p className="text-sm font-semibold text-slate-900">{user?.fullName || 'User'}</p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                 </div>
-                <ChevronDown className="w-4 h-4 text-slate-400" />
-              </button>
-
-              {profileOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-xl shadow-lg py-2 z-50">
-                  <div className="px-4 py-2 border-b border-slate-100">
-                    <p className="text-sm font-semibold text-slate-900">{user?.fullName || 'User'}</p>
-                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                  </div>
-                  <button
-                    onClick={() => { setProfileOpen(false); navigate('/workspace/contact'); }}
-                    className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center space-x-2"
-                  >
-                    <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>Contact & Upgrade</span>
-                  </button>
-                  <Link
-                    to={ROUTES.ACCOUNT.PASSWORD}
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                  >
-                    <User className="w-4 h-4 text-slate-400" />
-                    <span>Account Settings</span>
-                  </Link>
-                  <Link
-                    to={ROUTES.BILLING.SUBSCRIPTION}
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-                  >
-                    <CreditCard className="w-4 h-4 text-slate-400" />
-                    <span>Subscription</span>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left flex items-center space-x-2 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Upgrade Button */}
-            <button
-              onClick={() => navigate('/workspace/contact')}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-xl text-xs font-semibold shadow-sm transition-all"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Upgrade</span>
-            </button>
+                <button
+                  onClick={() => { setProfileOpen(false); navigate('/workspace/contact'); }}
+                  className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors flex items-center space-x-2"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-500" />
+                  <span>Contact & Upgrade</span>
+                </button>
+                <Link
+                  to={ROUTES.ACCOUNT.PASSWORD}
+                  onClick={() => setProfileOpen(false)}
+                  className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <User className="w-4 h-4 text-slate-400" />
+                  <span>Account Settings</span>
+                </Link>
+                <Link
+                  to={ROUTES.BILLING.SUBSCRIPTION}
+                  onClick={() => setProfileOpen(false)}
+                  className="flex items-center space-x-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                >
+                  <CreditCard className="w-4 h-4 text-slate-400" />
+                  <span>Subscription</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left flex items-center space-x-2 px-4 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors border-t border-slate-100"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            )}
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Content Area */}
-        <main className="flex-grow p-6 lg:p-8 w-full min-w-0">
-          <Outlet />
-        </main>
-      </div>
+      <main className="flex-grow p-6 max-w-7xl w-full mx-auto">
+        <Outlet />
+      </main>
     </div>
   );
 };
-
-export const AppLayout: React.FC = () => (
-  <Web1ThemeProvider>
-    <AppLayoutContent />
-  </Web1ThemeProvider>
-);
 
 export default AppLayout;
