@@ -49,7 +49,8 @@ export class ExportService {
       onProgress?.(30, 'Connecting to ALSM Backend Export Engine...');
       const response = await apiClient.post<Blob>(
         `/projects/${config.projectId}/export/download`,
-        config
+        config,
+        { responseType: 'blob' }
       );
       onProgress?.(100, 'Package downloaded from Backend server!');
       return response;
