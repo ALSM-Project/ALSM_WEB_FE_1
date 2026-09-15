@@ -1,3 +1,4 @@
 export const sessionKeys = {
-  all: ['sessions'] as const,
+  root: ['sessions'] as const,
+  byUser: (userId: string) => ['sessions', userId] as const,
 };

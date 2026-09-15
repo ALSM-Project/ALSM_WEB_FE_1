@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Laptop, LogOut, Monitor, ShieldAlert, Smartphone, Tablet } from 'lucide-react';
+import { Laptop, Monitor, ShieldAlert, Smartphone, Tablet } from 'lucide-react';
 import type { ActiveSession } from '../types/account';
 import { useActiveSessions } from '../queries/useActiveSessions';
-import { useRevokeAllOtherSessions } from '../queries/useRevokeAllOtherSessions';
 import { useRevokeSession } from '../queries/useRevokeSession';
 import { formatSessionLastActive, formatSessionTimestamp } from '../utils/sessionDate';
+import { useAuth } from '@/app/providers';
 import { Button } from '@/shared/ui/Button';
 import { Modal } from '@/shared/ui/Modal';
 
@@ -23,19 +23,12 @@ const sessionDescription = (session: ActiveSession): string =>
   `${session.deviceType} session using ${session.browser}`;
 
 export const ActiveSessionsPage: React.FC = () => {
+  const { user } = useAuth();
   const [sessionToRevoke, setSessionToRevoke] = useState<ActiveSession | null>(null);
-  const [isRevokeAllOpen, setRevokeAllOpen] = useState(false);
-  const sessionsQuery = useActiveSessions();
-  const revokeSession = useRevokeSession();
-  const revokeAllOtherSessions = useRevokeAllOtherSessions();
+  const sessionsQuery = useActiveSessions(user?.id);
+  const revokeSession = useRevokeSession(user?.id);
   const sessions = sessionsQuery.data ?? [];
-  const isMutationPending = revokeSession.isPending || revokeAllOtherSessions.isPending;
-
-  const mutationError = revokeSession.isError
-    ? 'We could not revoke that session. Please try again.'
-    : revokeAllOtherSessions.isError
-      ? 'We could not revoke the other sessions. Please try again.'
-      : null;
+  const mutationError = revokeSession.isError ? 'We could not revoke that session. Please try again.' : null;
 
   const confirmRevokeSession = () => {
     if (!sessionToRevoke || revokeSession.isPending) return;
@@ -45,35 +38,13 @@ export const ActiveSessionsPage: React.FC = () => {
     });
   };
 
-  const confirmRevokeAllOtherSessions = () => {
-    if (revokeAllOtherSessions.isPending) return;
-
-    revokeAllOtherSessions.mutate(undefined, {
-      onSuccess: () => setRevokeAllOpen(false),
-    });
-  };
-
   return (
     <section className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" aria-labelledby="active-sessions-heading">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h2 id="active-sessions-heading" className="text-xl font-bold tracking-tight text-slate-900">
-            Active Sessions
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">Review signed-in devices and remotely end access you no longer recognize.</p>
-        </div>
-
-        <Button
-          variant="danger"
-          size="sm"
-          onClick={() => setRevokeAllOpen(true)}
-          disabled={sessions.length === 0 || isMutationPending}
-          aria-label="Revoke all other sessions"
-          className="shrink-0 space-x-1.5 font-semibold"
-        >
-          <LogOut className="h-4 w-4" aria-hidden="true" />
-          <span>Revoke All Other Sessions</span>
-        </Button>
+      <div>
+        <h2 id="active-sessions-heading" className="text-xl font-bold tracking-tight text-slate-900">
+          Active Sessions
+        </h2>
+        <p className="mt-1 text-sm text-slate-500">Review signed-in devices and remotely end access you no longer recognize.</p>
       </div>
 
       {sessionsQuery.isError && (
@@ -132,7 +103,7 @@ export const ActiveSessionsPage: React.FC = () => {
                   variant="outline"
                   size="sm"
                   onClick={() => setSessionToRevoke(session)}
-                  disabled={isMutationPending}
+                  disabled={revokeSession.isPending}
                   isLoading={isThisSessionPending}
                   aria-label={`Remote logout for ${sessionDescription(session)}`}
                   aria-busy={isThisSessionPending}
@@ -171,34 +142,6 @@ export const ActiveSessionsPage: React.FC = () => {
               aria-busy={revokeSession.isPending}
             >
               Remote Logout
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      <Modal
-        isOpen={isRevokeAllOpen}
-        onClose={revokeAllOtherSessions.isPending ? () => undefined : () => setRevokeAllOpen(false)}
-        title="Revoke all other sessions"
-        maxWidth="sm"
-      >
-        <div className="space-y-5">
-          <p className="text-sm leading-relaxed text-slate-600">
-            This will end every other active session for your account. Other devices will need to sign in again.
-          </p>
-          <div className="flex justify-end gap-3">
-            <Button type="button" variant="secondary" onClick={() => setRevokeAllOpen(false)} disabled={revokeAllOtherSessions.isPending}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="danger"
-              onClick={confirmRevokeAllOtherSessions}
-              isLoading={revokeAllOtherSessions.isPending}
-              aria-label="Confirm revoking all other sessions"
-              aria-busy={revokeAllOtherSessions.isPending}
-            >
-              Revoke Other Sessions
             </Button>
           </div>
         </div>

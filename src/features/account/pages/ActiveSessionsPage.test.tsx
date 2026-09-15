@@ -2,20 +2,24 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ActiveSession } from '../types/account';
+import { sessionKeys } from '../queries/sessionKeys';
 import { ActiveSessionsPage } from './ActiveSessionsPage';
 
 const mocks = vi.hoisted(() => ({
   getActiveSessions: vi.fn(),
   revokeSession: vi.fn(),
-  revokeAllOtherSessions: vi.fn(),
+  user: { id: 'user-a' } as { id: string } | null,
 }));
 
 vi.mock('../services/account.service', () => ({
   accountService: {
     getActiveSessions: mocks.getActiveSessions,
     revokeSession: mocks.revokeSession,
-    revokeAllOtherSessions: mocks.revokeAllOtherSessions,
   },
+}));
+
+vi.mock('@/app/providers', () => ({
+  useAuth: () => ({ user: mocks.user }),
 }));
 
 const sessions: ActiveSession[] = [
@@ -45,11 +49,13 @@ const renderPage = () => {
     },
   });
 
-  return render(
+  const rendered = render(
     <QueryClientProvider client={queryClient}>
       <ActiveSessionsPage />
     </QueryClientProvider>,
   );
+
+  return { ...rendered, queryClient };
 };
 
 const deferred = <T,>() => {
@@ -64,9 +70,9 @@ const deferred = <T,>() => {
 describe('ActiveSessionsPage', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    mocks.user = { id: 'user-a' };
     mocks.getActiveSessions.mockResolvedValue(sessions);
     mocks.revokeSession.mockResolvedValue(undefined);
-    mocks.revokeAllOtherSessions.mockResolvedValue(undefined);
   });
 
   it('shows an accessible loading state while sessions load', () => {
@@ -89,6 +95,7 @@ describe('ActiveSessionsPage', () => {
     expect(screen.queryByText(/127\.0\.0\.1/)).not.toBeInTheDocument();
     expect(screen.queryByText(/IP:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/This Device/)).not.toBeInTheDocument();
+    expect(mocks.getActiveSessions).toHaveBeenCalledWith();
   });
 
   it('renders a real empty state for an empty backend response', async () => {
@@ -97,7 +104,16 @@ describe('ActiveSessionsPage', () => {
     renderPage();
 
     expect(await screen.findByText('No active sessions found.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Revoke all other sessions' })).toBeDisabled();
+  });
+
+  it('does not query sessions or expose bulk revocation before an authenticated user exists', async () => {
+    mocks.user = null;
+
+    renderPage();
+
+    expect(await screen.findByText('No active sessions found.')).toBeInTheDocument();
+    expect(mocks.getActiveSessions).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /revoke all other sessions/i })).not.toBeInTheDocument();
   });
 
   it('shows a safe error when the session list request fails', async () => {
@@ -114,7 +130,9 @@ describe('ActiveSessionsPage', () => {
       .mockResolvedValueOnce(sessions)
       .mockResolvedValueOnce([sessions[1]]);
 
-    renderPage();
+    const { queryClient } = renderPage();
+    queryClient.setQueryData(sessionKeys.byUser('user-b'), sessions);
+    const invalidateQueries = vi.spyOn(queryClient, 'invalidateQueries');
 
     await screen.findByText('Desktop');
     fireEvent.click(screen.getByRole('button', { name: 'Remote logout for Desktop session using Chrome' }));
@@ -126,6 +144,7 @@ describe('ActiveSessionsPage', () => {
       expect(mocks.revokeSession).toHaveBeenCalledWith('session-desktop');
       expect(mocks.getActiveSessions).toHaveBeenCalledTimes(2);
     });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: sessionKeys.byUser('user-a') });
     expect(screen.queryByText('Desktop')).not.toBeInTheDocument();
   });
 
@@ -159,20 +178,11 @@ describe('ActiveSessionsPage', () => {
     expect(screen.queryByText('sensitive backend detail')).not.toBeInTheDocument();
   });
 
-  it('revokes all other sessions through the real mutation flow', async () => {
-    mocks.getActiveSessions
-      .mockResolvedValueOnce(sessions)
-      .mockResolvedValueOnce([sessions[0]]);
-
+  it('does not expose Revoke All Other Sessions', async () => {
     renderPage();
 
     await screen.findByText('Desktop');
-    fireEvent.click(screen.getByRole('button', { name: 'Revoke all other sessions' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm revoking all other sessions' }));
-
-    await waitFor(() => {
-      expect(mocks.revokeAllOtherSessions).toHaveBeenCalledTimes(1);
-      expect(mocks.getActiveSessions).toHaveBeenCalledTimes(2);
-    });
+    expect(screen.queryByText('Revoke All Other Sessions')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /revoke all other sessions/i })).not.toBeInTheDocument();
   });
 });
