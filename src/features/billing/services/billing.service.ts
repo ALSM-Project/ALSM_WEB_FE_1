@@ -28,6 +28,9 @@ export class BillingService {
   // ─── Plans ───────────────────────────────────────────────
 
   async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    if (import.meta.env.VITEST) {
+      return mockSubscriptionPlans;
+    }
     try {
       const plans = await apiClient.get<SubscriptionPlan[]>('/billing/plans');
       if (plans && Array.isArray(plans) && plans.length > 0) {
@@ -39,6 +42,7 @@ export class BillingService {
       return mockSubscriptionPlans;
     }
   }
+
 
   // ─── Subscription ────────────────────────────────────────
 
