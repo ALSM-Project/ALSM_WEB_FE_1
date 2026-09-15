@@ -12,6 +12,8 @@ export interface LegacyScreen {
   lastUpdated: string;
   path?: string;
   sizeKb?: number;
+  /** Storage reference returned by the real conversion-sources upload endpoint, if this screen was uploaded (not seed/mock data). */
+  inputReference?: string;
 }
 
 export interface SourceFile {
@@ -20,4 +22,6 @@ export interface SourceFile {
   sizeKb: number;
   uploadedAt: string;
   status: 'Ready' | 'Uploading' | 'Failed to parse';
+  /** Storage reference returned by the real conversion-sources upload endpoint. Undefined for pre-seeded mock rows. */
+  inputReference?: string;
 }

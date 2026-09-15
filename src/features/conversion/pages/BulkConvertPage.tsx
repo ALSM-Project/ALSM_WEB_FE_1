@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, CheckSquare, Square, Clock } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
+import { useBulkConvert } from '../queries/useBulkConvert';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
@@ -17,7 +18,7 @@ export const BulkConvertPage: React.FC = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [targetFramework, setTargetFramework] = useState('React');
   const [scheduleMode, setScheduleMode] = useState<'immediately' | 'later'>('immediately');
-  const [loading, setLoading] = useState(false);
+  const bulkConvert = useBulkConvert(projectId);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,14 +45,10 @@ export const BulkConvertPage: React.FC = () => {
     );
   };
 
-  const handleStartConversion = async () => {
-    setLoading(true);
-    try {
-      await conversionService.bulkConvertScreens(projectId, selectedIds);
-      navigate(ROUTES.PROJECTS.SCREENS(projectId));
-    } finally {
-      setLoading(false);
-    }
+  const handleStartConversion = () => {
+    bulkConvert.mutate(selectedIds, {
+      onSuccess: () => navigate(ROUTES.PROJECTS.SCREENS(projectId)),
+    });
   };
 
   return (
@@ -187,7 +184,7 @@ export const BulkConvertPage: React.FC = () => {
             <div className="space-y-2 pt-2">
               <Button
                 onClick={handleStartConversion}
-                isLoading={loading}
+                isLoading={bulkConvert.isPending}
                 disabled={selectedIds.length === 0 || screensLoading}
                 className="w-full py-2.5 space-x-2 font-semibold"
               >

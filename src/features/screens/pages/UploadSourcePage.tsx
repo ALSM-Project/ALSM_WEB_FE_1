@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus } from 'lucide-react';
-import { screenService } from '../services/screen.service';
+import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Tabs } from '@/shared/ui/Tabs';
@@ -32,44 +32,58 @@ export const UploadSourcePage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      simulateUpload(e.dataTransfer.files[0]);
+      void handleUpload(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      simulateUpload(e.target.files[0]);
+      void handleUpload(e.target.files[0]);
     }
   };
 
-  const simulateUpload = async (file: File) => {
+  /** Real upload: the file is stored by the backend and the returned inputReference is what
+   * conversion jobs use to run the actual BMS/DSPF/COBOL conversion tool — nothing is simulated. */
+  const handleUpload = async (file: File) => {
     setIsUploading(true);
-    setUploadProgress(20);
-    const timer = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(timer);
-          return 90;
-        }
-        return prev + 25;
-      });
-    }, 200);
-
-    setTimeout(async () => {
-      clearInterval(timer);
-      setUploadProgress(100);
-      const newFile = await screenService.uploadFile(file);
+    setUploadProgress(0);
+    try {
+      const result = await conversionService.uploadSource(projectId, [file], setUploadProgress);
+      const uploaded = result.files[0];
+      const newFile: SourceFile = {
+        id: `file-${Date.now()}`,
+        fileName: uploaded?.name ?? file.name,
+        sizeKb: Math.round((uploaded?.sizeBytes ?? file.size) / 1024),
+        uploadedAt: 'Just now',
+        status: 'Ready',
+        inputReference: result.inputReference,
+      };
       if (activeTab === 'screens') {
         setScreenFiles((prev) => [newFile, ...prev]);
       } else {
         setProgramFiles((prev) => [newFile, ...prev]);
       }
+    } catch (err) {
+      console.error('Failed to upload source file', err);
+      const failedFile: SourceFile = {
+        id: `file-${Date.now()}`,
+        fileName: file.name,
+        sizeKb: Math.round(file.size / 1024),
+        uploadedAt: 'Just now',
+        status: 'Failed to parse',
+      };
+      if (activeTab === 'screens') {
+        setScreenFiles((prev) => [failedFile, ...prev]);
+      } else {
+        setProgramFiles((prev) => [failedFile, ...prev]);
+      }
+    } finally {
       setIsUploading(false);
       setUploadProgress(0);
-    }, 1000);
+    }
   };
 
   const handleRemove = (id: string) => {
@@ -127,7 +141,7 @@ export const UploadSourcePage: React.FC = () => {
         <input
           type="file"
           id="file-upload"
-          accept=".bms,.dspf,.txt"
+          accept={activeTab === 'screens' ? '.bms,.dspf' : '.cob,.cbl,.cpy'}
           onChange={handleFileSelect}
           className="hidden"
         />
@@ -139,7 +153,11 @@ export const UploadSourcePage: React.FC = () => {
             <p className="text-base font-bold text-slate-900">Drag and drop your files here</p>
             <p className="text-xs text-brand-600 font-semibold mt-1">or click to browse from device</p>
           </div>
-          <p className="text-xs text-slate-500">Accepted: .bms, .dspf, .txt (max 50MB/file)</p>
+          <p className="text-xs text-slate-500">
+            {activeTab === 'screens'
+              ? 'Accepted: .bms, .dspf (max 50MB/file)'
+              : 'Accepted: .cob, .cbl, .cpy — upload the program together with its copybooks (max 50MB/file)'}
+          </p>
         </label>
       </div>
 
