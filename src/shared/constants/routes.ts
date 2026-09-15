@@ -32,11 +32,11 @@ export const ROUTES = {
     EXPORT: (id = ':projectId') => `/projects/${id}/export`,
     DIAGNOSTICS: (id = ':projectId') => `/projects/${id}/diagnostics`,
   },
-  RESOURCES: {
-    DOCS: '/workspace/docs',
-    POC_GUIDE: '/workspace/docs#how-it-works',
-    MODERNIZATION_GUIDE: '/workspace/docs#bms-dspf',
-    CONTACT: '/workspace/contact',
+  BILLING: {
+    USAGE: '/billing/usage',
+    PRICING: '/billing/pricing',
+    SUBSCRIPTION: '/billing/subscription',
+    TRIAL: '/billing/trial',
   },
 };
 

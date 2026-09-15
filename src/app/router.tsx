@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '@/shared/layouts/AppLayout';
 import PublicLayout from '@/shared/layouts/PublicLayout';
 import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
-import { GuestRoute, ProtectedRoute, RoleGuard } from './guards';
+import { GuestRoute, ProtectedRoute } from './guards';
 
 // Feature Modules
 import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage, VerifyEmailPage } from '@/features/auth';
@@ -93,14 +93,7 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/review', element: <ReviewFindingsPage /> },
           { path: '/projects/:projectId/export', element: <ExportCodePage /> },
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },
-
-          // Owner/Admin-only: Delete Project
-          {
-            element: <RoleGuard allowedRoles={['OWNER', 'ADMIN']} />,
-            children: [
-              { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
-            ],
-          },
+          { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
         ],
       },
     ],

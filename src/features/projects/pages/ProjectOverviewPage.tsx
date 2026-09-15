@@ -9,6 +9,7 @@ import {
   Eye,
   Download,
   ArrowRight,
+  Trash2,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { StatusBadge, Button } from '@/shared/ui';
@@ -117,6 +118,14 @@ export const ProjectOverviewPage: React.FC = () => {
             >
               <Layers className="w-4 h-4" />
               <span>Screens Workspace</span>
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => navigate(ROUTES.PROJECTS.DELETE(projectId))}
+              className="p-2 border border-[#D9E2EC] text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors rounded-xl"
+              title="Delete Project"
+            >
+              <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         </div>
