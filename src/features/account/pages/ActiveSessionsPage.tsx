@@ -93,24 +93,40 @@ export const ActiveSessionsPage: React.FC = () => {
                   <div className="min-w-0 space-y-1">
                     <p className="break-words text-sm font-semibold text-slate-900">{session.deviceType}</p>
                     <p className="break-words text-xs text-slate-600">{session.browser}</p>
+                    {session.isCurrent && (
+                      <div
+                        role="status"
+                        aria-label="Current device status: active"
+                        className="flex w-fit items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-800"
+                      >
+                        <span>Current device</span>
+                        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                        <span>Active</span>
+                      </div>
+                    )}
                     <p className="text-xs text-slate-500" title={fullTimestamp}>
                       Last active: {lastActiveText}
                     </p>
+                    {session.isCurrent && (
+                      <p className="text-xs text-slate-500">This is the device you&apos;re currently using.</p>
+                    )}
                   </div>
                 </div>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSessionToRevoke(session)}
-                  disabled={revokeSession.isPending}
-                  isLoading={isThisSessionPending}
-                  aria-label={`Remote logout for ${sessionDescription(session)}`}
-                  aria-busy={isThisSessionPending}
-                  className="shrink-0 border-rose-200 text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                >
-                  Remote Logout
-                </Button>
+                {!session.isCurrent && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSessionToRevoke(session)}
+                    disabled={revokeSession.isPending}
+                    isLoading={isThisSessionPending}
+                    aria-label={`Remote logout for ${sessionDescription(session)}`}
+                    aria-busy={isThisSessionPending}
+                    className="shrink-0 border-rose-200 text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                  >
+                    Remote Logout
+                  </Button>
+                )}
               </li>
             );
           })}

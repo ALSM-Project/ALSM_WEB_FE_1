@@ -27,4 +27,5 @@ export interface ActiveSession {
   lastActiveAt: string;
   createdAt: string;
   expiresAt: string;
+  isCurrent: boolean;
 }
