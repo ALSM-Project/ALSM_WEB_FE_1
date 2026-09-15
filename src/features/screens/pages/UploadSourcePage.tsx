@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, Cpu } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -16,18 +16,14 @@ export const UploadSourcePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('screens');
-  
-  const [screenFiles, setScreenFiles] = useState<SourceFile[]>([
-    { id: '1', fileName: 'LoginScreen.bms', sizeKb: 245, uploadedAt: 'Oct 12, 2023 10:30 AM', status: 'Ready' },
-    { id: '2', fileName: 'ReportScreen.dspf', sizeKb: 189, uploadedAt: 'Oct 12, 2023 10:32 AM', status: 'Failed to parse' },
-  ]);
 
-  const [programFiles, setProgramFiles] = useState<SourceFile[]>([
-    { id: 'p1', fileName: 'ACCTPROC.cbl', sizeKb: 412, uploadedAt: 'Oct 12, 2023 11:15 AM', status: 'Ready' },
-    { id: 'p2', fileName: 'LEDGERENG.cob', sizeKb: 328, uploadedAt: 'Oct 12, 2023 11:20 AM', status: 'Ready' },
-  ]);
+  // Starts empty — no seed/demo rows. Real rows only appear once a real file has
+  // actually been uploaded to the backend (see handleUpload).
+  const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
+  const [programFiles, setProgramFiles] = useState<SourceFile[]>([]);
 
   const files = activeTab === 'screens' ? screenFiles : programFiles;
+  const readyCount = files.filter((f) => f.status === 'Ready').length;
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -53,13 +49,22 @@ export const UploadSourcePage: React.FC = () => {
     try {
       const result = await conversionService.uploadSource(projectId, [file], setUploadProgress);
       const uploaded = result.files[0];
+      const fileName = uploaded?.name ?? file.name;
+      // Register the upload as a real, convertible screen — carrying the real
+      // inputReference — instead of leaving it stranded in this page's local list.
+      const screen = await conversionService.registerUploadedScreen(
+        projectId,
+        fileName,
+        result.inputReference,
+      );
       const newFile: SourceFile = {
         id: `file-${Date.now()}`,
-        fileName: uploaded?.name ?? file.name,
+        fileName,
         sizeKb: Math.round((uploaded?.sizeBytes ?? file.size) / 1024),
         uploadedAt: 'Just now',
         status: 'Ready',
         inputReference: result.inputReference,
+        screenId: screen.id,
       };
       if (activeTab === 'screens') {
         setScreenFiles((prev) => [newFile, ...prev]);
@@ -200,13 +205,24 @@ export const UploadSourcePage: React.FC = () => {
                     <StatusBadge status={file.status} />
                   </td>
                   <td className="p-3.5 text-right">
-                    <button
-                      onClick={() => handleRemove(file.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors rounded-lg hover:bg-rose-50"
-                      title="Remove file"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-end space-x-2">
+                      {file.status === 'Ready' && file.screenId && (
+                        <Link
+                          to={ROUTES.PROJECTS.CONVERT(projectId, file.screenId)}
+                          className="inline-flex items-center space-x-1 text-xs text-brand-700 font-semibold hover:bg-brand-100 bg-brand-50 px-2.5 py-1.5 rounded-lg border border-brand-200 transition-colors"
+                        >
+                          <Cpu className="w-3.5 h-3.5" />
+                          <span>Convert</span>
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => handleRemove(file.id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors rounded-lg hover:bg-rose-50"
+                        title="Remove file"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -215,12 +231,17 @@ export const UploadSourcePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-[#ECFDF3] border border-[#ABEFC6] p-4 rounded-xl flex items-center justify-between text-xs text-[#079455] font-medium">
-        <div className="flex items-center space-x-2">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-          <span>You're ready to start conversion — 1 file ready. Proceed to select conversion settings.</span>
+      {readyCount > 0 && (
+        <div className="bg-[#ECFDF3] border border-[#ABEFC6] p-4 rounded-xl flex items-center justify-between text-xs text-[#079455] font-medium">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            <span>
+              You're ready to start conversion — {readyCount} file{readyCount === 1 ? '' : 's'} ready.
+              Use the Convert action on a row, or proceed to the screens list below.
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex justify-between items-center pt-4 border-t border-slate-100">
         <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}>
