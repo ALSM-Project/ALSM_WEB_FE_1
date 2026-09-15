@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Play, Download, RefreshCw, CheckCircle2, Shield, Sliders, AlertCircle, FileSearch, Eye } from 'lucide-react';
+import { Play, Download, RefreshCw, CheckCircle2, Shield, Sliders, AlertCircle, FileSearch, Eye, XCircle } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
-import type { ConversionResult } from '../types/conversion';
+import { useConversionJob } from '../queries/useConversionJob';
+import { useCreateConversionJob } from '../queries/useCreateConversionJob';
+import { useConversionResult } from '../queries/useConversionResult';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
@@ -10,41 +12,54 @@ import { Tabs } from '@/shared/ui/Tabs';
 import { Button } from '@/shared/ui/Button';
 import { CodeViewer } from '../components/CodeViewer';
 
+const ACTIVE_STATUSES = ['QUEUED', 'PROCESSING'];
+
 export const ConvertScreenPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [activeTab, setActiveTab] = useState('preview');
-  const [isRunning, setIsRunning] = useState(false);
-  const [result, setResult] = useState<ConversionResult | null>(null);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     conversionService.getScreenById(screenId).then((data) => {
-      if (cancelled) return;
-      setScreen(data);
-      if (data?.status === 'Completed') {
-        conversionService.convertScreen(screenId).then((res) => {
-          if (!cancelled) setResult(res);
-        });
-      }
+      if (!cancelled) setScreen(data);
     });
     return () => {
       cancelled = true;
     };
   }, [screenId]);
 
-  const screenName = screen?.name ?? screenId;
+  const { data: job } = useConversionJob(projectId, screenId);
+  const createJob = useCreateConversionJob(projectId, screenId);
+  const isCompleted = job?.status === 'COMPLETED';
+  const isRunning = createJob.isPending || (job ? ACTIVE_STATUSES.includes(job.status) : false);
+  const { data: resultBundle } = useConversionResult(job?.id, isCompleted);
 
-  const handleRunConverter = async () => {
-    setIsRunning(true);
-    try {
-      const res = await conversionService.convertScreen(screenId);
-      setResult(res);
-    } finally {
-      setIsRunning(false);
-    }
+  const screenName = screen?.name ?? screenId;
+  const files = useMemo(() => resultBundle?.files ?? [], [resultBundle]);
+  const selectedFile = files[selectedFileIndex] ?? files[0] ?? null;
+
+  const metrics = useMemo(() => {
+    if (!files.length) return null;
+    const totalLoc = files.reduce((sum, f) => sum + f.content.split('\n').length, 0);
+    const sizeKb = Math.round(files.reduce((sum, f) => sum + f.content.length, 0) / 1024);
+    const durationMs =
+      job?.startedAt && job?.completedAt
+        ? new Date(job.completedAt).getTime() - new Date(job.startedAt).getTime()
+        : null;
+    return {
+      componentsGenerated: files.length,
+      linesOfCode: totalLoc,
+      sizeKb,
+      duration: durationMs !== null ? `${(durationMs / 1000).toFixed(1)}s` : '—',
+    };
+  }, [files, job]);
+
+  const handleRunConverter = () => {
+    createJob.mutate({ inputReference: screen?.inputReference });
   };
 
   return (
@@ -85,7 +100,15 @@ export const ConvertScreenPage: React.FC = () => {
         </div>
       </div>
 
-      {result && (
+      {job?.status === 'FAILED' || job?.status === 'DEAD' ? (
+        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <XCircle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold">Conversion failed{job.errorCode ? ` (${job.errorCode})` : ''}.</p>
+            <p className="mt-0.5">{job.errorMessage ?? 'The conversion tool could not process this screen. Check Review Findings for details.'}</p>
+          </div>
+        </div>
+      ) : isCompleted ? (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center space-x-2 text-[#079455] font-bold text-sm">
@@ -102,30 +125,28 @@ export const ConvertScreenPage: React.FC = () => {
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 border-t border-slate-100 text-center">
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <p className="text-[11px] text-slate-500 uppercase font-semibold">Fields Processed</p>
-              <p className="text-lg font-bold text-brand-600">{result.metrics.fieldsProcessed}</p>
+          {metrics && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100 text-center">
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p className="text-[11px] text-slate-500 uppercase font-semibold">Files Generated</p>
+                <p className="text-lg font-bold text-brand-600">{metrics.componentsGenerated}</p>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p className="text-[11px] text-slate-500 uppercase font-semibold">Lines of Code</p>
+                <p className="text-lg font-bold text-slate-900">{metrics.linesOfCode}</p>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p className="text-[11px] text-slate-500 uppercase font-semibold">Size</p>
+                <p className="text-lg font-bold text-[#DC6803]">{metrics.sizeKb} KB</p>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <p className="text-[11px] text-slate-500 uppercase font-semibold">Duration</p>
+                <p className="text-lg font-bold text-[#079455]">{metrics.duration}</p>
+              </div>
             </div>
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <p className="text-[11px] text-slate-500 uppercase font-semibold">Components Generated</p>
-              <p className="text-lg font-bold text-brand-600">{result.metrics.componentsGenerated}</p>
-            </div>
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <p className="text-[11px] text-slate-500 uppercase font-semibold">Lines of Code</p>
-              <p className="text-lg font-bold text-slate-900">{result.metrics.linesOfCode}</p>
-            </div>
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <p className="text-[11px] text-slate-500 uppercase font-semibold">Size</p>
-              <p className="text-lg font-bold text-[#DC6803]">{result.metrics.sizeKb} KB</p>
-            </div>
-            <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <p className="text-[11px] text-slate-500 uppercase font-semibold">Duration</p>
-              <p className="text-lg font-bold text-[#079455]">{result.metrics.duration}</p>
-            </div>
-          </div>
+          )}
         </div>
-      )}
+      ) : null}
 
       <Tabs
         tabs={[
@@ -196,11 +217,34 @@ export const ConvertScreenPage: React.FC = () => {
       )}
 
       {activeTab === 'code' && (
-        result ? (
-          <CodeViewer code={result.generatedCode} filename={screenName.replace(/\.(bms|dspf)$/i, '.tsx')} />
+        selectedFile ? (
+          <div className="space-y-3">
+            {files.length > 1 && (
+              <div className="flex flex-wrap gap-2">
+                {files.map((file, index) => (
+                  <button
+                    key={file.relativePath}
+                    onClick={() => setSelectedFileIndex(index)}
+                    className={`text-xs font-mono px-2.5 py-1 rounded-lg border ${
+                      index === selectedFileIndex
+                        ? 'bg-brand-50 border-brand-300 text-brand-700 font-semibold'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {file.relativePath}
+                  </button>
+                ))}
+              </div>
+            )}
+            <CodeViewer code={selectedFile.content} filename={selectedFile.relativePath} />
+          </div>
         ) : (
           <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
-            Run the converter to generate React code for this screen.
+            {isRunning
+              ? 'Conversion in progress…'
+              : job?.status === 'FAILED' || job?.status === 'DEAD'
+                ? 'Conversion failed — no code was generated. See the error above.'
+                : 'Run the converter to generate code for this screen.'}
           </div>
         )
       )}
@@ -255,7 +299,11 @@ export const ConvertScreenPage: React.FC = () => {
             <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
             <span>Edit & Re-convert</span>
           </Button>
-          <Button onClick={() => alert('Downloading code bundle .zip...')} className="space-x-1.5 text-xs font-semibold">
+          <Button
+            onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))}
+            disabled={!isCompleted}
+            className="space-x-1.5 text-xs font-semibold"
+          >
             <Download className="w-3.5 h-3.5" />
             <span>Download Code (.zip)</span>
           </Button>

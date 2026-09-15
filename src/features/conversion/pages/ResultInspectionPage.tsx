@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Download, RefreshCw, Sliders, FileCode, Tag } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { ConversionJob } from '../services/conversion.service';
-import type { ASTNode, ConversionResult } from '../types/conversion';
+import { useConversionJob } from '../queries/useConversionJob';
+import { useConversionResult } from '../queries/useConversionResult';
+import type { ASTNode } from '../types/conversion';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
@@ -21,36 +23,52 @@ const JOB_STATUS_LABELS: Record<ConversionJob['status'], string> = {
   CANCELLED: 'Failed',
 };
 
+function countAstNodes(node: ASTNode): number {
+  return 1 + (node.children?.reduce((sum, child) => sum + countAstNodes(child), 0) ?? 0);
+}
+
 export const ResultInspectionPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
   const [validating, setValidating] = useState(false);
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
-  const [job, setJob] = useState<ConversionJob | null>(null);
-  const [result, setResult] = useState<ConversionResult | null>(null);
+  const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [astData, setAstData] = useState<ASTNode | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      conversionService.getScreenById(screenId),
-      conversionService.getLatestConversion(projectId, screenId),
-      conversionService.convertScreen(screenId),
-      conversionService.getASTData(screenId),
-    ]).then(([screenData, jobData, resultData, ast]) => {
-      if (cancelled) return;
-      setScreen(screenData);
-      setJob(jobData);
-      setResult(resultData);
-      setAstData(ast);
-    });
+    Promise.all([conversionService.getScreenById(screenId), conversionService.getASTData(screenId)]).then(
+      ([screenData, ast]) => {
+        if (cancelled) return;
+        setScreen(screenData);
+        setAstData(ast);
+      },
+    );
     return () => {
       cancelled = true;
     };
-  }, [projectId, screenId]);
+  }, [screenId]);
+
+  const { data: job } = useConversionJob(projectId, screenId);
+  const hasRealResult = Boolean(job?.status === 'COMPLETED' && job.resultReference);
+  const { data: resultBundle } = useConversionResult(job?.id, hasRealResult);
 
   const screenName = screen?.name ?? screenId;
-  const hasRealResult = Boolean(job?.status === 'COMPLETED' && job.resultReference);
+  const files = useMemo(() => resultBundle?.files ?? [], [resultBundle]);
+  const selectedFile = files[selectedFileIndex] ?? files[0] ?? null;
+
+  const executionDuration = useMemo(() => {
+    if (!job?.startedAt || !job?.completedAt) return null;
+    const ms = new Date(job.completedAt).getTime() - new Date(job.startedAt).getTime();
+    return `${(ms / 1000).toFixed(1)}s`;
+  }, [job]);
+
+  const generatedLoc = useMemo(
+    () => (files.length ? files.reduce((sum, f) => sum + f.content.split('\n').length, 0) : null),
+    [files],
+  );
+
+  const astNodesCount = astData ? countAstNodes(astData) : null;
 
   const handleReRunValidator = () => {
     setValidating(true);
@@ -81,7 +99,7 @@ export const ResultInspectionPage: React.FC = () => {
           <p className="text-xs text-slate-500 mt-1">Inspecting AST structure and generated React source code.</p>
         </div>
 
-        <Button onClick={() => alert('Downloading single component...')} className="space-x-1.5 text-xs font-semibold">
+        <Button onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))} disabled={!hasRealResult} className="space-x-1.5 text-xs font-semibold">
           <Download className="w-4 h-4" />
           <span>Download</span>
         </Button>
@@ -90,8 +108,10 @@ export const ResultInspectionPage: React.FC = () => {
       {!hasRealResult && (
         <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs font-medium">
           {job
-            ? `This screen's conversion job is currently "${JOB_STATUS_LABELS[job.status]}" — no external conversion tool is configured yet, so no real output exists. The code and AST below are illustrative example output.`
-            : 'No conversion job has been run for this screen yet. The code and AST below are illustrative example output.'}
+            ? job.status === 'FAILED' || job.status === 'DEAD'
+              ? `This screen's conversion job failed${job.errorCode ? ` (${job.errorCode})` : ''}: ${job.errorMessage ?? 'see Review Findings for details.'} The AST below is illustrative example output only.`
+              : `This screen's conversion job is currently "${JOB_STATUS_LABELS[job.status]}" — code will appear here once it completes. The AST below is illustrative example output.`
+            : 'No conversion job has been run for this screen yet. The AST below is illustrative example output.'}
         </div>
       )}
 
@@ -102,21 +122,19 @@ export const ResultInspectionPage: React.FC = () => {
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">TIMESTAMP</p>
-          <p className="font-bold text-slate-700 mt-0.5">
-            {job ? new Date(job.createdAt).toLocaleString() : (result?.timestamp ?? '—')}
-          </p>
+          <p className="font-bold text-slate-700 mt-0.5">{job ? new Date(job.createdAt).toLocaleString() : '—'}</p>
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">EXECUTION</p>
-          <p className="font-bold text-[#079455] mt-0.5">{result?.executionDuration ?? '—'}</p>
+          <p className="font-bold text-[#079455] mt-0.5">{executionDuration ?? '—'}</p>
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">AST NODES</p>
-          <p className="font-bold text-brand-600 mt-0.5">{result?.astNodesCount ?? '—'}</p>
+          <p className="font-bold text-brand-600 mt-0.5">{astNodesCount ?? '—'}</p>
         </div>
         <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
           <p className="text-slate-500 text-[11px] font-semibold uppercase">GENERATED LOC</p>
-          <p className="font-bold text-brand-600 mt-0.5">{result?.generatedLoc ?? '—'} lines</p>
+          <p className="font-bold text-brand-600 mt-0.5">{generatedLoc ?? '—'} lines</p>
         </div>
       </div>
 
@@ -125,12 +143,29 @@ export const ResultInspectionPage: React.FC = () => {
           <div className="flex justify-between items-center text-xs font-semibold text-slate-700">
             <span className="flex items-center space-x-1.5">
               <FileCode className="w-4 h-4 text-brand-600" />
-              <span>Generated Code (React)</span>
+              <span>Generated Code</span>
             </span>
           </div>
+          {files.length > 1 && (
+            <div className="flex flex-wrap gap-2">
+              {files.map((file, index) => (
+                <button
+                  key={file.relativePath}
+                  onClick={() => setSelectedFileIndex(index)}
+                  className={`text-xs font-mono px-2.5 py-1 rounded-lg border ${
+                    index === selectedFileIndex
+                      ? 'bg-brand-50 border-brand-300 text-brand-700 font-semibold'
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {file.relativePath}
+                </button>
+              ))}
+            </div>
+          )}
           <CodeViewer
-            code={result?.generatedCode ?? ''}
-            filename={screenName.replace(/\.(bms|dspf)$/i, '.tsx')}
+            code={selectedFile?.content ?? ''}
+            filename={selectedFile?.relativePath ?? screenName.replace(/\.(bms|dspf)$/i, '.tsx')}
           />
         </div>
 
@@ -152,7 +187,12 @@ export const ResultInspectionPage: React.FC = () => {
         </Button>
 
         <div className="flex space-x-3">
-          <Button variant="secondary" onClick={() => alert('Downloading component...')} className="space-x-1.5 text-xs font-semibold">
+          <Button
+            variant="secondary"
+            onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))}
+            disabled={!hasRealResult}
+            className="space-x-1.5 text-xs font-semibold"
+          >
             <Download className="w-3.5 h-3.5" />
             <span>Download Single Component</span>
           </Button>
