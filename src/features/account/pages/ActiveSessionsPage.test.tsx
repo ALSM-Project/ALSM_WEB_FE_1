@@ -27,17 +27,19 @@ const sessions: ActiveSession[] = [
     id: 'session-desktop',
     deviceType: 'Desktop',
     browser: 'Chrome',
-    lastActiveAt: new Date(Date.now() - 5 * 60_000).toISOString(),
+    lastActiveAt: '2026-09-15T11:09:27.000Z',
     createdAt: '2026-09-01T09:00:00.000Z',
     expiresAt: '2026-10-01T09:00:00.000Z',
+    isCurrent: false,
   },
   {
     id: 'session-mobile',
     deviceType: 'Mobile',
     browser: 'Safari',
-    lastActiveAt: new Date(Date.now() - 2 * 3_600_000).toISOString(),
+    lastActiveAt: '2026-09-15T09:09:27.000Z',
     createdAt: '2026-09-02T09:00:00.000Z',
     expiresAt: '2026-10-02T09:00:00.000Z',
+    isCurrent: true,
   },
 ];
 
@@ -84,18 +86,52 @@ describe('ActiveSessionsPage', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading active sessions...');
   });
 
-  it('renders the supported device, browser, and last-active fields without fake network data', async () => {
+  it('renders the supported device, browser, and Vietnam-local last-active fields without fake network data', async () => {
     renderPage();
 
     expect(await screen.findByText('Desktop')).toBeInTheDocument();
     expect(screen.getByText('Chrome')).toBeInTheDocument();
-    expect(screen.getByText(/Last active: 5 minutes ago/)).toBeInTheDocument();
+    expect(screen.getByText('Last active: 15/09/2026 18:09')).toHaveAttribute('title', '15/09/2026 18:09:27 (GMT+7)');
     expect(screen.getByText('Mobile')).toBeInTheDocument();
     expect(screen.getByText('Safari')).toBeInTheDocument();
+    expect(screen.queryByText('2026-09-15T11:09:27.000Z')).not.toBeInTheDocument();
     expect(screen.queryByText(/127\.0\.0\.1/)).not.toBeInTheDocument();
     expect(screen.queryByText(/IP:/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/This Device/)).not.toBeInTheDocument();
     expect(mocks.getActiveSessions).toHaveBeenCalledWith();
+  });
+
+  it('uses only the backend isCurrent flag to identify the current device', async () => {
+    const matchingDeviceButNotCurrent: ActiveSession = {
+      ...sessions[0],
+      id: 'user-a',
+      isCurrent: false,
+    };
+    mocks.getActiveSessions.mockResolvedValue([matchingDeviceButNotCurrent, sessions[1]]);
+
+    renderPage();
+
+    expect(await screen.findByText('Current device')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
+    expect(screen.getAllByRole('status', { name: 'Current device status: active' })).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Remote logout for Desktop session using Chrome' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remote logout for Mobile session using Safari' })).not.toBeInTheDocument();
+  });
+
+  it('does not show Remote Logout for the current session', async () => {
+    renderPage();
+
+    await screen.findByText('Mobile');
+    expect(screen.queryByRole('button', { name: 'Remote logout for Mobile session using Safari' })).not.toBeInTheDocument();
+    expect(screen.getByText("This is the device you're currently using.")).toBeInTheDocument();
+  });
+
+  it('renders an invalid activity date with a safe fallback', async () => {
+    mocks.getActiveSessions.mockResolvedValue([{ ...sessions[0], lastActiveAt: 'not-a-date' }]);
+
+    renderPage();
+
+    expect(await screen.findByText('Last active: Unavailable')).toBeInTheDocument();
+    expect(screen.queryByText('not-a-date')).not.toBeInTheDocument();
   });
 
   it('renders a real empty state for an empty backend response', async () => {
