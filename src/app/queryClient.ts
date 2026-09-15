@@ -1,4 +1,5 @@
-// Stub / Placeholder configuration for TanStack Query client abstraction
+import { QueryClient } from '@tanstack/react-query';
+
 export const queryClientConfig = {
   defaultOptions: {
     queries: {
@@ -8,3 +9,5 @@ export const queryClientConfig = {
     },
   },
 };
+
+export const queryClient = new QueryClient(queryClientConfig);

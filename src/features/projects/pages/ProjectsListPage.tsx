@@ -1,137 +1,210 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Folder, MoreVertical, Trash2, ExternalLink } from 'lucide-react';
-import { projectService } from '../services/project.service';
-import type { Project } from '../types/project';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Filter, Layers, ArrowRight, FolderKanban } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
-import { Button } from '@/shared/ui/Button';
+import { StatusBadge, Button, PageHeader } from '@/shared/ui';
+import { CreateProjectModal } from '../components/CreateProjectModal';
 
 export const ProjectsListPage: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState('ALL');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  useEffect(() => {
-    projectService.getProjects().then((data) => setProjects(data));
-  }, []);
+  const projects = [
+    {
+      id: 'proj-acme',
+      name: 'Acme Core Banking Modernization',
+      description: 'Full modernization of core banking BMS screen maps and transaction screens into modular React components.',
+      legacyType: 'BMS / DSPF',
+      sourceFormat: 'IBM 3270 BMS Map',
+      targetFramework: 'React 19 + TypeScript',
+      convertedCount: 36,
+      totalCount: 48,
+      status: 'Active',
+      lastActivity: '10 mins ago',
+    },
+    {
+      id: 'proj-cobol-java',
+      name: 'Insurance Policy Ledger Engine',
+      description: 'Algorithm-based conversion of COBOL batch and online policy calculation modules to Java 21 Spring Boot.',
+      legacyType: 'COBOL',
+      sourceFormat: 'COBOL Source (.cbl)',
+      targetFramework: 'Java 21 + Spring Boot',
+      convertedCount: 22,
+      totalCount: 30,
+      status: 'Active',
+      lastActivity: '1 hour ago',
+    },
+    {
+      id: 'proj-logistics',
+      name: 'Logistics Order Entry System',
+      description: 'Modernization of AS/400 DSPF display files into responsive modern web interfaces.',
+      legacyType: 'BMS / DSPF',
+      sourceFormat: 'AS/400 DSPF Map',
+      targetFramework: 'React + Tailwind CSS',
+      convertedCount: 15,
+      totalCount: 15,
+      status: 'Completed',
+      lastActivity: 'Yesterday',
+    },
+  ];
+
+  const filteredProjects = projects.filter((p) => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.legacyType.toLowerCase().includes(searchQuery.toLowerCase());
+    if (filterType === 'ALL') return matchesSearch;
+    if (filterType === 'BMS') return matchesSearch && p.legacyType.includes('BMS');
+    if (filterType === 'COBOL') return matchesSearch && p.legacyType.includes('COBOL');
+    return matchesSearch;
+  });
 
   return (
-    <div className="space-y-6 py-4 max-w-7xl mx-auto px-4 sm:px-6">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Projects</h1>
-          <p className="text-slate-500 text-xs sm:text-sm mt-1">
-            Manage your legacy modernization workspaces and screen conversion pipelines.
-          </p>
+    <div className="space-y-6">
+      {/* Reusable Standard PageHeader */}
+      <PageHeader
+        title="Modernization Projects"
+        subtitle="Manage your legacy BMS/DSPF and COBOL modernization workspace projects."
+        actions={
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-[#0652CC] hover:bg-[#0655FF] text-white font-bold text-xs shadow-xs space-x-1.5 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Project</span>
+          </Button>
+        }
+      />
+
+      {/* Filters and Search Bar */}
+      <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative flex-1 w-full">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B778C]" />
+          <input
+            type="text"
+            placeholder="Search projects by name, legacy system type..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC] transition-all"
+          />
         </div>
 
-        <Button
-          onClick={() => navigate(ROUTES.PROJECTS.NEW)}
-          className="space-x-2 text-xs font-semibold bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-xl shadow-xs"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Project</span>
-        </Button>
+        <div className="flex items-center space-x-2 w-full sm:w-auto">
+          <Filter className="w-4 h-4 text-[#6B778C]" />
+          <span className="text-xs font-semibold text-[#42526E]">Type:</span>
+          {['ALL', 'BMS', 'COBOL'].map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setFilterType(t)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                filterType === t
+                  ? 'bg-[#0652CC] text-white'
+                  : 'bg-[#F7F9FC] text-[#42526E] hover:bg-slate-200 border border-[#D9E2EC]'
+              }`}
+            >
+              {t === 'BMS' ? 'BMS / DSPF' : t}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Projects Table */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-sans">
-            <thead className="bg-slate-50 text-slate-500 font-semibold uppercase text-[11px] border-b border-slate-200/80 tracking-wider">
-              <tr>
-                <th className="p-4 pl-6">Project Name</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Last Modified</th>
-                <th className="p-4 text-right pr-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {projects.map((project, index) => {
-                const isSelected = index === 0;
-                return (
-                  <tr
-                    key={project.id}
-                    className={`transition-colors ${
-                      isSelected ? 'bg-blue-50/50' : 'hover:bg-slate-50/70'
-                    }`}
+      {/* Projects Cards List */}
+      <div className="grid grid-cols-1 gap-4">
+        {filteredProjects.map((p) => {
+          const progressPct = Math.round((p.convertedCount / p.totalCount) * 100);
+
+          return (
+            <div
+              key={p.id}
+              className="bg-white border border-[#D9E2EC] rounded-2xl p-6 shadow-2xs hover:border-[#0652CC]/50 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+            >
+              <div className="space-y-2 max-w-2xl">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center shrink-0">
+                    <FolderKanban className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-bold text-base text-[#091E42]">{p.name}</h3>
+                      <StatusBadge status={p.status} />
+                    </div>
+                    <p className="text-xs text-[#42526E] mt-0.5 line-clamp-1">{p.description}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                  <span className="inline-flex items-center space-x-1.5 bg-[#F7F9FC] border border-[#D9E2EC] px-2.5 py-1 rounded-lg font-mono text-[#091E42]">
+                    <Layers className="w-3.5 h-3.5 text-[#0652CC]" />
+                    <span>{p.legacyType} &rarr; {p.targetFramework}</span>
+                  </span>
+
+                  <span className="text-[#6B778C]">
+                    Source: <strong className="text-[#091E42]">{p.sourceFormat}</strong>
+                  </span>
+                  <span className="text-[#6B778C]">
+                    Updated: <strong className="text-[#091E42]">{p.lastActivity}</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between lg:justify-end gap-6 pt-4 lg:pt-0 border-t lg:border-t-0 border-[#E5EAF0]">
+                {/* Progress bar info */}
+                <div className="w-44 space-y-1.5">
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-[#42526E]">Conversion Progress</span>
+                    <span className="text-[#0652CC]">{progressPct}%</span>
+                  </div>
+                  <div className="w-full bg-[#F7F9FC] border border-[#D9E2EC] h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-[#0652CC] h-full transition-all duration-300 rounded-full"
+                      style={{ width: `${progressPct}%` }}
+                    />
+                  </div>
+                  <div className="text-[10px] text-[#6B778C] text-right">
+                    {p.convertedCount} of {p.totalCount} screens converted
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center space-x-2">
+                  <Button
+                    onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
+                    className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs font-bold space-x-1.5 shadow-2xs"
                   >
-                    <td className="p-4 pl-6 whitespace-nowrap">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 rounded-xl bg-blue-50 text-brand-600 border border-blue-100 flex-shrink-0">
-                          <Folder className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <Link
-                            to={ROUTES.PROJECTS.SCREENS(project.id)}
-                            className="font-bold text-sm text-slate-900 hover:text-brand-600 transition-colors"
-                          >
-                            {project.name}
-                          </Link>
-                          {project.description && (
-                            <p className="text-[11px] text-slate-400 font-sans mt-0.5 line-clamp-1 max-w-md">
-                              {project.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 whitespace-nowrap">
-                      {project.status === 'ACTIVE' ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 space-x-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                          <span>Active</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-                          Draft
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4 text-slate-500 whitespace-nowrap font-medium">{project.updatedAt}</td>
-                    <td className="p-4 pr-6 text-right whitespace-nowrap relative">
-                      <div className="inline-block text-left">
-                        <button
-                          onClick={() => setActiveMenuId(activeMenuId === project.id ? null : project.id)}
-                          className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
+                    <span>Open Workspace</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
 
-                        {activeMenuId === project.id && (
-                          <div className="absolute right-6 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-50 text-left">
-                            <button
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                navigate(ROUTES.PROJECTS.SCREENS(project.id));
-                              }}
-                              className="w-full px-3.5 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center space-x-2"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-                              <span>View Screens</span>
-                            </button>
-                            <button
-                              onClick={() => {
-                                setActiveMenuId(null);
-                                navigate(ROUTES.PROJECTS.DELETE(project.id));
-                              }}
-                              className="w-full px-3.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center space-x-2"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                              <span>Delete Project</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        {filteredProjects.length === 0 && (
+          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-12 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-[#E8F1FF] text-[#0652CC] mx-auto flex items-center justify-center">
+              <FolderKanban className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-base text-[#091E42]">No Projects Found</h3>
+            <p className="text-xs text-[#6B778C] max-w-sm mx-auto">
+              No modernization projects match your search criteria. Create a new project to get started.
+            </p>
+            <Button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="bg-[#0652CC] text-white text-xs font-bold space-x-1.5"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Project</span>
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Blurred Backdrop Create Project Modal */}
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </div>
   );
 };

@@ -28,6 +28,7 @@ declare global {
 const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 
 let scriptLoading: Promise<void> | null = null;
+let initializedClientId: string | null = null;
 
 function loadGisScript(): Promise<void> {
   if (window.google?.accounts?.id) {
@@ -46,9 +47,29 @@ function loadGisScript(): Promise<void> {
   return scriptLoading;
 }
 
+function initializeGis(clientId: string, callback: (response: { credential?: string }) => void) {
+  if (initializedClientId === clientId && window.google?.accounts?.id) {
+    return;
+  }
+  if (window.google?.accounts?.id) {
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback,
+    });
+    initializedClientId = clientId;
+  }
+}
+
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCredential, onError }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const onCredentialRef = useRef(onCredential);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => {
+    onCredentialRef.current = onCredential;
+    onErrorRef.current = onError;
+  }, [onCredential, onError]);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,18 +81,16 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
 
     loadGisScript()
       .then(() => {
-        if (cancelled || !containerRef.current) return;
+        if (cancelled || !containerRef.current || !window.google?.accounts?.id) return;
 
-        window.google!.accounts.id.initialize({
-          client_id: env.googleClientId,
-          callback: (response: { credential?: string }) => {
-            if (response.credential) {
-              onCredential(response.credential);
-            }
-          },
+        initializeGis(env.googleClientId, (response: { credential?: string }) => {
+          if (response.credential) {
+            onCredentialRef.current(response.credential);
+          }
         });
 
-        window.google!.accounts.id.renderButton(containerRef.current, {
+        containerRef.current.innerHTML = '';
+        window.google.accounts.id.renderButton(containerRef.current, {
           type: 'standard',
           theme: 'outline',
           size: 'large',
@@ -83,14 +102,14 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
       .catch(() => {
         if (!cancelled) {
           setUnavailable(true);
-          onError?.('Google sign-in is unavailable right now.');
+          onErrorRef.current?.('Google sign-in is unavailable right now.');
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [onCredential, onError]);
+  }, []);
 
   if (unavailable || !env.googleClientId) {
     return (

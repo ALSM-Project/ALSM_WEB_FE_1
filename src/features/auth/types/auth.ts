@@ -7,12 +7,22 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+export interface RegisterResponse {
+  requiresEmailVerification: boolean;
+  email: string;
+  message: string;
+}
+
 export interface User {
   id: string;
   email: string;
   fullName: string;
   isPlatformAdmin?: boolean;
+  roles?: string[];
   isActive?: boolean;
+  hasPassword?: boolean;
+  twoFactorEnabled?: boolean;
+  providers?: ('GOOGLE' | 'PASSWORD')[];
   createdAt?: string;
   updatedAt?: string;
   // UI-only fields not guaranteed by the backend; kept optional so existing
@@ -41,14 +51,3 @@ export interface AuthState {
   token: string | null;
 }
 
-export interface UserSession {
-  id: string;
-  device?: string;
-  deviceName?: string;
-  browser: string;
-  os?: string;
-  location: string;
-  ipAddress: string;
-  lastActive: string;
-  isCurrent: boolean;
-}

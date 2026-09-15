@@ -1,16 +1,22 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
-// Layouts from Shared Foundation
-import PublicLayout from '@/shared/layouts/PublicLayout';
 import AppLayout from '@/shared/layouts/AppLayout';
+import PublicLayout from '@/shared/layouts/PublicLayout';
 import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
-import { GuestRoute, ProtectedRoute } from './guards';
+import { GuestRoute, ProtectedRoute, RoleGuard } from './guards';
 
 // Feature Modules
-import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage } from '@/features/auth';
-import { DocsPage } from '@/features/docs';
+import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage, VerifyEmailPage } from '@/features/auth';
+import { DocsPage, WorkspaceDocsPage } from '@/features/docs';
+
 import { ChangePasswordPage, TwoFactorAuthenticationPage, ActiveSessionsPage } from '@/features/account';
-import { ProjectsListPage, CreateProjectPage, DeleteProjectPage } from '@/features/projects';
+import {
+  ModernizationDashboardPage,
+  ProjectsListPage,
+  ProjectOverviewPage,
+  CreateProjectPage,
+  DeleteProjectPage,
+} from '@/features/projects';
 import { UploadSourcePage, ScreensListPage } from '@/features/screens';
 import {
   ConvertScreenPage,
@@ -21,16 +27,9 @@ import {
   ExportCodePage,
   ReviewFindingsPage,
 } from '@/features/conversion';
+import { WorkspaceContactPage } from '@/features/contact';
 import { DiagnosticsPage } from '@/features/diagnostics';
-import {
-  PricingPage,
-  TrialActivationPage,
-  QRPaymentPage,
-  UpgradeSubscriptionPage,
-  BillingHistoryPage,
-  CancelSubscriptionPage,
-} from '@/features/billing';
-import { ResourceUsagePage } from '@/features/usage';
+import { Web1WorkspacePreview } from '@/features/preview/Web1WorkspacePreview';
 
 export const router = createBrowserRouter([
   // Public Routes (Header & Layout for all visitors)
@@ -38,31 +37,40 @@ export const router = createBrowserRouter([
     element: <PublicLayout />,
     children: [
       { path: '/', element: <LandingPage /> },
-      { path: '/pricing', element: <PricingPage /> },
       { path: '/faq', element: <FaqPage /> },
       { path: '/docs', element: <DocsPage /> },
       { path: '/contact', element: <ContactPage /> },
     ],
   },
 
-  // Guest-only Routes (login / register / password recovery)
+  // Guest-only Routes (login / register / password recovery / email verification)
   {
     element: <GuestRoute />,
     children: [
       { path: '/register', element: <RegisterPage /> },
+      { path: '/verify-email', element: <VerifyEmailPage /> },
       { path: '/login', element: <LoginPage /> },
       { path: '/forgot-password', element: <PasswordRecoveryPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
     ],
   },
 
-  // Authenticated App Routes (Web 1)
+  // Authenticated App Routes (Web 1 PoC Workspace)
   {
     element: <ProtectedRoute />,
     children: [
       {
         element: <AppLayout />,
         children: [
+          // PoC Workspace Main Entry Points
+          { path: '/dashboard', element: <ModernizationDashboardPage /> },
+          { path: '/workspace-preview', element: <Web1WorkspacePreview /> },
+          { path: '/workspace/docs', element: <WorkspaceDocsPage /> },
+
+          { path: '/workspace/contact', element: <WorkspaceContactPage /> },
+          { path: '/projects', element: <ProjectsListPage /> },
+          { path: '/projects/:projectId', element: <ProjectOverviewPage /> },
+
           // Account Security Nested Subroutes
           {
             element: <AccountSettingsLayout />,
@@ -73,8 +81,7 @@ export const router = createBrowserRouter([
             ],
           },
 
-          // Project & Conversion Routes
-          { path: '/projects', element: <ProjectsListPage /> },
+          // Project & Conversion Pipeline Routes
           { path: '/projects/new', element: <CreateProjectPage /> },
           { path: '/projects/:projectId/upload', element: <UploadSourcePage /> },
           { path: '/projects/:projectId/screens', element: <ScreensListPage /> },
@@ -86,15 +93,14 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/review', element: <ReviewFindingsPage /> },
           { path: '/projects/:projectId/export', element: <ExportCodePage /> },
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },
-          { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
 
-          // Billing Routes
-          { path: '/billing/trial', element: <TrialActivationPage /> },
-          { path: '/billing/payment', element: <QRPaymentPage /> },
-          { path: '/billing/upgrade', element: <UpgradeSubscriptionPage /> },
-          { path: '/usage', element: <ResourceUsagePage /> },
-          { path: '/billing/history', element: <BillingHistoryPage /> },
-          { path: '/billing/subscription', element: <CancelSubscriptionPage /> },
+          // Owner/Admin-only: Delete Project
+          {
+            element: <RoleGuard allowedRoles={['OWNER', 'ADMIN']} />,
+            children: [
+              { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
+            ],
+          },
         ],
       },
     ],

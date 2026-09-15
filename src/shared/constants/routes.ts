@@ -5,10 +5,12 @@ export const ROUTES = {
     DOCS: '/docs',
     CONTACT: '/contact',
     REGISTER: '/register',
+    VERIFY_EMAIL: '/verify-email',
     LOGIN: '/login',
     FORGOT_PASSWORD: '/forgot-password',
     RESET_PASSWORD: '/reset-password',
   },
+  DASHBOARD: '/dashboard',
   ACCOUNT: {
     PASSWORD: '/account/security/password',
     TWO_FACTOR: '/account/security/2fa',
@@ -16,6 +18,7 @@ export const ROUTES = {
   },
   PROJECTS: {
     LIST: '/projects',
+    OVERVIEW: (id = ':projectId') => `/projects/${id}`,
     NEW: '/projects/new',
     DELETE: (id = ':projectId') => `/projects/${id}/delete`,
     UPLOAD: (id = ':projectId') => `/projects/${id}/upload`,
@@ -30,12 +33,10 @@ export const ROUTES = {
     DIAGNOSTICS: (id = ':projectId') => `/projects/${id}/diagnostics`,
   },
   BILLING: {
-    PRICING: '/pricing',
-    TRIAL: '/billing/trial',
-    PAYMENT: '/billing/payment',
-    UPGRADE: '/billing/upgrade',
-    USAGE: '/usage',
-    HISTORY: '/billing/history',
+    USAGE: '/billing/usage',
+    PRICING: '/billing/pricing',
     SUBSCRIPTION: '/billing/subscription',
+    TRIAL: '/billing/trial',
   },
 };
+

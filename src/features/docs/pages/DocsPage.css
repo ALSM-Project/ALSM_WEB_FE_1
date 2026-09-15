@@ -6,30 +6,32 @@
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   color: #091E42;
   background: #ffffff;
-  min-height: calc(100vh - 80px);
+  min-height: auto;
 }
 
 .alsm-docs-layout {
-  max-width: 1440px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 32px 24px;
+  padding: 24px 16px;
   display: flex;
-  gap: 40px;
+  gap: 24px;
 }
 
 @media (min-width: 1280px) {
   .alsm-docs-layout {
-    padding: 40px 48px;
+    gap: 32px;
+    padding: 32px 24px;
   }
 }
 
+
 /* ─── Left Sidebar Navigation ─── */
 .alsm-docs-sidebar {
-  width: 240px;
+  width: 230px;
   flex-shrink: 0;
   position: sticky;
-  top: 100px;
-  height: calc(100vh - 120px);
+  top: 88px;
+  height: calc(100vh - 110px);
   overflow-y: auto;
   padding-right: 12px;
   display: flex;
@@ -372,11 +374,11 @@
 
 /* ─── Right On-This-Page TOC ─── */
 .alsm-docs-toc {
-  width: 200px;
+  width: 190px;
   flex-shrink: 0;
   position: sticky;
-  top: 100px;
-  height: calc(100vh - 120px);
+  top: 88px;
+  height: calc(100vh - 110px);
   padding-left: 16px;
   border-left: 1px solid #D9E2EC;
   display: none;

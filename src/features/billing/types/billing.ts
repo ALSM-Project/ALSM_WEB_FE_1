@@ -1,132 +1,82 @@
-export type PlanTier = 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE';
-export type BillingCycle = 'MONTHLY' | 'ANNUAL';
-export type SubscriptionStatusType = 'ACTIVE' | 'TRIAL' | 'CANCELLED' | 'EXPIRED' | 'PENDING_PAYMENT';
-export type InvoiceStatusType = 'PENDING' | 'PAID' | 'FAILED' | 'CANCELLED';
-export type PaymentStatusType = 'PENDING' | 'COMPLETED' | 'EXPIRED' | 'FAILED';
+// Billing Types
+
+export type PlanTier = 'free' | 'starter' | 'pro' | 'enterprise';
+export type BillingCycle = 'monthly' | 'annual';
 
 export interface SubscriptionPlan {
-  id: PlanTier;
+  id: string;
   name: string;
+  tier: PlanTier;
+  price: number;
+  annualPrice?: number;
+  currency: string;
   description: string;
-  monthlyPrice: number;
-  annualPrice: number;
-  isPopular?: boolean;
   features: string[];
-  trialText?: string;
-  ctaText?: string;
-  ctaVariant?: 'primary' | 'outline' | 'secondary';
-  specs?: { label: string; highlight?: boolean }[];
+  maxScreens: number;
+  maxProjects: number;
+  isPopular?: boolean;
 }
-
 
 export interface Subscription {
   id: string;
-  planTier: PlanTier;
+  planId: string;
   planName: string;
-  status: SubscriptionStatusType;
+  tier: PlanTier;
+  status: 'active' | 'trialing' | 'past_due' | 'canceled';
   billingCycle: BillingCycle;
-  amountVnd: number;
-  trialEndsAt?: string;
-  currentPeriodStart?: string;
-  currentPeriodEnd?: string;
-  cancelledAt?: string;
-  createdAt: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+}
+
+export interface LegacySubscription {
+  plan: string;
+  status: string;
+  expiresAt?: string;
+}
+
+export interface UsageStatistics {
+  screensUsed: number;
+  screensLimit: number;
+  projectsUsed: number;
+  projectsLimit: number;
+  periodStart: string;
+  periodEnd: string;
 }
 
 export interface Invoice {
   id: string;
-  invoiceNumber: string;
-  planName: string;
-  amountVnd: number;
-  status: InvoiceStatusType;
-  billingPeriodStart: string;
-  billingPeriodEnd: string;
-  paidAt?: string;
-  paymentMethod?: string;
-  createdAt: string;
+  date: string;
+  amount: number;
+  currency: string;
+  status: 'paid' | 'pending' | 'failed';
+  downloadUrl?: string;
+}
+
+export interface QRDetails {
+  qrCode: string;
+  amount: number;
+  currency: string;
+  expiresAt: string;
+  orderId: string;
 }
 
 export interface QRPaymentOrder {
-  paymentId: string;
-  subscriptionId: string;
-  invoiceNumber: string;
-  planName: string;
-  amountVnd: number;
-  currency: string;
-  referenceCode: string;
-  qrDataUrl: string;
-  bankName: string;
-  accountNumber: string;
-  accountName: string;
-  expiresAt: string;
+  orderId: string;
+  planId: string;
+  billingCycle: BillingCycle;
 }
 
 export interface PaymentStatusResponse {
-  status: PaymentStatusType;
-  paidAt?: string;
-  amountVnd?: number;
+  orderId: string;
+  status: 'pending' | 'success' | 'failed';
+  message?: string;
 }
 
 export interface UpgradePreview {
-  currentPlan: {
-    tier: PlanTier;
-    name: string;
-    amountVnd: number;
-  };
-  targetPlan: {
-    tier: PlanTier;
-    name: string;
-    monthlyPriceVnd: number;
-    features: string[];
-  };
-  proration: {
-    creditRemainingVnd: number;
-    proratedNewCostVnd: number;
-    dueTodayVnd: number;
-    remainingDays: number;
-  };
-}
-
-export interface UsageStatistics {
-  plan: {
-    tier: PlanTier;
-    name: string;
-  };
-  screens: {
-    used: number;
-    max: number;
-  };
-  projects: {
-    used: number;
-    max: number;
-  };
-  storage: {
-    usedGb: number;
-    maxGb: number;
-  };
-  monthlyConversions: { month: string; count: number }[];
-}
-
-// ─── Legacy compat types (for existing mock-dependent pages) ──
-/** @deprecated Use Subscription instead */
-export interface LegacySubscription {
-  planId: PlanTier;
-  planName: string;
-  status: 'Active' | 'Trial' | 'Cancelled' | 'Expired';
-  nextBillingDate: string;
-  amount: number;
-  billingCycle: BillingCycle;
-  paymentMethodMask: string;
-}
-
-/** @deprecated Use QRPaymentOrder instead */
-export interface QRDetails {
-  invoiceId: string;
-  planName: string;
-  amount: number;
+  currentPlan: string;
+  newPlan: string;
+  proratedAmount: number;
   currency: string;
-  bankName: string;
-  accountNumber: string;
-  accountName: string;
-  referenceCode: string;
+  nextBillingDate: string;
 }

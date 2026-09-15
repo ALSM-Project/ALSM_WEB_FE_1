@@ -19,6 +19,7 @@ export interface MenuItem {
   position?: MenuPosition;
   children?: MenuItem[];
   parentId?: string;
+  category?: 'MAIN' | 'RESOURCES' | 'ACCOUNT' | string;
 
   permissions?: string[];
   isPinnable?: boolean;
