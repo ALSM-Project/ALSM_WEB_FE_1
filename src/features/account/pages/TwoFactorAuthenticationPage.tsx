@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { QrCode, Copy, Check, ShieldCheck, ArrowRight } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { QrCode, Copy, Check, CheckCircle2, ShieldCheck, AlertCircle, ArrowRight, X } from 'lucide-react';
 import { accountService } from '../services/account.service';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
@@ -16,6 +16,26 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const dismissToast = useCallback(() => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+    setToast(null);
+  }, []);
+
+  const showToast = useCallback((type: 'success' | 'error', message: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+
+    setToast({ type, message });
+    toastTimerRef.current = setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, 3000);
+  }, []);
 
   useEffect(() => {
     accountService
@@ -29,6 +49,12 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
         // Fallback for development display if backend endpoint not active
         if (!secretKey) setSecretKey('ABCD-EFGH-1234-5678');
       });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
   }, []);
 
 
@@ -68,8 +94,43 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
     }
   };
 
+  const handleCopyBackupCodes = async () => {
+    try {
+      await navigator.clipboard.writeText(backupCodes.join('\n'));
+      showToast('success', 'Backup codes copied to clipboard');
+    } catch {
+      showToast('error', 'Unable to copy backup codes');
+    }
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-6 sm:p-8 space-y-6 shadow-sm">
+      {toast && (
+        <div
+          className={`fixed top-4 right-4 z-50 flex w-full max-w-sm items-center gap-3 rounded-xl border px-4 py-3 shadow-lg ${
+            toast.type === 'success'
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+              : 'border-rose-200 bg-rose-50 text-rose-800'
+          }`}
+          role={toast.type === 'success' ? 'status' : 'alert'}
+          aria-live={toast.type === 'success' ? 'polite' : 'assertive'}
+        >
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-emerald-600" aria-hidden="true" />
+          ) : (
+            <AlertCircle className="h-5 w-5 flex-shrink-0 text-rose-600" aria-hidden="true" />
+          )}
+          <p className="flex-1 text-sm font-semibold">{toast.message}</p>
+          <button
+            type="button"
+            onClick={dismissToast}
+            aria-label="Dismiss notification"
+            className="rounded p-1 transition-colors hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-current"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      )}
       <div>
         <h2 className="text-xl font-bold text-slate-900 tracking-tight">Enable Two-Factor Authentication</h2>
         <p className="text-sm text-slate-500 mt-1">Enhance your account security by requiring a second verification step.</p>
@@ -175,10 +236,7 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex justify-between">
-            <Button variant="secondary" className="space-x-1.5 text-xs" onClick={() => {
-              navigator.clipboard.writeText(backupCodes.join('\n'));
-              alert('Backup codes copied to clipboard');
-            }}>
+            <Button variant="secondary" className="space-x-1.5 text-xs" onClick={handleCopyBackupCodes}>
               <Copy className="w-3.5 h-3.5 text-slate-600" />
               <span>Copy Codes</span>
             </Button>
