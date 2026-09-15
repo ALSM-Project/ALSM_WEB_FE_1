@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, FileSearch, Cpu, Stethoscope } from 'lucide-react';
-import { screenService } from '../services/screen.service';
+import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Tabs } from '@/shared/ui/Tabs';
@@ -10,37 +10,45 @@ import { Button } from '@/shared/ui/Button';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 
+const PROGRAM_SOURCE_TYPES = new Set(['COBOL', 'RPG']);
+
 export const ScreensListPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('screens');
-  const [screens, setScreens] = useState<LegacyScreen[]>([]);
+  const [allAssets, setAllAssets] = useState<LegacyScreen[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
   useEffect(() => {
-    screenService.getScreens(projectId).then((data) => setScreens(data));
+    conversionService.getScreens(projectId).then((data) => setAllAssets(data));
   }, [projectId]);
 
-  const cobolPrograms = [
-    { id: 'prog-acctproc', name: 'ACCTPROC.cbl', sourceType: 'COBOL (IBM Enterprise)', status: 'COMPLETED', framework: 'Java 21 (Spring Boot)', lastUpdated: '10 mins ago' },
-    { id: 'prog-ledgereng', name: 'LEDGERENG.cob', sourceType: 'COBOL Batch Engine', status: 'PROCESSING', framework: 'Java 21 (Spring Boot)', lastUpdated: '1 hour ago' },
-    { id: 'prog-invpay', name: 'INVPAY01.cbl', sourceType: 'COBOL Online Module', status: 'REVIEW REQUIRED', framework: 'Java 21 (Spring Boot)', lastUpdated: '2 hours ago' },
-    { id: 'prog-cobstp', name: 'COBSTP02.cbl', sourceType: 'COBOL Batch Processor', status: 'COMPLETED', framework: 'Java 21 (Spring Boot)', lastUpdated: 'Yesterday' },
-  ];
+  // Screens (BMS/DSPF/TXT) vs Programs (COBOL/RPG) share the same real data source
+  // (whatever was uploaded, plus the app's baseline demo screens) — split by sourceType
+  // instead of keeping a second, disconnected hardcoded list.
+  const screens = allAssets.filter((a) => !PROGRAM_SOURCE_TYPES.has(a.sourceType));
+  const programs = allAssets.filter((a) => PROGRAM_SOURCE_TYPES.has(a.sourceType));
 
-  const filteredScreens = screens.filter((screen) => {
-    const matchesSearch = screen.name.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'ALL' || screen.status.toUpperCase() === statusFilter.toUpperCase();
-    return matchesSearch && matchesStatus;
-  });
+  const applyFilters = (items: LegacyScreen[]) =>
+    items.filter((item) => {
+      const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === 'ALL' || item.status.toUpperCase() === statusFilter.toUpperCase();
+      return matchesSearch && matchesStatus;
+    });
 
-  const filteredPrograms = cobolPrograms.filter((prog) => {
-    const matchesSearch = prog.name.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'ALL' || prog.status.toUpperCase() === statusFilter.toUpperCase();
-    return matchesSearch && matchesStatus;
-  });
+  const filteredScreens = applyFilters(screens);
+  const filteredPrograms = applyFilters(programs);
+  const activeList = activeTab === 'screens' ? filteredScreens : filteredPrograms;
+  const activeFullList = activeTab === 'screens' ? screens : programs;
+
+  const metrics = {
+    total: activeFullList.length,
+    converted: activeFullList.filter((a) => a.status === 'Completed').length,
+    reviewRequired: activeFullList.filter((a) => a.status === 'Review Required').length,
+    failed: activeFullList.filter((a) => a.status === 'Failed').length,
+  };
 
   return (
     <div className="space-y-6">
@@ -92,7 +100,7 @@ export const ScreensListPage: React.FC = () => {
           <div>
             <p className="text-xs font-medium text-[#42526E]">Total Assets</p>
             <p className="text-2xl font-extrabold text-[#091E42] mt-0.5">
-              {activeTab === 'screens' ? '48 Screens' : '12 Programs'}
+              {metrics.total} {activeTab === 'screens' ? 'Screens' : 'Programs'}
             </p>
           </div>
         </div>
@@ -103,9 +111,7 @@ export const ScreensListPage: React.FC = () => {
           </div>
           <div>
             <p className="text-xs font-medium text-[#42526E]">Converted</p>
-            <p className="text-2xl font-extrabold text-emerald-800 mt-0.5">
-              {activeTab === 'screens' ? '36' : '9'}
-            </p>
+            <p className="text-2xl font-extrabold text-emerald-800 mt-0.5">{metrics.converted}</p>
           </div>
         </div>
 
@@ -115,9 +121,7 @@ export const ScreensListPage: React.FC = () => {
           </div>
           <div>
             <p className="text-xs font-medium text-[#42526E]">Review Required</p>
-            <p className="text-2xl font-extrabold text-amber-800 mt-0.5">
-              {activeTab === 'screens' ? '3' : '2'}
-            </p>
+            <p className="text-2xl font-extrabold text-amber-800 mt-0.5">{metrics.reviewRequired}</p>
           </div>
         </div>
 
@@ -131,7 +135,7 @@ export const ScreensListPage: React.FC = () => {
           <div>
             <p className="text-xs font-medium text-[#42526E]">Failed (Diagnostics)</p>
             <p className="text-2xl font-extrabold text-rose-800 mt-0.5 flex items-center gap-1.5">
-              <span>{activeTab === 'screens' ? '1' : '1'}</span>
+              <span>{metrics.failed}</span>
               <span className="text-[10px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">View Logs &rarr;</span>
             </p>
           </div>
@@ -140,8 +144,8 @@ export const ScreensListPage: React.FC = () => {
 
       <Tabs
         tabs={[
-          { id: 'screens', label: 'Legacy Screens (BMS/DSPF)', count: 48 },
-          { id: 'programs', label: 'COBOL Programs (Logic)', count: 12 },
+          { id: 'screens', label: 'Legacy Screens (BMS/DSPF)', count: screens.length },
+          { id: 'programs', label: 'COBOL Programs (Logic)', count: programs.length },
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}
@@ -190,7 +194,15 @@ export const ScreensListPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5EAF0]">
-              {(activeTab === 'screens' ? filteredScreens : filteredPrograms).map((item: any) => (
+              {activeList.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-slate-500">
+                    No {activeTab === 'screens' ? 'screens' : 'programs'} match your filters yet. Upload a
+                    source file to get started.
+                  </td>
+                </tr>
+              )}
+              {activeList.map((item) => (
                 <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                   <td className="p-4 font-mono text-xs font-bold text-[#091E42]">
                     <div className="flex items-center space-x-2.5">
@@ -210,7 +222,7 @@ export const ScreensListPage: React.FC = () => {
                   <td className="p-4 text-[#6B778C]">{item.lastUpdated}</td>
                   <td className="p-4 text-right">
                     <div className="flex items-center justify-end space-x-2">
-                      {item.status === 'FAILED' ? (
+                      {item.status === 'Failed' ? (
                         <Link
                           to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
                           className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
@@ -257,14 +269,10 @@ export const ScreensListPage: React.FC = () => {
         </div>
 
         <div className="bg-[#F7F9FC] px-4 py-3 border-t border-[#D9E2EC] flex justify-between items-center text-xs text-[#6B778C] font-medium">
-          <span>Showing 1-{filteredScreens.length} of 48 legacy screens</span>
-          <div className="flex space-x-1">
-            <button className="px-3 py-1 rounded-lg bg-white border border-[#D9E2EC] text-[#6B778C] cursor-not-allowed">Prev</button>
-            <button className="px-3 py-1 rounded-lg bg-[#0652CC] text-white font-bold shadow-2xs">1</button>
-            <button className="px-3 py-1 rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-slate-100">2</button>
-            <button className="px-3 py-1 rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-slate-100">3</button>
-            <button className="px-3 py-1 rounded-lg bg-white border border-[#D9E2EC] text-[#091E42] hover:bg-slate-100">Next</button>
-          </div>
+          <span>
+            Showing {activeList.length} of {activeFullList.length}{' '}
+            {activeTab === 'screens' ? 'legacy screens' : 'COBOL programs'}
+          </span>
         </div>
       </div>
     </div>
