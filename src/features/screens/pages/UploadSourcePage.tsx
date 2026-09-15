@@ -50,13 +50,9 @@ export const UploadSourcePage: React.FC = () => {
       const result = await conversionService.uploadSource(projectId, [file], setUploadProgress);
       const uploaded = result.files[0];
       const fileName = uploaded?.name ?? file.name;
-      // Register the upload as a real, convertible screen — carrying the real
-      // inputReference — instead of leaving it stranded in this page's local list.
-      const screen = await conversionService.registerUploadedScreen(
-        projectId,
-        fileName,
-        result.inputReference,
-      );
+      // The backend already created a real, persisted Screen record for this upload
+      // (see UploadConversionSourceResult.screens) — nothing to register client-side.
+      const screen = result.screens[0];
       const newFile: SourceFile = {
         id: `file-${Date.now()}`,
         fileName,
@@ -64,7 +60,7 @@ export const UploadSourcePage: React.FC = () => {
         uploadedAt: 'Just now',
         status: 'Ready',
         inputReference: result.inputReference,
-        screenId: screen.id,
+        screenId: screen?.id,
       };
       if (activeTab === 'screens') {
         setScreenFiles((prev) => [newFile, ...prev]);
