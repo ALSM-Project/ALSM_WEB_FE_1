@@ -36,7 +36,7 @@ export class DiagnosticsService {
     this.lastProjectId = projectId || 'proj-acme';
 
     // In unit test environment, return mock data immediately to avoid network timeouts
-    if (import.meta.env.MODE === 'test') {
+    if (import.meta.env.VITEST) {
       return [...this.logs];
     }
 
@@ -92,7 +92,7 @@ export class DiagnosticsService {
   }
 
   async applyDiagnosticPatch(logId: string, projectId?: string): Promise<boolean> {
-    if (import.meta.env.MODE === 'test') {
+    if (import.meta.env.VITEST) {
       this.logs = this.logs.map((l) => (l.id === logId ? { ...l, resolved: true } : l));
       return true;
     }
