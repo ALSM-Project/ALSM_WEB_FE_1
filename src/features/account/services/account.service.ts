@@ -1,6 +1,5 @@
 import { apiClient } from '@/services/api/apiClient';
-import type { PasswordChangeData } from '../types/account';
-import type { UserSession } from '@/features/auth/types/auth';
+import type { ActiveSession, PasswordChangeData } from '../types/account';
 
 export class AccountService {
   async setPassword(newPassword: string): Promise<void> {
@@ -46,20 +45,17 @@ export class AccountService {
     }
   }
 
-  async getActiveSessions(): Promise<UserSession[]> {
-    const res = await apiClient.get<UserSession[]>('/auth/sessions');
+  async getActiveSessions(): Promise<ActiveSession[]> {
+    const res = await apiClient.get<ActiveSession[]>('/auth/sessions');
     return res || [];
   }
 
-
-  async revokeSession(sessionId: string): Promise<UserSession[]> {
+  async revokeSession(sessionId: string): Promise<void> {
     await apiClient.delete<void>(`/auth/sessions/${sessionId}`);
-    return this.getActiveSessions();
   }
 
-  async revokeAllOtherSessions(): Promise<UserSession[]> {
+  async revokeAllOtherSessions(): Promise<void> {
     await apiClient.post<void>('/auth/sessions/revoke-others');
-    return this.getActiveSessions();
   }
 }
 

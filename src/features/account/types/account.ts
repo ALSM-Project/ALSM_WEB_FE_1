@@ -18,3 +18,13 @@ export interface SecuritySettings {
   activeSessionsCount: number;
   lastPasswordChange: string;
 }
+
+/** Session data returned by GET /api/v1/auth/sessions. */
+export interface ActiveSession {
+  id: string;
+  deviceType: string;
+  browser: string;
+  lastActiveAt: string;
+  createdAt: string;
+  expiresAt: string;
+}
