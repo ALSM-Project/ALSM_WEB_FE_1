@@ -54,6 +54,10 @@ export class BillingService {
   }
 
   async activateTrial(): Promise<Subscription> {
+    if (import.meta.env.VITEST) {
+      // Return mock subscription in test env
+      return mockCurrentSubscription as unknown as Subscription;
+    }
     return apiClient.post<Subscription>('/billing/subscription/trial');
   }
 

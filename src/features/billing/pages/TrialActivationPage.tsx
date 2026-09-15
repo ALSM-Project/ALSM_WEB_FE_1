@@ -1,23 +1,40 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Mail, CreditCard, Lock, Check } from 'lucide-react';
+import { CheckCircle2, Mail, CreditCard, Lock, Check, AlertCircle } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
+import { billingService } from '@/features/billing/services/billing.service';
 
 export const TrialActivationPage: React.FC = () => {
   const navigate = useNavigate();
   const [activated, setActivated] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleActivate = () => {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleActivate = async () => {
     setLoading(true);
-    setTimeout(() => {
+    setError(null);
+    try {
+      // Gọi BE API: POST /billing/subscription/trial (ALSM-181)
+      await billingService.activateTrial();
       setActivated(true);
-      setLoading(false);
       setTimeout(() => {
         navigate(ROUTES.PROJECTS.SCREENS('proj-acme'));
       }, 1500);
-    }, 600);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error ? err.message : 'Failed to activate trial. Please try again.';
+      // Nếu user đã có trial/subscription thì vẫn cho redirect
+      if (msg.toLowerCase().includes('conflict') || msg.toLowerCase().includes('already')) {
+        setActivated(true);
+        setTimeout(() => navigate(ROUTES.PROJECTS.SCREENS('proj-acme')), 1500);
+      } else {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,6 +119,12 @@ export const TrialActivationPage: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-2.5 pt-2">
+            {error && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center space-x-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
             <Button
               onClick={handleActivate}
               isLoading={loading}
@@ -115,6 +138,7 @@ export const TrialActivationPage: React.FC = () => {
             </div>
           </div>
         )}
+
       </div>
     </div>
   );
