@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { User } from '@/features/auth/types/auth';
 import { AppProviders, useAuth } from './providers';
@@ -152,5 +152,24 @@ describe('AppProviders authentication bootstrap', () => {
 
     expect(mocks.refreshSession).not.toHaveBeenCalled();
     expect(mocks.getCurrentUser).not.toHaveBeenCalled();
+  });
+
+  it('clears tokenStore and sets unauthenticated state when session refresh fails', async () => {
+    mocks.getRefreshToken.mockReturnValue('expired-refresh-token');
+    mocks.refreshSession.mockRejectedValue(new Error('401 Unauthorized'));
+
+    renderWithProviders();
+
+    expect(
+      await screen.findByText('Unauthenticated'),
+    ).toBeInTheDocument();
+
+    expect(mocks.clearTokens).toHaveBeenCalled();
+  });
+
+  it('throws an error when useAuth is called outside of AppProviders', () => {
+    expect(() => renderHook(() => useAuth())).toThrow(
+      'useAuth must be used within AppProviders',
+    );
   });
 });
