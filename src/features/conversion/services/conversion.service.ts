@@ -1,3 +1,4 @@
+import type { AxiosProgressEvent } from 'axios';
 import { mockASTData, mockConversionResult } from '@/mocks/conversions.mock';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { mockScreens, mockUploadedFiles } from '@/mocks/screens.mock';
@@ -17,6 +18,11 @@ export interface ConversionJob {
   createdAt: string;
   startedAt?: string;
   completedAt?: string;
+}
+
+export interface UploadConversionSourceResult {
+  inputReference: string;
+  files: { name: string; sizeBytes: number }[];
 }
 
 interface FieldMappingResponse {
@@ -50,6 +56,26 @@ export class ConversionService {
 
   async getUploadedFiles(): Promise<SourceFile[]> {
     return [...this.uploadedFiles];
+  }
+
+  /** Uploads real legacy source files (BMS/DSPF or COBOL + copybooks) to the backend. Returns the inputReference to pass when creating a conversion job — the tool never runs client-side. */
+  async uploadSource(
+    projectId: string,
+    files: File[],
+    onUploadProgress?: (percent: number) => void,
+  ): Promise<UploadConversionSourceResult> {
+    const form = new FormData();
+    files.forEach((file) => form.append('files', file));
+    return apiClient.postForm<UploadConversionSourceResult>(
+      `/projects/${projectId}/conversion-sources`,
+      form,
+      {
+        onUploadProgress: (event: AxiosProgressEvent) => {
+          if (!onUploadProgress || !event.total) return;
+          onUploadProgress(Math.round((event.loaded / event.total) * 100));
+        },
+      },
+    );
   }
 
   async convertScreen(_screenId: string): Promise<ConversionResult> {
