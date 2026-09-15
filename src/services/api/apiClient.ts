@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { AxiosError, AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosError, AxiosInstance, AxiosProgressEvent, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { env } from '@/shared/constants/env';
 import { ApiError } from './apiError';
 import { tokenStore } from './tokenStore';
@@ -20,6 +20,9 @@ interface RequestOptions {
   /** Send Authorization header. Defaults to true; set false for login/register/refresh. */
   auth?: boolean;
   headers?: Record<string, string>;
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void;
+  /** Set 'blob' when the response body is binary (e.g. a downloaded zip), not JSON. */
+  responseType?: 'json' | 'blob';
 }
 
 interface TokenPair {
@@ -99,6 +102,15 @@ export class ApiClient {
     return this.request<T>(endpoint, { ...options, method: 'POST', body });
   }
 
+  /** POSTs a multipart/form-data body (e.g. file uploads). Axios sets the boundary automatically. */
+  async postForm<T>(
+    endpoint: string,
+    form: FormData,
+    options: Omit<RequestOptions, 'method' | 'body'> = {},
+  ): Promise<T> {
+    return this.request<T>(endpoint, { ...options, method: 'POST', body: form });
+  }
+
   async put<T>(endpoint: string, body?: unknown, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<T> {
     return this.request<T>(endpoint, { ...options, method: 'PUT', body });
   }
@@ -117,6 +129,8 @@ export class ApiClient {
       url: endpoint,
       data: options.body,
       headers: options.headers,
+      onUploadProgress: options.onUploadProgress,
+      responseType: options.responseType,
       _skipAuth: options.auth === false,
     };
 
