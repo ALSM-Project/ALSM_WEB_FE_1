@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { Search, Bell, LogOut, ChevronDown, User, CreditCard } from 'lucide-react';
+import { Search, Bell, LogOut, User, CreditCard } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
 import LogoImg from '@/assets/logo.png';
