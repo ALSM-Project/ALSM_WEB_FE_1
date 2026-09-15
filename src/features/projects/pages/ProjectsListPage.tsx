@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Layers, ArrowRight, FolderKanban } from 'lucide-react';
+import { Plus, Search, Filter, Layers, ArrowRight, FolderKanban, Trash2 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { StatusBadge, Button, PageHeader } from '@/shared/ui';
 import { CreateProjectModal } from '../components/CreateProjectModal';
@@ -173,6 +173,14 @@ export const ProjectsListPage: React.FC = () => {
                   >
                     <span>Open Workspace</span>
                     <ArrowRight className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => navigate(ROUTES.PROJECTS.DELETE(p.id))}
+                    className="p-2 border border-[#D9E2EC] text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors rounded-xl"
+                    title="Delete Project"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               </div>

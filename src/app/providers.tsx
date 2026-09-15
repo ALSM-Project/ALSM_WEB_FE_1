@@ -32,12 +32,15 @@ function isUserAdmin(u: User | null | undefined): boolean {
  * Clears FE1 tokens so that on any back-navigation FE1 won't loop.
  */
 function redirectAdminToStaffPortal(): void {
-  const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
-  const accessToken = tokenStore.getAccessToken() || '';
-  const refreshToken = tokenStore.getRefreshToken() || '';
-  // Clear tokens from FE1 so returning here doesn't trigger another redirect loop
-  tokenStore.clear();
-  window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+  // NOTE: FE2 Staff Portal is not running locally.
+  // Admin users will use FE1 directly in development.
+  // Uncomment below when FE2 is running at localhost:3002.
+  //
+  // const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
+  // const accessToken = tokenStore.getAccessToken() || '';
+  // const refreshToken = tokenStore.getRefreshToken() || '';
+  // tokenStore.clear();
+  // window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
 }
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -65,11 +68,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           tokenStore.setRefreshToken(tokens.refreshToken);
           const me = await authService.getCurrentUser();
 
-          // If the restored session belongs to an admin, redirect to FE2 immediately.
-          // Do NOT call setUser() — this prevents GuestRoute from interfering.
+          // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
           if (isUserAdmin(me)) {
             redirectAdminToStaffPortal();
-            return; // Don't setIsLoading(false); page is navigating away
           }
 
           if (!cancelled) setUser(me);
@@ -91,11 +92,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const loggedInUser = await authService.login(credentials);
 
-      // Admin users: redirect to FE2 immediately. Don't call setUser().
+      // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
       if (isUserAdmin(loggedInUser)) {
         redirectAdminToStaffPortal();
-        // Keep isLoading=true so GuestRoute shows spinner while browser navigates
-        return loggedInUser;
       }
 
       setUser(loggedInUser);
@@ -125,7 +124,6 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       const verifiedUser = await authService.verifyEmail(email, code);
       if (isUserAdmin(verifiedUser)) {
         redirectAdminToStaffPortal();
-        return verifiedUser;
       }
       setUser(verifiedUser);
       setIsLoading(false);
@@ -145,10 +143,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const loggedInUser = await authService.loginWithGoogle(idToken);
 
-      // Admin users: redirect to FE2 immediately
+      // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
       if (isUserAdmin(loggedInUser)) {
         redirectAdminToStaffPortal();
-        return loggedInUser;
       }
 
       setUser(loggedInUser);
