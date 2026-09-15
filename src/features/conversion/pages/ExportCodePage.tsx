@@ -18,8 +18,10 @@ import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { Project } from '@/features/projects/types/project';
 import type {
   ExportConfiguration,
+  ExportFileItem,
   ExportOutputOption,
   FrameworkTarget,
+  BundleMetrics,
 } from '../types/export';
 import { ExportScreenSelector } from '../components/ExportScreenSelector';
 import { ExportFileTree } from '../components/ExportFileTree';
@@ -107,14 +109,42 @@ export const ExportCodePage: React.FC = () => {
     selectedScreenIds,
   ]);
 
-  // Computed file tree preview and metrics
-  const fileTree = useMemo(() => {
-    return exportService.generateFileTreePreview(exportConfig, screens);
-  }, [exportConfig, screens]);
+  // File tree preview and metrics come from the real backend (real generated code for
+  // any screen with a completed conversion job) — exportService falls back to a local
+  // mock only if the API call itself fails (offline/unreachable backend).
+  const [fileTree, setFileTree] = useState<ExportFileItem[]>([]);
+  const [metrics, setMetrics] = useState<BundleMetrics>({
+    totalFiles: 0,
+    totalLoc: 0,
+    estimatedSizeKb: 0,
+    selectedScreensCount: 0,
+  });
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
-  const metrics = useMemo(() => {
-    return exportService.calculateMetrics(exportConfig, screens);
-  }, [exportConfig, screens]);
+  useEffect(() => {
+    if (selectedScreenIds.length === 0) {
+      setFileTree([]);
+      setMetrics({ totalFiles: 0, totalLoc: 0, estimatedSizeKb: 0, selectedScreensCount: 0 });
+      return;
+    }
+    let cancelled = false;
+    setIsPreviewLoading(true);
+    exportService
+      .fetchExportPreviewFromApi(exportConfig)
+      .then((preview) => {
+        if (cancelled) return;
+        setFileTree(preview.fileTree);
+        setMetrics(preview.metrics);
+      })
+      .catch((err) => console.error('Failed to load export preview', err))
+      .finally(() => {
+        if (!cancelled) setIsPreviewLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exportConfig]);
 
   const bundleFilename = useMemo(() => {
     const slug = (project?.name || 'alsm')
@@ -154,14 +184,10 @@ export const ExportCodePage: React.FC = () => {
     setExportError(null);
 
     try {
-      const blob = await exportService.generateZipBundle(
-        exportConfig,
-        screens,
-        (percent, label) => {
-          setExportProgress(percent);
-          setStepLabel(label);
-        }
-      );
+      const blob = await exportService.downloadZipBundleFromApi(exportConfig, (percent, label) => {
+        setExportProgress(percent);
+        setStepLabel(label);
+      });
 
       setGeneratedBlob(blob);
       setIsComplete(true);
@@ -552,10 +578,14 @@ export const ExportCodePage: React.FC = () => {
 
           {/* Interactive File Tree */}
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
-            <ExportFileTree
-              files={fileTree}
-              projectName={project?.name || 'ALSM'}
-            />
+            {isPreviewLoading ? (
+              <p className="text-xs text-slate-500 py-4 text-center">Loading real conversion output…</p>
+            ) : (
+              <ExportFileTree
+                files={fileTree}
+                projectName={project?.name || 'ALSM'}
+              />
+            )}
           </div>
         </div>
       </div>
