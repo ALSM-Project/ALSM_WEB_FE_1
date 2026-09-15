@@ -1,7 +1,39 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ExportCodePage } from './ExportCodePage';
+
+// conversionService.getScreens now hits the real backend — mock it here rather than
+// relying on a fake fallback in the service itself (that would just reintroduce the
+// "silently show stale data" problem this app has been moving away from).
+const mocks = vi.hoisted(() => {
+  const mockScreens: LegacyScreen[] = [
+    {
+      id: 'scr-login',
+      projectId: 'proj-acme',
+      name: 'LoginScreen.bms',
+      sourceType: 'BMS',
+      status: 'Completed',
+      framework: 'React',
+      lastUpdated: '1 day ago',
+    },
+    {
+      id: 'scr-dashboard',
+      projectId: 'proj-acme',
+      name: 'Dashboard.bms',
+      sourceType: 'BMS',
+      status: 'Processing',
+      framework: 'React',
+      lastUpdated: '10 mins ago',
+    },
+  ];
+  return { getScreens: vi.fn().mockResolvedValue(mockScreens) };
+});
+
+vi.mock('../services/conversion.service', () => ({
+  conversionService: { getScreens: mocks.getScreens },
+}));
 
 describe('ExportCodePage', () => {
   const renderWithRouter = (initialRoute = '/projects/proj-acme/export') => {

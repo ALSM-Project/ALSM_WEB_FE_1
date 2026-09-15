@@ -1,11 +1,45 @@
 import type { AxiosProgressEvent } from 'axios';
 import { mockASTData } from '@/mocks/conversions.mock';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
-import { mockScreens, mockUploadedFiles } from '@/mocks/screens.mock';
 import { apiClient } from '@/services/api/apiClient';
 import type { ASTNode, ConversionResultBundle, FieldMapping } from '../types/conversion';
-import type { LegacyScreen, SourceFile } from '@/features/screens/types/screen';
+import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
+
+/** Shape returned by the real backend — see ScreenRecord in ALSM_WEB_BE. */
+interface ScreenRecordDto {
+  id: string;
+  projectId: string;
+  name: string;
+  sourceType: 'BMS' | 'DSPF' | 'COBOL';
+  status: 'READY' | 'PROCESSING' | 'COMPLETED' | 'REVIEW_REQUIRED' | 'FAILED';
+  inputReference: string;
+  sizeBytes?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+const SCREEN_STATUS_LABELS: Record<ScreenRecordDto['status'], LegacyScreen['status']> = {
+  READY: 'Ready',
+  PROCESSING: 'Processing',
+  COMPLETED: 'Completed',
+  REVIEW_REQUIRED: 'Review Required',
+  FAILED: 'Failed',
+};
+
+function toLegacyScreen(record: ScreenRecordDto): LegacyScreen {
+  return {
+    id: record.id,
+    projectId: record.projectId,
+    name: record.name,
+    sourceType: record.sourceType,
+    status: SCREEN_STATUS_LABELS[record.status],
+    framework: 'React',
+    lastUpdated: new Date(record.updatedAt).toLocaleString(),
+    sizeKb: record.sizeBytes ? Math.round(record.sizeBytes / 1024) : undefined,
+    inputReference: record.inputReference,
+  };
+}
 
 export interface ConversionJob {
   id: string;
@@ -23,6 +57,7 @@ export interface ConversionJob {
 export interface UploadConversionSourceResult {
   inputReference: string;
   files: { name: string; sizeBytes: number }[];
+  screens: LegacyScreen[];
 }
 
 interface FieldMappingResponse {
@@ -30,58 +65,23 @@ interface FieldMappingResponse {
 }
 
 export class ConversionService {
-  private screens: LegacyScreen[] = [...mockScreens];
-  private uploadedFiles: SourceFile[] = [...mockUploadedFiles];
-
+  /** Real, backend-persisted screens — a screen only exists once a real source file has been uploaded (see uploadSource). No in-memory or seeded fallback list. */
   async getScreens(projectId: string): Promise<LegacyScreen[]> {
-    console.log('[ConversionService] Getting screens for project:', projectId);
-    return [...this.screens];
+    const records = await apiClient.get<ScreenRecordDto[]>(`/projects/${projectId}/screens`);
+    return records.map(toLegacyScreen);
   }
 
   async getScreenById(screenId: string): Promise<LegacyScreen | null> {
-    return this.screens.find((s) => s.id === screenId) || this.screens[0] || null;
+    try {
+      return toLegacyScreen(await apiClient.get<ScreenRecordDto>(`/screens/${screenId}`));
+    } catch {
+      return null;
+    }
   }
 
-  /** Registers a just-uploaded file as a convertible screen carrying its real inputReference, so it shows up wherever screens are listed/converted instead of only living in the Upload page's local file list. */
-  async registerUploadedScreen(
-    projectId: string,
-    fileName: string,
-    inputReference: string,
-  ): Promise<LegacyScreen> {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    const sourceType: LegacyScreen['sourceType'] =
-      extension === 'bms' ? 'BMS' : extension === 'dspf' ? 'DSPF' : extension === 'cpy' ? 'RPG' : 'COBOL';
-    const screen: LegacyScreen = {
-      id: `scr-upload-${Date.now()}-${Math.round(Math.random() * 1000)}`,
-      projectId,
-      name: fileName,
-      sourceType,
-      status: 'Ready',
-      framework: 'React',
-      lastUpdated: 'Just now',
-      inputReference,
-    };
-    this.screens = [screen, ...this.screens];
-    return screen;
-  }
-
-  async uploadFile(file: File): Promise<SourceFile> {
-    const newFile: SourceFile = {
-      id: `file-${Date.now()}`,
-      fileName: file.name,
-      sizeKb: Math.round(file.size / 1024),
-      uploadedAt: 'Just now',
-      status: 'Ready',
-    };
-    this.uploadedFiles.unshift(newFile);
-    return newFile;
-  }
-
-  async getUploadedFiles(): Promise<SourceFile[]> {
-    return [...this.uploadedFiles];
-  }
-
-  /** Uploads real legacy source files (BMS/DSPF or COBOL + copybooks) to the backend. Returns the inputReference to pass when creating a conversion job — the tool never runs client-side. */
+  /** Uploads real legacy source files (BMS/DSPF or COBOL + copybooks) to the backend. The
+   * backend persists both the file bytes and a real Screen record per uploaded program/screen —
+   * nothing is simulated and nothing needs to be re-registered client-side afterward. */
   async uploadSource(
     projectId: string,
     files: File[],
@@ -89,16 +89,17 @@ export class ConversionService {
   ): Promise<UploadConversionSourceResult> {
     const form = new FormData();
     files.forEach((file) => form.append('files', file));
-    return apiClient.postForm<UploadConversionSourceResult>(
-      `/projects/${projectId}/conversion-sources`,
-      form,
-      {
-        onUploadProgress: (event: AxiosProgressEvent) => {
-          if (!onUploadProgress || !event.total) return;
-          onUploadProgress(Math.round((event.loaded / event.total) * 100));
-        },
+    const response = await apiClient.postForm<{
+      inputReference: string;
+      files: { name: string; sizeBytes: number }[];
+      screens: ScreenRecordDto[];
+    }>(`/projects/${projectId}/conversion-sources`, form, {
+      onUploadProgress: (event: AxiosProgressEvent) => {
+        if (!onUploadProgress || !event.total) return;
+        onUploadProgress(Math.round((event.loaded / event.total) * 100));
       },
-    );
+    });
+    return { ...response, screens: response.screens.map(toLegacyScreen) };
   }
 
   /** Creates a single conversion job. Jobs start QUEUED — there is no fake instant success; poll getLatestConversion for real status. */
@@ -115,15 +116,9 @@ export class ConversionService {
   }
 
   async bulkConvertScreens(projectId: string, screenIds: string[]): Promise<ConversionJob[]> {
-    const jobs = await apiClient.post<ConversionJob[]>(`/projects/${projectId}/conversions/bulk`, {
-      screenIds,
-    });
-    // Real conversion jobs start QUEUED — reflect "processing" locally rather than
-    // faking completion; the real status comes from polling getLatestConversion.
-    this.screens = this.screens.map((s) =>
-      screenIds.includes(s.id) ? { ...s, status: 'Processing' as const } : s
-    );
-    return jobs;
+    // Real conversion jobs start QUEUED — the real per-screen status now comes from the
+    // backend (synced onto the Screen record as its job progresses), not a local guess.
+    return apiClient.post<ConversionJob[]>(`/projects/${projectId}/conversions/bulk`, { screenIds });
   }
 
   async getLatestConversion(projectId: string, screenId: string): Promise<ConversionJob | null> {
