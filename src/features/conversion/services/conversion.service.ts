@@ -1,9 +1,9 @@
 import type { AxiosProgressEvent } from 'axios';
-import { mockASTData, mockConversionResult } from '@/mocks/conversions.mock';
+import { mockASTData } from '@/mocks/conversions.mock';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { mockScreens, mockUploadedFiles } from '@/mocks/screens.mock';
 import { apiClient } from '@/services/api/apiClient';
-import type { ASTNode, ConversionResult, ConversionResultBundle, FieldMapping } from '../types/conversion';
+import type { ASTNode, ConversionResultBundle, FieldMapping } from '../types/conversion';
 import type { LegacyScreen, SourceFile } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
 
@@ -76,11 +76,6 @@ export class ConversionService {
         },
       },
     );
-  }
-
-  async convertScreen(_screenId: string): Promise<ConversionResult> {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    return mockConversionResult;
   }
 
   /** Creates a single conversion job. Jobs start QUEUED — there is no fake instant success; poll getLatestConversion for real status. */
