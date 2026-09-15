@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Plus, Info, Layers, Cpu } from 'lucide-react';
 import { projectService } from '../services/project.service';
+import type { ConversionType } from '../types/project';
 import { ROUTES } from '@/shared/constants/routes';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
@@ -20,6 +21,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [conversionType, setConversionType] = useState<ConversionType>('BMS_DSPF_TO_FRONTEND');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -28,6 +30,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     if (isOpen) {
       setName('');
       setDescription('');
+      setConversionType('BMS_DSPF_TO_FRONTEND');
       setError('');
     }
   }, [isOpen]);
@@ -51,7 +54,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
     setLoading(true);
     try {
-      const proj = await projectService.createProject({ name: name.trim(), description: description.trim() });
+      const proj = await projectService.createProject({
+        name: name.trim(),
+        description: description.trim(),
+        conversionType,
+      });
       onClose();
       if (onProjectCreated) {
         onProjectCreated(proj.id);
@@ -126,25 +133,46 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <div className="bg-[#E8F1FF] border border-[#B3D4FF] p-3.5 rounded-xl flex items-start space-x-3 text-xs text-[#0652CC]">
             <Info className="w-4 h-4 flex-shrink-0 text-[#0652CC] mt-0.5" />
             <p className="leading-relaxed text-[11.5px]">
-              Supports side-by-side modernization of BMS/DSPF screen maps (&rarr; React 19) and COBOL/RPG logic (&rarr; Java 21).
+              Choose what this project converts — a project's conversion type can't be changed later.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
-            <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E5EAF0] space-y-1">
-              <span className="font-bold text-[#091E42] flex items-center space-x-1.5">
-                <Layers className="w-3.5 h-3.5 text-[#0652CC]" />
-                <span>BMS / DSPF Screens</span>
-              </span>
-              <p className="text-[11px] text-[#6B778C]">Converts legacy screen maps to React TypeScript components.</p>
-            </div>
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#091E42]">
+              Conversion Type
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <button
+                type="button"
+                onClick={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
+                className={`text-left p-3 rounded-xl border space-y-1 transition-colors ${
+                  conversionType === 'BMS_DSPF_TO_FRONTEND'
+                    ? 'bg-[#E8F1FF] border-[#0652CC] ring-1 ring-[#0652CC]'
+                    : 'bg-[#F8FAFC] border-[#E5EAF0] hover:border-[#0652CC]/40'
+                }`}
+              >
+                <span className="font-bold text-[#091E42] flex items-center space-x-1.5">
+                  <Layers className="w-3.5 h-3.5 text-[#0652CC]" />
+                  <span>BMS / DSPF Screens</span>
+                </span>
+                <p className="text-[11px] text-[#6B778C]">Converts legacy screen maps to React TypeScript components.</p>
+              </button>
 
-            <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E5EAF0] space-y-1">
-              <span className="font-bold text-[#091E42] flex items-center space-x-1.5">
-                <Cpu className="w-3.5 h-3.5 text-[#0652CC]" />
-                <span>COBOL Logic</span>
-              </span>
-              <p className="text-[11px] text-[#6B778C]">Converts COBOL business logic to Java Spring Boot services.</p>
+              <button
+                type="button"
+                onClick={() => setConversionType('COBOL_TO_JAVA')}
+                className={`text-left p-3 rounded-xl border space-y-1 transition-colors ${
+                  conversionType === 'COBOL_TO_JAVA'
+                    ? 'bg-[#E8F1FF] border-[#0652CC] ring-1 ring-[#0652CC]'
+                    : 'bg-[#F8FAFC] border-[#E5EAF0] hover:border-[#0652CC]/40'
+                }`}
+              >
+                <span className="font-bold text-[#091E42] flex items-center space-x-1.5">
+                  <Cpu className="w-3.5 h-3.5 text-[#0652CC]" />
+                  <span>COBOL Logic</span>
+                </span>
+                <p className="text-[11px] text-[#6B778C]">Converts COBOL business logic to Java Spring Boot services.</p>
+              </button>
             </div>
           </div>
 

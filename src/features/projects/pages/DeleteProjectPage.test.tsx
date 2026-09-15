@@ -1,7 +1,32 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import type { Project } from '../types/project';
 import { DeleteProjectPage } from './DeleteProjectPage';
+
+// projectService now hits the real backend — mock it so this test doesn't depend on
+// a running server or a valid auth token.
+const mocks = vi.hoisted(() => {
+  const projects: Project[] = [
+    {
+      id: 'proj-mortgage',
+      name: 'Mortgage-System-v1',
+      description: 'Legacy mortgage management system',
+      status: 'ACTIVE',
+      conversionType: 'BMS_DSPF_TO_FRONTEND',
+      createdAt: '2026-09-01T10:00:00Z',
+      updatedAt: '2026-09-01T10:00:00Z',
+    },
+  ];
+  return {
+    getProjects: vi.fn().mockResolvedValue(projects),
+    deleteProject: vi.fn().mockResolvedValue(true),
+  };
+});
+
+vi.mock('../services/project.service', () => ({
+  projectService: { getProjects: mocks.getProjects, deleteProject: mocks.deleteProject },
+}));
 
 describe('DeleteProjectPage', () => {
   const renderWithRouter = (initialRoute = '/projects/proj-mortgage/delete') => {
