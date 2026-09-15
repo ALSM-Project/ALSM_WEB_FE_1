@@ -2,7 +2,7 @@ import { mockASTData, mockConversionResult } from '@/mocks/conversions.mock';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { mockScreens, mockUploadedFiles } from '@/mocks/screens.mock';
 import { apiClient } from '@/services/api/apiClient';
-import type { ASTNode, ConversionResult, FieldMapping } from '../types/conversion';
+import type { ASTNode, ConversionResult, ConversionResultBundle, FieldMapping } from '../types/conversion';
 import type { LegacyScreen, SourceFile } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
 
@@ -57,12 +57,25 @@ export class ConversionService {
     return mockConversionResult;
   }
 
+  /** Creates a single conversion job. Jobs start QUEUED — there is no fake instant success; poll getLatestConversion for real status. */
+  async createConversion(
+    projectId: string,
+    input: { screenId?: string; inputReference?: string },
+  ): Promise<ConversionJob> {
+    return apiClient.post<ConversionJob>(`/projects/${projectId}/conversions`, input);
+  }
+
+  /** Fetches the real generated code for a COMPLETED conversion job. Throws if the job hasn't completed yet — callers should only call this once status === 'COMPLETED'. */
+  async getConversionResult(jobId: string): Promise<ConversionResultBundle> {
+    return apiClient.get<ConversionResultBundle>(`/conversions/${jobId}/result`);
+  }
+
   async bulkConvertScreens(projectId: string, screenIds: string[]): Promise<ConversionJob[]> {
     const jobs = await apiClient.post<ConversionJob[]>(`/projects/${projectId}/conversions/bulk`, {
       screenIds,
     });
-    // Real conversion jobs start QUEUED — there is no conversion engine configured
-    // yet, so reflect "queued for processing" locally rather than faking completion.
+    // Real conversion jobs start QUEUED — reflect "processing" locally rather than
+    // faking completion; the real status comes from polling getLatestConversion.
     this.screens = this.screens.map((s) =>
       screenIds.includes(s.id) ? { ...s, status: 'Processing' as const } : s
     );
