@@ -1,95 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import {
-  FolderKanban,
-  FileSearch,
-  CheckCircle2,
-  AlertCircle,
-  Plus,
-  ArrowRight,
-  Upload,
-  Cpu,
-  Eye,
-} from 'lucide-react';
+import { FolderKanban, Plus, ArrowRight, Upload, Cpu } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { StatusBadge, Button } from '@/shared/ui';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { CreateProjectModal } from '../components/CreateProjectModal';
+import { projectService } from '../services/project.service';
+import type { Project } from '../types/project';
+
+const LEGACY_TYPE_LABEL: Record<Project['conversionType'], string> = {
+  BMS_DSPF_TO_FRONTEND: 'BMS / DSPF',
+  COBOL_TO_JAVA: 'COBOL',
+};
+const TARGET_FRAMEWORK_LABEL: Record<Project['conversionType'], string> = {
+  BMS_DSPF_TO_FRONTEND: 'React (TypeScript)',
+  COBOL_TO_JAVA: 'Java 21 (Spring Boot)',
+};
 
 export const ModernizationDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
 
-  // Demonstration PoC data
-  const metrics = [
-    { label: 'Active Projects', value: '4', icon: FolderKanban, color: 'text-[#0652CC]', bg: 'bg-[#E8F1FF]' },
-    { label: 'Screens Analyzed', value: '148', icon: FileSearch, color: 'text-[#0655FF]', bg: 'bg-blue-50' },
-    { label: 'Screens Converted', value: '124', icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Review Required', value: '12', icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
-  ];
+  useEffect(() => {
+    projectService
+      .getProjects()
+      .then(setProjects)
+      .catch((err) => console.error('Failed to load projects for dashboard', err));
+  }, []);
 
-  const recentProjects = [
-    {
-      id: 'proj-acme',
-      name: 'Acme Core Banking Modernization',
-      legacyType: 'BMS / DSPF',
-      target: 'React (TypeScript)',
-      convertedCount: 36,
-      totalCount: 48,
-      status: 'Active',
-      lastUpdated: '10 mins ago',
-    },
-    {
-      id: 'proj-cobol-java',
-      name: 'Insurance Ledger Engine',
-      legacyType: 'COBOL (IBM Enterprise)',
-      target: 'Java 21 (Spring Boot)',
-      convertedCount: 22,
-      totalCount: 30,
-      status: 'Active',
-      lastUpdated: '1 hour ago',
-    },
-    {
-      id: 'proj-[#091E42]',
-      name: 'Logistics DSPF Order Entry',
-      legacyType: 'DSPF Screen Maps',
-      target: 'React (Tailwind)',
-      convertedCount: 15,
-      totalCount: 15,
-      status: 'Completed',
-      lastUpdated: 'Yesterday',
-    },
-  ];
-
-  const recentActivity = [
-    {
-      screen: 'ACCT010 - Account Inquiry',
-      project: 'Acme Core Banking',
-      source: 'BMS Map Definition',
-      target: 'React Component',
-      status: 'Passed',
-      screenId: 'scr-acct010',
-      projectId: 'proj-acme',
-    },
-    {
-      screen: 'PAYM040 - Wire Transfer Confirmation',
-      project: 'Acme Core Banking',
-      source: 'BMS Map Definition',
-      target: 'React Component',
-      status: 'Review Required',
-      screenId: 'scr-paym040',
-      projectId: 'proj-acme',
-    },
-    {
-      screen: 'CALC099 - Interest Calculation Engine',
-      project: 'Insurance Ledger',
-      source: 'COBOL Source',
-      target: 'Java Service Class',
-      status: 'Passed',
-      screenId: 'scr-calc099',
-      projectId: 'proj-cobol-java',
-    },
-  ];
+  const recentProjects = [...projects]
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -118,7 +60,7 @@ export const ModernizationDashboardPage: React.FC = () => {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => navigate(ROUTES.PROJECTS.UPLOAD('proj-acme'))}
+            onClick={() => navigate(ROUTES.PROJECTS.LIST)}
             className="bg-white/10 text-white border-white/20 hover:bg-white/20 font-semibold text-xs space-x-1.5"
           >
             <Upload className="w-4 h-4" />
@@ -127,131 +69,87 @@ export const ModernizationDashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((m) => {
-          const Icon = m.icon;
-          return (
-            <div
-              key={m.label}
-              className="bg-white border border-[#D9E2EC] rounded-2xl p-5 shadow-2xs flex items-center justify-between"
-            >
-              <div>
-                <div className="text-xs font-medium text-[#42526E]">{m.label}</div>
-                <div className="text-2xl font-extrabold text-[#091E42] mt-1">{m.value}</div>
-              </div>
-              <div className={`w-11 h-11 rounded-xl ${m.bg} ${m.color} flex items-center justify-center`}>
-                <Icon className="w-5 h-5" />
-              </div>
+      {/* Metrics Row — only real, cheaply-derivable counts. No fabricated aggregate
+          numbers (screens analyzed/converted/review-required across all projects
+          would need real backend aggregation this page doesn't have yet). */}
+      <div className="grid grid-cols-2 gap-4 max-w-md">
+        <div className="bg-white border border-[#D9E2EC] rounded-2xl p-5 shadow-2xs flex items-center justify-between">
+          <div>
+            <div className="text-xs font-medium text-[#42526E]">Total Projects</div>
+            <div className="text-2xl font-extrabold text-[#091E42] mt-1">{projects.length}</div>
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center">
+            <FolderKanban className="w-5 h-5" />
+          </div>
+        </div>
+        <div className="bg-white border border-[#D9E2EC] rounded-2xl p-5 shadow-2xs flex items-center justify-between">
+          <div>
+            <div className="text-xs font-medium text-[#42526E]">Active Projects</div>
+            <div className="text-2xl font-extrabold text-[#091E42] mt-1">
+              {projects.filter((p) => p.status === 'ACTIVE').length}
             </div>
-          );
-        })}
+          </div>
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <FolderKanban className="w-5 h-5" />
+          </div>
+        </div>
       </div>
 
       {/* Reusable Modernization Workflow Bar */}
       <ModernizationWorkflow currentStep="conversion" completedSteps={['analysis', 'mapping']} />
 
-      {/* Main Grid: Recent Projects & Conversion Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Recent Projects (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-6 shadow-2xs">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-bold text-[#091E42]">Active Projects</h2>
-                <p className="text-xs text-[#6B778C]">Managed modernization project workspaces</p>
-              </div>
-              <Link
-                to={ROUTES.PROJECTS.LIST}
-                className="text-xs font-semibold text-[#0652CC] hover:underline flex items-center space-x-1"
+      {/* Recent Projects */}
+      <div className="bg-white border border-[#D9E2EC] rounded-2xl p-6 shadow-2xs">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-bold text-[#091E42]">Recent Projects</h2>
+            <p className="text-xs text-[#6B778C]">Managed modernization project workspaces</p>
+          </div>
+          <Link
+            to={ROUTES.PROJECTS.LIST}
+            className="text-xs font-semibold text-[#0652CC] hover:underline flex items-center space-x-1"
+          >
+            <span>View All Projects</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {recentProjects.length === 0 ? (
+          <p className="text-xs text-[#6B778C] py-6 text-center">
+            No projects yet — create one to start uploading and converting legacy files.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {recentProjects.map((p) => (
+              <div
+                key={p.id}
+                className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl p-4 hover:border-[#0652CC]/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <span>View All Projects</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            <div className="space-y-3">
-              {recentProjects.map((p) => (
-                <div
-                  key={p.id}
-                  className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl p-4 hover:border-[#0652CC]/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-bold text-sm text-[#091E42]">{p.name}</span>
-                      <StatusBadge status={p.status} />
-                    </div>
-                    <div className="flex items-center space-x-3 text-xs text-[#42526E]">
-                      <span className="font-mono bg-white px-2 py-0.5 rounded border border-[#D9E2EC] text-[11px]">
-                        {p.legacyType} &rarr; {p.target}
-                      </span>
-                      <span>Updated {p.lastUpdated}</span>
-                    </div>
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="font-bold text-sm text-[#091E42]">{p.name}</span>
+                    <StatusBadge status={p.status} />
                   </div>
-
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right text-xs">
-                      <div className="font-bold text-[#091E42]">
-                        {p.convertedCount} / {p.totalCount} Screens
-                      </div>
-                      <div className="text-[10px] text-[#6B778C]">Converted</div>
-                    </div>
-                    <Button
-                      variant="secondary"
-                      onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
-                      className="text-xs font-semibold space-x-1"
-                    >
-                      <span>Open Workspace</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </Button>
+                  <div className="flex items-center space-x-3 text-xs text-[#42526E]">
+                    <span className="font-mono bg-white px-2 py-0.5 rounded border border-[#D9E2EC] text-[11px]">
+                      {LEGACY_TYPE_LABEL[p.conversionType]} &rarr; {TARGET_FRAMEWORK_LABEL[p.conversionType]}
+                    </span>
+                    <span>Updated {new Date(p.updatedAt).toLocaleString()}</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Right Column: Recent Conversion Activity */}
-        <div className="space-y-4">
-          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-6 shadow-2xs">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-base font-bold text-[#091E42]">Recent Activity</h2>
-                <p className="text-xs text-[#6B778C]">Screen conversions & validation results</p>
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
+                  className="text-xs font-semibold space-x-1"
+                >
+                  <span>Open Workspace</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
               </div>
-            </div>
-
-            <div className="space-y-3">
-              {recentActivity.map((act, i) => (
-                <div
-                  key={i}
-                  className="p-3.5 rounded-xl border border-[#D9E2EC] bg-[#F7F9FC] space-y-2 hover:bg-white transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-bold text-xs text-[#091E42] truncate max-w-[180px]">
-                        {act.screen}
-                      </div>
-                      <div className="text-[11px] text-[#6B778C]">{act.project}</div>
-                    </div>
-                    <StatusBadge status={act.status} />
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-[#42526E] pt-1 border-t border-[#E5EAF0]">
-                    <span>{act.source} &rarr; {act.target}</span>
-                    <Link
-                      to={ROUTES.PROJECTS.RESULT(act.projectId, act.screenId)}
-                      className="text-[#0652CC] font-semibold hover:underline flex items-center space-x-1"
-                    >
-                      <Eye className="w-3 h-3" />
-                      <span>Inspect</span>
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Blurred Backdrop Create Project Modal */}

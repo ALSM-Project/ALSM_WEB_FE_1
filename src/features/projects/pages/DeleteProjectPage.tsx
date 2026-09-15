@@ -15,16 +15,20 @@ export const DeleteProjectPage: React.FC = () => {
   const [typedName, setTypedName] = useState('');
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    projectService.getProjects().then((data) => {
-      setProjects(data);
-      const proj = data.find((p) => p.id === projectId) || data[0];
-      if (proj) setTargetProject(proj);
-    });
+    projectService
+      .getProjects()
+      .then((data) => {
+        setProjects(data);
+        const proj = data.find((p) => p.id === projectId) || data[0];
+        if (proj) setTargetProject(proj);
+      })
+      .catch((err) => setLoadError(err instanceof Error ? err.message : 'Failed to load project'));
   }, [projectId]);
 
-  const confirmName = targetProject?.name || 'Mortgage-System-v1';
+  const confirmName = targetProject?.name ?? '';
 
   const handleClose = () => {
     navigate(ROUTES.PROJECTS.LIST);
@@ -33,12 +37,15 @@ export const DeleteProjectPage: React.FC = () => {
   const handleDelete = async () => {
     if (typedName !== confirmName || !targetProject) return;
     setLoading(true);
+    setLoadError(null);
     try {
       await projectService.deleteProject(targetProject.id);
       setNotification(`Project "${confirmName}" was soft-deleted successfully.`);
       setTimeout(() => {
         navigate(ROUTES.PROJECTS.LIST);
       }, 1500);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Failed to delete project');
     } finally {
       setLoading(false);
     }
@@ -95,7 +102,7 @@ export const DeleteProjectPage: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="p-4 text-slate-500 whitespace-nowrap">{proj.updatedAt}</td>
+                  <td className="p-4 text-slate-500 whitespace-nowrap">{new Date(proj.updatedAt).toLocaleString()}</td>
                   <td className="p-4 pr-6 text-right whitespace-nowrap">
                     <MoreVertical className="w-4 h-4 text-slate-400 inline-block" />
                   </td>
@@ -124,6 +131,11 @@ export const DeleteProjectPage: React.FC = () => {
           {notification && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold rounded-xl">
               {notification}
+            </div>
+          )}
+          {loadError && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl">
+              {loadError}
             </div>
           )}
 

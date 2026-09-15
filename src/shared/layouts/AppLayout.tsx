@@ -28,7 +28,7 @@ export const AppLayout: React.FC = () => {
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-6 h-16 flex items-center justify-between relative">
         {/* Left: Logo */}
         <div className="flex items-center h-full">
-          <Link to={ROUTES.PROJECTS.SCREENS('proj-acme')} className="flex items-center h-full">
+          <Link to={ROUTES.DASHBOARD} className="flex items-center h-full">
             <img src={LogoImg} alt="ALSM Logo" className="h-10 object-contain" />
           </Link>
         </div>
@@ -36,7 +36,7 @@ export const AppLayout: React.FC = () => {
         {/* Center: Nav Links */}
         <nav className="hidden md:flex items-center h-full space-x-8 absolute left-1/2 transform -translate-x-1/2">
           <NavLink
-            to={ROUTES.PROJECTS.SCREENS('proj-acme')}
+            to={ROUTES.DASHBOARD}
             className={({ isActive }) =>
               `relative h-full flex items-center text-[14px] transition-colors ${
                 isActive ? 'text-[#0652CC] font-semibold' : 'text-slate-500 hover:text-slate-900'

@@ -478,7 +478,7 @@ export const PublicNavbar: React.FC = () => {
           {/* ─── Mobile Controls ─── */}
           <div className="alsm-mobile-controls">
             <Link
-              to={isAuthenticated ? ROUTES.PROJECTS.SCREENS('proj-acme') : ROUTES.PUBLIC.REGISTER}
+              to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.PUBLIC.REGISTER}
               className="alsm-mobile-cta"
             >
               {isAuthenticated ? 'Workspace' : 'Get Started'}

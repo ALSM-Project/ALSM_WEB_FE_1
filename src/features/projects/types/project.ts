@@ -9,15 +9,14 @@ export interface WorkspaceQuota {
   storageMaxGb: number;
 }
 
+export type ConversionType = 'BMS_DSPF_TO_FRONTEND' | 'COBOL_TO_JAVA';
+
 export interface Project {
   id: string;
   name: string;
   description?: string;
   status: ProjectStatus;
-  screensCount: number;
-  programsCount: number;
-  progressPercentage: number;
-  targetFramework: string;
+  conversionType: ConversionType;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,4 +24,5 @@ export interface Project {
 export interface CreateProjectPayload {
   name: string;
   description?: string;
+  conversionType: ConversionType;
 }

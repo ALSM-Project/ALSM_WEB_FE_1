@@ -20,7 +20,7 @@ export const TrialActivationPage: React.FC = () => {
       await billingService.activateTrial();
       setActivated(true);
       setTimeout(() => {
-        navigate(ROUTES.PROJECTS.SCREENS('proj-acme'));
+        navigate(ROUTES.DASHBOARD);
       }, 1500);
     } catch (err: unknown) {
       const msg =
@@ -28,7 +28,7 @@ export const TrialActivationPage: React.FC = () => {
       // Nếu user đã có trial/subscription thì vẫn cho redirect
       if (msg.toLowerCase().includes('conflict') || msg.toLowerCase().includes('already')) {
         setActivated(true);
-        setTimeout(() => navigate(ROUTES.PROJECTS.SCREENS('proj-acme')), 1500);
+        setTimeout(() => navigate(ROUTES.DASHBOARD), 1500);
       } else {
         setError(msg);
       }
