@@ -51,18 +51,3 @@ export interface AuthState {
   token: string | null;
 }
 
-export interface UserSession {
-  id: string;
-  device?: string;
-  deviceName?: string;
-  browser: string;
-  operatingSystem?: string;
-  os?: string;
-  location?: string;
-  ipAddress: string;
-  lastActiveAt?: string;
-  lastActive?: string;
-  createdAt?: string;
-  isCurrent: boolean;
-}
-
