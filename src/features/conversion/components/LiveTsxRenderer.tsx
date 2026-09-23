@@ -65,46 +65,34 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
           )}
 
           {/* Toggle UI vs Code View */}
-          <div className="bg-slate-200 p-0.5 rounded-lg flex items-center text-xs font-semibold">
-            {metadata && (
+          {!metadata && (
+            <div className="bg-slate-200 p-0.5 rounded-lg flex items-center text-xs font-semibold">
               <button
                 type="button"
-                onClick={() => setViewMode('legacy')}
+                onClick={() => setViewMode('ui')}
                 className={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 ${
-                  viewMode === 'legacy'
-                    ? 'bg-slate-900 text-green-400 shadow-xs font-bold'
+                  viewMode === 'ui'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Monitor className="w-3.5 h-3.5" />
-                <span>Legacy Terminal</span>
+                <Monitor className="w-3.5 h-3.5 text-[#0652CC]" />
+                <span>Modern UI</span>
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setViewMode('ui')}
-              className={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 ${
-                viewMode === 'ui'
-                  ? 'bg-white text-slate-900 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Monitor className="w-3.5 h-3.5 text-[#0652CC]" />
-              <span>Modern UI</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('code')}
-              className={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 ${
-                viewMode === 'code'
-                  ? 'bg-white text-slate-900 shadow-xs font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Code className="w-3.5 h-3.5 text-slate-600" />
-              <span>Generated TSX</span>
-            </button>
-          </div>
+              <button
+                type="button"
+                onClick={() => setViewMode('code')}
+                className={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 ${
+                  viewMode === 'code'
+                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Code className="w-3.5 h-3.5 text-slate-600" />
+                <span>Generated TSX</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
