@@ -279,7 +279,7 @@ export function parseConvertedTsx(tsxCode: string, fallbackName = 'Screen'): Gen
     }
   }
 
-  if (fields.length === 0) {
+  if (fields.length < 2) {
     return generateScreenBundle(fallbackName);
   }
 
