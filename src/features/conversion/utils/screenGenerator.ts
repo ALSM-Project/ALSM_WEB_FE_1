@@ -91,23 +91,25 @@ export function generateScreenBundle(screenName: string): GeneratedScreenBundle 
       { name: 'MERCHANT', label: 'Merchant Identifier (MERCHANT)', defaultValue: 'GLOBAL SUPPLIES INC', fullWidth: true },
       { name: 'TRNTYPE', label: 'Transaction Type (TRNTYPE)', defaultValue: 'DEBIT', type: 'select', options: ['DEBIT', 'CREDIT', 'REFUND', 'ADJUSTMENT'] },
     ];
+  } else if (upper.includes('COSGN') || upper.includes('SIGN') || upper.includes('LOGON') || upper.includes('LOGIN')) {
+    title = 'CardDemo - Sign On Screen';
+    subtitle = 'CICS User Authentication (COSGN00.bms → React Form)';
+    fields = [
+      { name: 'USERID', label: 'User Identifier (USERID)', defaultValue: 'CICSUSER' },
+      { name: 'PASSWD', label: 'Password (PASSWD)', defaultValue: '••••••••', type: 'password' },
+      { name: 'ERRMSG', label: 'System Message (ERRMSG)', defaultValue: 'Welcome to CardDemo System. Enter User ID & Password.', fullWidth: true },
+    ];
   } else {
     // Deterministic fallback fields generator based on string hash
     let hash = 0;
     for (let i = 0; i < upper.length; i++) hash = (hash << 5) - hash + upper.charCodeAt(i);
-    const fieldCount = 4 + (Math.abs(hash) % 4); // 4 to 7 fields
 
-    const sampleFields: ScreenField[] = [
+    fields = [
+      { name: 'USERID', label: 'Operator ID (USERID)', defaultValue: `OPR-${Math.abs(hash % 900) + 100}` },
       { name: 'REFCODE', label: `${upper} Reference Code (REFCODE)`, defaultValue: `REF-${Math.abs(hash % 90000) + 10000}` },
-      { name: 'STATUS', label: 'Process Status (STATUS)', defaultValue: 'PENDING', type: 'select', options: ['PENDING', 'APPROVED', 'REJECTED'] },
-      { name: 'SYSID', label: 'System Source ID (SYSID)', defaultValue: 'SYS-MAIN-01' },
-      { name: 'OPERATOR', label: 'Operator ID (OPERATOR)', defaultValue: 'OPR-402' },
-      { name: 'VALDATE', label: 'Effective Date (VALDATE)', defaultValue: '2026-10-01' },
+      { name: 'STATUS', label: 'Process Status (STATUS)', defaultValue: 'ACTIVE', type: 'select', options: ['ACTIVE', 'PENDING', 'SUSPENDED'] },
       { name: 'REMARKS', label: 'System Audit Notes (REMARKS)', defaultValue: 'Converted from BMS legacy map', fullWidth: true },
-      { name: 'CTRLNUM', label: 'Control Sequence (CTRLNUM)', defaultValue: 'CTRL-0982' },
     ];
-
-    fields = sampleFields.slice(0, fieldCount);
     title = `${upper} Modernized Screen`;
     subtitle = `Legacy BMS/DSPF Screen (${screenName} → React Form)`;
   }
