@@ -243,35 +243,43 @@ export const ConvertScreenPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                  {screenBundle.fields.map((f) => (
-                    <div key={f.name} className={f.fullWidth ? 'md:col-span-2' : ''}>
-                      <label className="block text-slate-700 font-semibold mb-1">{f.label}</label>
-                      {f.type === 'select' ? (
-                        <select defaultValue={f.defaultValue} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 shadow-xs font-semibold">
-                          {(f.options || []).map((opt) => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={f.type || 'text'}
-                          defaultValue={f.defaultValue}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono text-slate-900 shadow-xs"
-                        />
-                      )}
+                {screenBundle.fields.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      {screenBundle.fields.map((f) => (
+                        <div key={f.name} className={f.fullWidth ? 'md:col-span-2' : ''}>
+                          <label className="block text-slate-700 font-semibold mb-1">{f.label}</label>
+                          {f.type === 'select' ? (
+                            <select defaultValue={f.defaultValue} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 shadow-xs font-semibold">
+                              {(f.options || []).map((opt) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type={f.type || 'text'}
+                              defaultValue={f.defaultValue}
+                              className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono text-slate-900 shadow-xs"
+                            />
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
 
-                <div className="flex space-x-3 pt-2">
-                  <button className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-xs">
-                    Submit Process
-                  </button>
-                  <button className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg shadow-xs">
-                    Cancel
-                  </button>
-                </div>
+                    <div className="flex space-x-3 pt-2">
+                      <button className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-xs">
+                        Submit Process
+                      </button>
+                      <button className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg shadow-xs">
+                        Cancel
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-slate-500 text-xs font-mono bg-slate-50 rounded-xl border border-slate-200">
+                    Pure Modernized React Component Generated (No static mock fields).
+                  </div>
+                )}
               </div>
             ) : (
               /* Pending State before user clicks Run Conversion Algorithm */
