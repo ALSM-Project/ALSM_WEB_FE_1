@@ -12,33 +12,26 @@ import { Button } from '@/shared/ui/Button';
 import { CodeViewer } from '../components/CodeViewer';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 
-import { projectService } from '@/features/projects/services/project.service';
-import type { Project } from '@/features/projects/types/project';
 import { generateScreenBundle, parseConvertedTsx } from '../utils/screenGenerator';
 
 export const ConvertScreenPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
-  const [project, setProject] = useState<Project | null>(null);
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [activeTab, setActiveTab] = useState('preview');
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      projectService.getProjectById(projectId),
-      conversionService.getScreenById(screenId),
-    ]).then(([projData, screenData]) => {
+    conversionService.getScreenById(screenId).then((screenData) => {
       if (cancelled) return;
-      setProject(projData);
       setScreen(screenData);
     });
     return () => {
       cancelled = true;
     };
-  }, [projectId, screenId]);
+  }, [screenId]);
 
   const { data: job } = useConversionJob(projectId, screenId);
   const createJob = useCreateConversionJob(projectId, screenId);

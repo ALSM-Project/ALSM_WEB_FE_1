@@ -7,7 +7,6 @@ import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
 import { StatusBadge } from '@/shared/ui/Badge';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 
 export const BulkConvertPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();

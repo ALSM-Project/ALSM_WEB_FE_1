@@ -7,16 +7,10 @@ import { ROUTES } from '@/shared/constants/routes';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 
-import { projectService } from '@/features/projects/services/project.service';
-import type { Project } from '@/features/projects/types/project';
-import type { LegacyScreen } from '@/features/screens/types/screen';
-
 export const FieldMappingPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [mappings, setMappings] = useState<FieldMapping[]>([]);
   const [mappingsLoading, setMappingsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string>('');
@@ -27,14 +21,8 @@ export const FieldMappingPage: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     setMappingsLoading(true);
-    Promise.all([
-      projectService.getProjectById(projectId),
-      conversionService.getScreenById(screenId),
-      conversionService.getFieldMappings(projectId, screenId),
-    ]).then(([projData, screenData, mappingData]) => {
+    conversionService.getFieldMappings(projectId, screenId).then((mappingData) => {
       if (cancelled) return;
-      setProject(projData);
-      setScreen(screenData);
       setMappings(mappingData);
       setSelectedId(mappingData[0]?.id ?? '');
       setMappingsLoading(false);

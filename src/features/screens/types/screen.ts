@@ -1,6 +1,7 @@
 export type SourceType = 'BMS' | 'DSPF' | 'COBOL' | 'RPG' | 'TXT';
-export type ScreenStatus = 'Completed' | 'Processing' | 'Review Required' | 'Failed' | 'Ready' | 'Pending Parse' | 'Queued';
+export type ScreenStatus = 'Completed' | 'Converted' | 'COMPLETED' | 'Processing' | 'Review Required' | 'Failed' | 'Ready' | 'Pending Parse' | 'Queued';
 export type TargetFramework = 'React' | 'Vue' | 'Angular' | 'Next.js';
+export type SourceFileStatus = ScreenStatus | 'Uploading' | 'Failed to parse';
 
 export interface LegacyScreen {
   id: string;
@@ -21,7 +22,7 @@ export interface SourceFile {
   fileName: string;
   sizeKb: number;
   uploadedAt: string;
-  status: 'Ready' | 'Uploading' | 'Failed to parse';
+  status: SourceFileStatus;
   /** Storage reference returned by the real conversion-sources upload endpoint. Undefined for pre-seeded mock rows. */
   inputReference?: string;
   /** Id of the LegacyScreen registered for this upload, so the row can link straight to its Convert page. */

@@ -7,36 +7,15 @@ import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { conversionService } from '../services/conversion.service';
 import { useConversionJob } from '../queries/useConversionJob';
 
-import { projectService } from '@/features/projects/services/project.service';
-import type { Project } from '@/features/projects/types/project';
-import type { LegacyScreen } from '@/features/screens/types/screen';
-
 export const ReviewFindingsPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
-  const [project, setProject] = useState<Project | null>(null);
-  const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [findings, setFindings] = useState<any[]>([]);
   const [selectedFindingId, setSelectedFindingId] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   const { data: job } = useConversionJob(projectId, screenId);
-
-  useEffect(() => {
-    let cancelled = false;
-    Promise.all([
-      projectService.getProjectById(projectId),
-      conversionService.getScreenById(screenId),
-    ]).then(([projData, screenData]) => {
-      if (cancelled) return;
-      setProject(projData);
-      setScreen(screenData);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, screenId]);
 
   useEffect(() => {
     let cancelled = false;

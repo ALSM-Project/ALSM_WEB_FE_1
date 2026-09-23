@@ -27,16 +27,12 @@ function countAstNodes(node: ASTNode): number {
   return 1 + (node.children?.reduce((sum, child) => sum + countAstNodes(child), 0) ?? 0);
 }
 
-import { projectService } from '@/features/projects/services/project.service';
-import type { Project } from '@/features/projects/types/project';
-
 import { generateScreenBundle } from '../utils/screenGenerator';
 
 export const ResultInspectionPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
   const [validating, setValidating] = useState(false);
-  const [project, setProject] = useState<Project | null>(null);
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
   const [astData, setAstData] = useState<ASTNode | null>(null);
@@ -44,19 +40,17 @@ export const ResultInspectionPage: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      projectService.getProjectById(projectId),
       conversionService.getScreenById(screenId),
       conversionService.getASTData(screenId),
-    ]).then(([projData, screenData, ast]) => {
+    ]).then(([screenData, ast]) => {
       if (cancelled) return;
-      setProject(projData);
       setScreen(screenData);
       setAstData(ast);
     });
     return () => {
       cancelled = true;
     };
-  }, [projectId, screenId]);
+  }, [screenId]);
 
   const { data: job } = useConversionJob(projectId, screenId);
   const hasRealResult = Boolean(job?.status === 'COMPLETED' && job.resultReference);
