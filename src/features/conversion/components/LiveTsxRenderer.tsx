@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { parseConvertedTsx, ScreenField } from '../utils/screenGenerator';
+import { parseConvertedTsx, type ScreenField } from '../utils/screenGenerator';
 import { Play, CheckCircle2, Sliders, Shield, Code, Monitor } from 'lucide-react';
 
 interface LiveTsxRendererProps {
