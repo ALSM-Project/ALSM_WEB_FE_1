@@ -423,9 +423,12 @@ export const ScreensListPage: React.FC = () => {
       </div>
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => !isDeleting && setDeleteTarget(null)} />
-          <div className="relative bg-white rounded-2xl shadow-xl border border-slate-200 p-6 w-full max-w-md mx-4 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] transition-opacity"
+            onClick={() => !isDeleting && setDeleteTarget(null)}
+          />
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-auto space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center space-x-3">
               <div className="p-2.5 bg-rose-50 rounded-xl border border-rose-200">
                 <Trash2 className="w-5 h-5 text-rose-600" />
