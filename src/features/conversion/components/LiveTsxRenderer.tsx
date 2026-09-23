@@ -36,12 +36,6 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
     alert(`Form submitted with live values:\n${JSON.stringify(formData, null, 2)}`);
   };
 
-  // Extract inline static text headings or titles from JSX if present
-  const extractedHeadings = useMemo(() => {
-    if (!tsxCode) return [];
-    const matches = Array.from(tsxCode.matchAll(/<(?:h[1-6]|p|title)[^>]*>([\s\S]*?)<\/(?:h[1-6]|p|title)>/gi));
-    return matches.map((m) => m[1].replace(/[{}]/g, '').trim()).filter(Boolean);
-  }, [tsxCode]);
 
   return (
     <div className="w-full bg-white border border-slate-200 rounded-2xl shadow-md overflow-hidden">
@@ -101,15 +95,6 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
       {/* Main Body */}
       {viewMode === 'ui' ? (
         <div className="p-6 sm:p-8 bg-white space-y-6">
-          {/* Static Headings extracted from TSX if any */}
-          {extractedHeadings.length > 0 && (
-            <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-              {extractedHeadings.map((h, i) => (
-                <p key={i} className="font-mono text-slate-700 font-semibold">{h}</p>
-              ))}
-            </div>
-          )}
-
           {/* Live Interactive Form */}
           <form onSubmit={handleFormSubmit} className="space-y-5 text-xs">
             {bundle.fields.length > 0 ? (
