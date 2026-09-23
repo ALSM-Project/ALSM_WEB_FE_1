@@ -142,6 +142,15 @@ export function parseConvertedTsx(tsxCode: string, fallbackName = 'Screen'): Gen
         type: 'text',
       });
     }
+  // 5. Dynamic fallback if no input/label fields were matched
+  if (fields.length === 0) {
+    const screenKey = fallbackName.toUpperCase();
+    fields.push(
+      { name: 'USER_ID', label: 'User ID / Operator', defaultValue: 'ADM01', type: 'text' },
+      { name: 'SCREEN_TITLE', label: 'Screen Title', defaultValue: screenKey, type: 'text' },
+      { name: 'ACTION_CODE', label: 'Action Mode', defaultValue: 'INQUIRE', type: 'select', options: ['INQUIRE', 'UPDATE', 'DELETE', 'VIEW'] },
+      { name: 'STATUS_FLAG', label: 'Status Flag', defaultValue: 'ACTIVE', type: 'text' }
+    );
   }
 
   return {
