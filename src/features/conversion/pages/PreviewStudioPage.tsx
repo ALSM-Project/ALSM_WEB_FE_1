@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Shield, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -9,7 +9,7 @@ import type { DeviceMode } from '../components/DeviceSwitcher';
 import { Button } from '@/shared/ui/Button';
 import { useConversionJob } from '../queries/useConversionJob';
 import { useConversionResult } from '../queries/useConversionResult';
-import { generateScreenBundle, parseConvertedTsx } from '../utils/screenGenerator';
+import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
 
 export const PreviewStudioPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -33,15 +33,6 @@ export const PreviewStudioPage: React.FC = () => {
   const { data: resultBundle } = useConversionResult(job?.id, isCompleted);
 
   const screenName = screen?.name ?? screenId;
-  const fallbackBundle = useMemo(() => generateScreenBundle(screenName), [screenName]);
-
-  const screenBundle = useMemo(() => {
-    const tsxFile = resultBundle?.files?.find((f) => f.relativePath.endsWith('.tsx')) ?? resultBundle?.files?.[0];
-    if (tsxFile?.content) {
-      return parseConvertedTsx(tsxFile.content, screenName);
-    }
-    return fallbackBundle;
-  }, [resultBundle, screenName, fallbackBundle]);
 
   const previewTitle = screenName.replace(/\.(bms|dspf)$/i, '.tsx');
 
@@ -86,55 +77,13 @@ export const PreviewStudioPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="p-8 sm:p-12 bg-slate-50 flex flex-col items-center justify-center min-h-[420px]">
-            <div className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-md space-y-6">
-              <div className="flex items-center space-x-3 border-b border-slate-100 pb-4">
-                <div className="w-10 h-10 rounded-xl bg-[#0652CC] flex items-center justify-center text-white font-bold shadow-xs">
-                  <Shield className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900 font-mono tracking-tight">{screenBundle.title}</h2>
-                  <p className="text-xs text-slate-500">{screenBundle.subtitle}</p>
-                </div>
-              </div>
-
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-4 text-xs">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {screenBundle.fields.map((f) => (
-                    <div key={f.name} className={f.fullWidth ? 'md:col-span-2' : ''}>
-                      <label className="block text-slate-700 font-semibold mb-1">{f.label}</label>
-                      {f.type === 'select' ? (
-                        <select defaultValue={f.defaultValue} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 shadow-xs font-semibold">
-                          {(f.options || []).map((opt) => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          type={f.type || 'text'}
-                          defaultValue={f.defaultValue}
-                          className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono text-slate-900 shadow-xs"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex space-x-3 pt-2">
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-lg shadow-xs transition-all"
-                  >
-                    Submit Form
-                  </button>
-                  <button
-                    type="button"
-                    className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg shadow-xs"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+          <div className="p-6 sm:p-12 bg-slate-50 flex flex-col items-center justify-center min-h-[420px]">
+            <div className="w-full max-w-3xl">
+              <LiveTsxRenderer
+                tsxCode={resultBundle?.files?.[0]?.content ?? ''}
+                screenName={screenName}
+                onEditMapping={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+              />
             </div>
 
             <p className="text-[11px] text-slate-400 font-mono mt-6">

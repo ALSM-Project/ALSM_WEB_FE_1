@@ -10,6 +10,7 @@ export function useCreateConversionJob(projectId: string, screenId: string) {
       conversionService.createConversion(projectId, { screenId, inputReference: input.inputReference }),
     onSuccess: (job) => {
       queryClient.setQueryData(conversionKeys.job(projectId, screenId), job);
+      queryClient.invalidateQueries({ queryKey: ['screens', projectId] });
     },
   });
 }

@@ -138,9 +138,10 @@ export const UploadSourcePage: React.FC = () => {
         currentStep="upload"
         completedSteps={[]}
         onStepClick={(stepId) => {
+          const firstScreenId = screenFiles[0]?.screenId || screenFiles[0]?.id || 'Screen';
           if (stepId === 'conversion') navigate(ROUTES.PROJECTS.SCREENS(projectId));
-          if (stepId === 'validation') navigate(ROUTES.PROJECTS.REVIEW(projectId, 'scr-acct010'));
-          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, 'scr-acct010'));
+          if (stepId === 'validation') navigate(ROUTES.PROJECTS.REVIEW(projectId, firstScreenId));
+          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, firstScreenId));
           if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
         }}
       />
