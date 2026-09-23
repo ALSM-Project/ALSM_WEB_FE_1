@@ -13,7 +13,7 @@ import { CodeViewer } from '../components/CodeViewer';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
-import { generateScreenBundle } from '../utils/screenGenerator';
+import { generateScreenBundle, parseConvertedTsx } from '../utils/screenGenerator';
 
 export const ConvertScreenPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
