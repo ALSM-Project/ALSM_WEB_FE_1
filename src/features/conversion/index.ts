@@ -17,5 +17,7 @@ export { NotApplicableModal } from './components/NotApplicableModal';
 
 export { conversionService } from './services/conversion.service';
 export { exportService } from './services/export.service';
+export { validationService } from './services/validation.service';
 export type * from './types/conversion';
 export type * from './types/export';
+export * from './types/validation';
