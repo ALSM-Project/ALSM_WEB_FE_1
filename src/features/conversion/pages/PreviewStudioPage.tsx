@@ -10,7 +10,6 @@ import { Button } from '@/shared/ui/Button';
 import { useConversionJob } from '../queries/useConversionJob';
 import { useConversionResult } from '../queries/useConversionResult';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
-import { generateScreenBundle } from '../utils/screenGenerator';
 
 export const PreviewStudioPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -34,7 +33,6 @@ export const PreviewStudioPage: React.FC = () => {
   const { data: resultBundle } = useConversionResult(job?.id, isCompleted);
 
   const screenName = screen?.name ?? screenId;
-  const fallbackBundle = useMemo(() => generateScreenBundle(screenName), [screenName]);
 
   const previewTitle = screenName.replace(/\.(bms|dspf)$/i, '.tsx');
 
