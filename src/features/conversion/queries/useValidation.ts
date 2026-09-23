@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '@/services/api/apiError';
 import { validationService } from '../services/validation.service';
 import {
   ValidationRunStatus,
@@ -89,13 +88,6 @@ export function useReviewValidationFinding(projectId: string, validationRunId: s
         input,
       ),
     retry: false,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: findingsKey });
-    },
-    onError: (error) => {
-      if (error instanceof ApiError && (error.status === 400 || error.status === 409)) {
-        queryClient.invalidateQueries({ queryKey: findingsKey });
-      }
-    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: findingsKey }),
   });
 }

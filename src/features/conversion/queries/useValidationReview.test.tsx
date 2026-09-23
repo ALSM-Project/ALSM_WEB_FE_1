@@ -86,4 +86,52 @@ describe('useReviewValidationFinding', () => {
       expect.objectContaining({ status: ValidationFindingStatus.PENDING }),
     ]);
   });
+
+  it('invalidates findings after an HTTP 500 audit failure', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+    const findingsKey = validationKeys.findings('project-1', 'run-1');
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    vi.spyOn(validationService, 'reviewFinding').mockRejectedValue(
+      new ApiError('Audit append failed', 500),
+    );
+    const { result } = renderHook(
+      () => useReviewValidationFinding('project-1', 'run-1'),
+      { wrapper: createWrapper(queryClient) },
+    );
+
+    await expect(
+      act(async () => {
+        await result.current.mutateAsync({
+          findingId: 'finding-1',
+          input: { status: ValidationFindingStatus.NEEDS_CORRECTION },
+        });
+      }),
+    ).rejects.toMatchObject({ status: 500 });
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: findingsKey });
+  });
+
+  it('invalidates findings after an ambiguous network failure', async () => {
+    const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+    const findingsKey = validationKeys.findings('project-1', 'run-1');
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    vi.spyOn(validationService, 'reviewFinding').mockRejectedValue(
+      new Error('Network connection closed before the response arrived'),
+    );
+    const { result } = renderHook(
+      () => useReviewValidationFinding('project-1', 'run-1'),
+      { wrapper: createWrapper(queryClient) },
+    );
+
+    await expect(
+      act(async () => {
+        await result.current.mutateAsync({
+          findingId: 'finding-1',
+          input: { status: ValidationFindingStatus.NEEDS_CORRECTION },
+        });
+      }),
+    ).rejects.toThrow('Network connection closed before the response arrived');
+
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: findingsKey });
+  });
 });
