@@ -5,6 +5,7 @@ import { apiClient } from '@/services/api/apiClient';
 import type { ASTNode, ConversionResultBundle, FieldMapping } from '../types/conversion';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
+import type { ProgramAnalysis } from '@/features/screens/types/copybookDependency';
 
 /** Shape returned by the real backend — see ScreenRecord in ALSM_WEB_BE. */
 interface ScreenRecordDto {
@@ -77,6 +78,12 @@ export class ConversionService {
     } catch {
       return null;
     }
+  }
+
+  /** Real COBOL copybook dependency analysis for one screen (computed by the backend at
+   * upload time). No mock fallback — a real failure here must surface as a real error. */
+  async getCopybookDependencies(screenId: string): Promise<ProgramAnalysis> {
+    return apiClient.get<ProgramAnalysis>(`/screens/${screenId}/copybook-dependencies`);
   }
 
   /** Uploads real legacy source files (BMS/DSPF or COBOL + copybooks) to the backend. The
