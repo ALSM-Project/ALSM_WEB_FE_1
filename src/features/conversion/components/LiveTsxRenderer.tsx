@@ -6,14 +6,16 @@ interface LiveTsxRendererProps {
   tsxCode: string;
   screenName: string;
   onEditMapping?: () => void;
+  metadata?: any;
 }
 
 export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
   tsxCode,
   screenName,
   onEditMapping,
+  metadata,
 }) => {
-  const [viewMode, setViewMode] = useState<'ui' | 'code'>('ui');
+  const [viewMode, setViewMode] = useState<'legacy' | 'ui' | 'code'>(metadata ? 'legacy' : 'ui');
 
   // Parse TSX code into structured bundle (title, subtitle, fields)
   const bundle = useMemo(() => parseConvertedTsx(tsxCode, screenName), [tsxCode, screenName]);
@@ -64,6 +66,20 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
 
           {/* Toggle UI vs Code View */}
           <div className="bg-slate-200 p-0.5 rounded-lg flex items-center text-xs font-semibold">
+            {metadata && (
+              <button
+                type="button"
+                onClick={() => setViewMode('legacy')}
+                className={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 ${
+                  viewMode === 'legacy'
+                    ? 'bg-slate-900 text-green-400 shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                <span>Legacy Terminal</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setViewMode('ui')}
@@ -74,7 +90,7 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
               }`}
             >
               <Monitor className="w-3.5 h-3.5 text-[#0652CC]" />
-              <span>Interactive UI</span>
+              <span>Modern UI</span>
             </button>
             <button
               type="button"
@@ -93,7 +109,35 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
       </div>
 
       {/* Main Body */}
-      {viewMode === 'ui' ? (
+      {viewMode === 'legacy' && metadata ? (
+        <div className="bg-black p-6 sm:p-8 overflow-auto flex justify-center" style={{ minHeight: '400px' }}>
+          <div style={{ position: 'relative', width: '80ch', height: '25em', fontFamily: 'monospace', fontSize: '16px', backgroundColor: 'black', lineHeight: 1 }}>
+            {metadata.labels?.filter((l: any) => l.row > 0 && l.col > 0).map((l: any, idx: number) => (
+              <div key={`l-${idx}`} style={{ position: 'absolute', top: `${l.row - 1}em`, left: `${l.col - 1}ch`, color: l.color === 'blue' ? '#87ceeb' : '#00ff00', whiteSpace: 'pre' }}>
+                {l.initial || (l.name ? `[${l.name}]` : '')}
+              </div>
+            ))}
+            {metadata.inputs?.filter((i: any) => i.row > 0 && i.col > 0).map((i: any, idx: number) => (
+              <div key={`i-${idx}`} style={{ position: 'absolute', top: `${i.row - 1}em`, left: `${i.col - 1}ch` }}>
+                 <input 
+                   type="text" 
+                   name={i.name.toLowerCase()} 
+                   placeholder={i.name} 
+                   maxLength={i.length} 
+                   style={{ width: `${i.length}ch`, backgroundColor: '#002200', color: '#00ff00', border: '1px solid #00ff00', outline: 'none', fontFamily: 'monospace', padding: 0, margin: 0, lineHeight: 1 }} 
+                   value={formData[i.name] ?? i.defaultValue ?? ''}
+                   onChange={(e) => handleInputChange(i.name, e.target.value)}
+                 />
+              </div>
+            ))}
+            {metadata.functionKeys?.length > 0 && (
+              <div style={{ position: 'absolute', bottom: 0, left: 0, color: '#888', whiteSpace: 'pre' }}>
+                {metadata.functionKeys.join('  ')}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : viewMode === 'ui' ? (
         <div className="p-6 sm:p-8 bg-white space-y-6">
           {/* Live Interactive Form */}
           <form onSubmit={handleFormSubmit} className="space-y-5 text-xs">

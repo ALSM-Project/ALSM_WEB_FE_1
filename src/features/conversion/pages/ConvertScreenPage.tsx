@@ -72,6 +72,18 @@ export const ConvertScreenPage: React.FC = () => {
     return fallbackBundle;
   }, [files, screenName, fallbackBundle]);
 
+  const metadata = useMemo(() => {
+    const jsonFile = files.find((f) => f.relativePath.endsWith('.metadata.json'));
+    if (jsonFile?.content) {
+      try {
+        return JSON.parse(jsonFile.content);
+      } catch(e) {
+        console.error('Failed to parse metadata', e);
+      }
+    }
+    return null;
+  }, [files]);
+
   const metrics = useMemo(() => {
     if (!files.length) return null;
     const totalLoc = files.reduce((sum, f) => sum + f.content.split('\n').length, 0);
@@ -222,6 +234,7 @@ export const ConvertScreenPage: React.FC = () => {
                 <LiveTsxRenderer
                   tsxCode={selectedFile?.content ?? ''}
                   screenName={screenName}
+                  metadata={metadata}
                   onEditMapping={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
                 />
               </div>
