@@ -120,11 +120,12 @@ export const ScreensListPage: React.FC = () => {
         currentStep="convert"
         completedSteps={['upload']}
         onStepClick={(stepId) => {
+          const firstScreenId = activeList[0]?.id || 'Screen';
           if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
-          if (stepId === 'mapping') navigate(ROUTES.PROJECTS.MAPPING(projectId, 'scr-acct010'));
-          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, 'scr-acct010'));
-          if (stepId === 'validation' || stepId === 'review') navigate(ROUTES.PROJECTS.REVIEW(projectId, 'scr-acct010'));
-          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, 'scr-acct010'));
+          if (stepId === 'mapping') navigate(ROUTES.PROJECTS.MAPPING(projectId, firstScreenId));
+          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, firstScreenId));
+          if (stepId === 'validation' || stepId === 'review') navigate(ROUTES.PROJECTS.REVIEW(projectId, firstScreenId));
+          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, firstScreenId));
           if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
         }}
       />
