@@ -4,7 +4,6 @@ import { Search, AlertTriangle, Save, CheckCircle2 } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { FieldMapping } from '../types/conversion';
 import { ROUTES } from '@/shared/constants/routes';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 
@@ -22,10 +21,10 @@ export const FieldMappingPage: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     setMappingsLoading(true);
-    conversionService.getFieldMappings(projectId, screenId).then((data) => {
+    conversionService.getFieldMappings(projectId, screenId).then((mappingData) => {
       if (cancelled) return;
-      setMappings(data);
-      setSelectedId(data[0]?.id ?? '');
+      setMappings(mappingData);
+      setSelectedId(mappingData[0]?.id ?? '');
       setMappingsLoading(false);
     });
     return () => {
@@ -55,10 +54,16 @@ export const FieldMappingPage: React.FC = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await conversionService.saveFieldMapping(projectId, screenId, mappings);
-      setSavedMsg('Field mapping updated! Code re-generated successfully.');
+      await conversionService.reconvert(projectId, screenId, mappings);
+      setSavedMsg('Field mapping saved! Version v2 created, algorithm re-executed & Rule Validator completed.');
       setTimeout(() => {
-        navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
+        navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
+      }, 1000);
+    } catch (err) {
+      await conversionService.saveFieldMapping(projectId, screenId, mappings);
+      setSavedMsg('Field mapping updated!');
+      setTimeout(() => {
+        navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
       }, 1000);
     } finally {
       setLoading(false);
@@ -70,16 +75,7 @@ export const FieldMappingPage: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6 py-2">
-      <Breadcrumb
-        items={[
-          { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Acme Corp Modernization', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Screens', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'LoginScreen.bms' },
-          { label: 'Edit Mapping' },
-        ]}
-      />
+    <div className="space-y-6">
 
       <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
@@ -88,17 +84,17 @@ export const FieldMappingPage: React.FC = () => {
         </div>
 
         <div className="flex space-x-3">
-          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId))} className="text-xs font-semibold">
+          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))} className="text-xs font-semibold">
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             isLoading={loading}
             disabled={mappingsLoading}
-            className="space-x-1.5 text-xs font-semibold"
+            className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
           >
             <Save className="w-4 h-4" />
-            <span>Save Mapping & Re-generate</span>
+            <span>Save & Re-convert (Create Version v2)</span>
           </Button>
         </div>
       </div>

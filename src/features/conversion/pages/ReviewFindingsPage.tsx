@@ -1,271 +1,270 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertTriangle, Plus } from 'lucide-react';
+import { AlertTriangle, Check, X, Sliders, ArrowRight, Download, CheckCircle2 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
-import { FindingCard } from '../components/FindingCard';
-import { NotApplicableModal } from '../components/NotApplicableModal';
-import type { Finding, FindingStatus } from '../types/export';
-
-const sampleBmsCodeLines = [
-  { lineNum: '000100', text: 'DFHMSD TYPE=MAP,TIOAPFX=YES,MODE=INOUT,...', isHighlight: false },
-  { lineNum: '000110', text: '       CTRL=(FREEKB,FRSET),T...', isHighlight: false },
-  { lineNum: '000120', text: '       MAPATTS=(COLOR,HILIGHT...', isHighlight: false },
-  { lineNum: '000130', text: 'LOGIN  DFHMDI SIZE=(24,80)', isHighlight: false },
-  { lineNum: '000140', text: '* HEADER', isHighlight: false },
-  { lineNum: '000150', text: "       DFHMDF POS=(01,25),LENGTH=20...", isHighlight: false },
-  { lineNum: '000160', text: "              INITIAL='--- SYSTEM LOG...", isHighlight: false },
-  { lineNum: '000170', text: '* USER ID FIELD', isHighlight: false },
-  { lineNum: '000180', text: "       DFHMDF POS=(05,10),LENGTH=10...", isHighlight: false },
-  { lineNum: '000190', text: "              INITIAL='USER ID: '", isHighlight: false },
-  { lineNum: '000200', text: "CUSTID DFHMDF POS=(05,21),LENGTH=8...", isHighlight: true, findingId: 'f-1' },
-  { lineNum: '000210', text: '              COLOR=GREEN', isHighlight: false },
-  { lineNum: '000220', text: '* PASSWORD FIELD', isHighlight: false },
-  { lineNum: '000230', text: "       DFHMDF POS=(07,10),LENGTH=10...", isHighlight: false },
-  { lineNum: '000240', text: "              INITIAL='PASSWORD: '", isHighlight: false },
-  { lineNum: '000250', text: "PASSWD DFHMDF POS=(07,21),LENGTH=8...", isHighlight: false },
-  { lineNum: '000260', text: '* ACTIONS', isHighlight: false },
-  { lineNum: '000270', text: "       DFHMDF POS=(15,10),LENGTH=15...", isHighlight: true, findingId: 'f-2' },
-  { lineNum: '000280', text: "              INITIAL='PF3=EXIT'", isHighlight: true, findingId: 'f-2' },
-  { lineNum: '000290', text: "       DFHMDF POS=(15,30),LENGTH=15...", isHighlight: true, findingId: 'f-2' },
-  { lineNum: '000300', text: "              INITIAL='ENTER=SUBMIT...", isHighlight: false },
-  { lineNum: '000310', text: '       DFHMSD TYPE=FINAL', isHighlight: false },
-  { lineNum: '000320', text: '       END', isHighlight: false },
-];
-
-const initialFindings: Finding[] = [
-  {
-    id: 'f-1',
-    lineNumber: 'Ln 20',
-    startLine: 20,
-    badge: 'Rule-based',
-    description: 'Field mapped to TextField but source attribute NUM suggests NumberField.',
-    status: 'pending',
-  },
-  {
-    id: 'f-2',
-    lineNumber: 'Ln 27-30',
-    startLine: 27,
-    endLine: 30,
-    badge: 'AI-Suggested',
-    description: 'Consider using a grid alignment for buttons on rows 15-20 (78% confidence).',
-    status: 'pending',
-  },
-  {
-    id: 'f-3',
-    lineNumber: 'Ln 23',
-    startLine: 23,
-    description: 'No validation associated with PASSWD field.',
-    status: 'pending',
-  },
-];
+import { Button } from '@/shared/ui/Button';
+import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
+import { conversionService } from '../services/conversion.service';
+import { useConversionJob } from '../queries/useConversionJob';
 
 export const ReviewFindingsPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
-  const [activeCodeTab, setActiveCodeTab] = useState<'source' | 'generated'>('source');
-  const [findings, setFindings] = useState<Finding[]>(initialFindings);
-  const [selectedFindingId, setSelectedFindingId] = useState<string>('f-1');
-  const [modalFinding, setModalFinding] = useState<Finding | null>(null);
+  const [findings, setFindings] = useState<any[]>([]);
+  const [selectedFindingId, setSelectedFindingId] = useState<string>('');
+  const [loading, setLoading] = useState(true);
 
-  const resolvedCount = findings.filter((f) => f.status !== 'pending').length;
-  const totalCount = findings.length;
+  const { data: job } = useConversionJob(projectId, screenId);
 
-  const handleUpdateStatus = (id: string, newStatus: FindingStatus) => {
-    setFindings((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-    );
-  };
-
-  const handleConfirmNotApplicable = (reason: string) => {
-    if (!modalFinding) return;
-    setFindings((prev) =>
-      prev.map((item) =>
-        item.id === modalFinding.id
-          ? { ...item, status: 'not-applicable', notApplicableReason: reason }
-          : item
-      )
-    );
-    setModalFinding(null);
-  };
-
-  const handleAddFinding = () => {
-    const newId = `f-${Date.now()}`;
-    const newFinding: Finding = {
-      id: newId,
-      lineNumber: 'Ln 15',
-      startLine: 15,
-      badge: 'AI-Suggested',
-      description: 'System header label detected. Mapped to top bar title component.',
-      status: 'pending',
+  useEffect(() => {
+    let cancelled = false;
+    if (job?.id) {
+      setLoading(true);
+      conversionService.getValidation(projectId, screenId, job.id).then((res) => {
+        if (cancelled) return;
+        setFindings(res.findings || []);
+        if (res.findings?.[0]) setSelectedFindingId(res.findings[0].id);
+        setLoading(false);
+      });
+    } else {
+      setLoading(false);
+    }
+    return () => {
+      cancelled = true;
     };
-    setFindings((prev) => [newFinding, ...prev]);
-    setSelectedFindingId(newId);
+  }, [projectId, screenId, job?.id]);
+
+  const handleAcceptFinding = async (findingId: string) => {
+    await conversionService.acceptFinding(findingId);
+    setFindings((prev) =>
+      prev.map((f) => (f.id === findingId ? { ...f, status: 'CONFIRMED' } : f)),
+    );
   };
+
+  const handleRejectFinding = async (findingId: string) => {
+    await conversionService.rejectFinding(findingId);
+    setFindings((prev) =>
+      prev.map((f) => (f.id === findingId ? { ...f, status: 'REJECTED' } : f)),
+    );
+  };
+
+  const resolvedCount = findings.filter((f) => f.status !== 'OPEN').length;
+  const totalCount = findings.length || 1;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-5rem)] pb-24 space-y-6 py-2 bg-slate-50/30">
-      {/* Breadcrumb & Title */}
-      <div className="space-y-3">
-        <Breadcrumb
-          items={[
-            { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
-            { label: 'Legacy Migration Alpha', href: ROUTES.PROJECTS.SCREENS(projectId) },
-            { label: 'Screens', href: ROUTES.PROJECTS.SCREENS(projectId) },
-            { label: 'LoginScreen.bms', href: ROUTES.PROJECTS.CONVERT(projectId, screenId) },
-            { label: 'Review' },
-          ]}
-        />
+    <div className="flex flex-col min-h-[calc(100vh-5rem)] pb-24 space-y-6 bg-slate-50/30">
 
-        {/* Page Title & Meta Info */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Rule-based & AI-assisted Validation</h1>
-            <span className="bg-amber-50 text-amber-700 border border-amber-200/80 text-xs px-3 py-1 rounded-full font-semibold inline-flex items-center space-x-1.5 shadow-2xs">
+      {/* Modernization Workflow Step Bar */}
+      <ModernizationWorkflow
+        currentStep="validation"
+        completedSteps={['upload', 'conversion']}
+        onStepClick={(stepId) => {
+          if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
+          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
+          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, screenId));
+          if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+        }}
+      />
+
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Validation & Human Review</h1>
+            <span className="bg-amber-50 text-amber-700 border border-amber-200 text-xs px-3 py-1 rounded-full font-semibold flex items-center space-x-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
               <span>Human Review Required</span>
             </span>
           </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Review rule-based findings. Accept valid findings, reject false positives, or correct mappings to re-convert.
+          </p>
+        </div>
 
-          <div className="text-xs text-slate-500 font-medium">
-            <span>{resolvedCount} of {totalCount} Findings reviewed</span>
-          </div>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="outline"
+            onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+            className="space-x-1.5 text-xs font-semibold"
+          >
+            <Sliders className="w-4 h-4 text-brand-600" />
+            <span>Edit Mapping & Re-convert</span>
+          </Button>
         </div>
       </div>
 
-      {/* Split View Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
-        {/* Left Column: Code Viewer Panel */}
-        <div className="lg:col-span-7 bg-[#161b22] rounded-2xl border border-slate-800 overflow-hidden flex flex-col shadow-lg">
-          {/* Header Tabs */}
-          <div className="bg-[#0d1117] px-4 pt-3 flex items-center space-x-2 border-b border-slate-800 text-xs font-semibold">
-            <button
-              onClick={() => setActiveCodeTab('source')}
-              className={`px-4 py-2 rounded-t-xl transition-colors cursor-pointer ${
-                activeCodeTab === 'source'
-                  ? 'bg-[#161b22] text-slate-100 border-t border-x border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Source
-            </button>
-            <button
-              onClick={() => setActiveCodeTab('generated')}
-              className={`px-4 py-2 rounded-t-xl transition-colors cursor-pointer ${
-                activeCodeTab === 'generated'
-                  ? 'bg-[#161b22] text-slate-100 border-t border-x border-slate-700'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Generated Code
-            </button>
-          </div>
-
-          {/* Code Viewer Body */}
-          <div className="p-4 overflow-x-auto font-mono text-xs leading-6 text-slate-300 flex-1 min-h-[480px]">
-            {activeCodeTab === 'source' ? (
-              sampleBmsCodeLines.map((item) => {
-                const isSelected = item.findingId === selectedFindingId;
-                return (
-                  <div
-                    key={item.lineNum}
-                    onClick={() => item.findingId && setSelectedFindingId(item.findingId)}
-                    className={`flex items-start px-2 py-0.5 rounded transition-colors ${
-                      isSelected
-                        ? 'bg-amber-950/80 border-l-4 border-amber-500 text-amber-100 font-semibold'
-                        : item.isHighlight
-                        ? 'bg-amber-950/40 hover:bg-amber-900/50 cursor-pointer'
-                        : 'hover:bg-slate-800/30'
-                    }`}
-                  >
-                    <span className="w-16 text-slate-600 select-none font-mono text-[11px]">
-                      {item.lineNum}
-                    </span>
-                    <pre className="flex-1 overflow-x-auto whitespace-pre font-mono text-slate-200">
-                      {item.text}
-                    </pre>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-slate-400 p-4">
-                <p>// Generated React TypeScript component code preview...</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column: Findings List Panel */}
-        <div className="lg:col-span-5 flex flex-col space-y-4">
-          {/* Action Row */}
-          <div className="flex justify-end">
-            <button
-              onClick={handleAddFinding}
-              className="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all flex items-center space-x-1.5 cursor-pointer"
-            >
-              <Plus className="w-4 h-4 text-slate-500" />
-              <span>Add Finding</span>
-            </button>
-          </div>
-
-          {/* Findings Cards List */}
-          <div className="space-y-3 flex-1 overflow-y-auto max-h-[600px] pr-1">
-            {findings.map((finding) => (
-              <FindingCard
-                key={finding.id}
-                finding={finding}
-                isSelected={finding.id === selectedFindingId}
-                onSelect={() => setSelectedFindingId(finding.id)}
-                onUpdateStatus={handleUpdateStatus}
-                onMarkNotApplicable={(item) => setModalFinding(item)}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Sticky Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-6 py-4 shadow-2xl">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Progress Indicator */}
-          <div className="flex items-center space-x-3 w-full sm:w-auto">
-            <div className="w-36 sm:w-48 bg-slate-200 h-2 rounded-full overflow-hidden">
-              <div
-                className="bg-emerald-500 h-full transition-all duration-300 rounded-full"
-                style={{ width: `${Math.round((resolvedCount / totalCount) * 100)}%` }}
-              />
-            </div>
-            <span className="text-xs font-semibold text-slate-700">
-              {resolvedCount} of {totalCount} resolved
+        {/* Left Column: Finding Details & Code Context */}
+        <div className="lg:col-span-7 bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
+          <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h3 className="text-sm font-bold text-slate-900">Validation Finding Summary</h3>
+            <span className="text-xs font-semibold text-slate-500">
+              {resolvedCount} of {totalCount} reviewed
             </span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-3 w-full sm:w-auto justify-end">
-            <button
-              onClick={() => alert('Draft saved successfully!')}
-              className="px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl shadow-2xs transition-all cursor-pointer"
+          {loading ? (
+            <div className="p-8 text-center text-xs text-slate-500">Loading validation findings…</div>
+          ) : findings.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-500 flex flex-col items-center space-y-2">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+              <p className="font-semibold text-slate-900">No open findings detected!</p>
+              <p>The generated code matches legacy field rules deterministically.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {findings.map((f) => (
+                <div
+                  key={f.id}
+                  onClick={() => setSelectedFindingId(f.id)}
+                  className={`p-4 rounded-xl border transition-all cursor-pointer space-y-3 ${
+                    f.id === selectedFindingId
+                      ? 'bg-amber-50/60 border-amber-300 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-100 text-rose-700">
+                        {f.severity}
+                      </span>
+                      <span className="font-mono text-xs font-bold text-slate-900">{f.issueType}</span>
+                    </div>
+                    <span
+                      className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                        f.status === 'CONFIRMED'
+                          ? 'bg-amber-100 text-amber-800'
+                          : f.status === 'REJECTED'
+                          ? 'bg-slate-100 text-slate-600'
+                          : f.status === 'RESOLVED'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                      }`}
+                    >
+                      {f.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs font-mono bg-slate-50 p-3 rounded-lg border border-slate-200">
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase font-bold block">Source Location</span>
+                      <span className="text-slate-900 font-bold">{f.sourceLocation}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-[10px] uppercase font-bold block">Target Component</span>
+                      <span className="text-brand-700 font-bold">{f.targetLocation}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-xs space-y-1 text-slate-700">
+                    <p><strong className="text-slate-900">Expected:</strong> {f.expectedBehavior}</p>
+                    <p><strong className="text-slate-900">Actual:</strong> {f.actualBehavior}</p>
+                    <p className="text-slate-500 mt-1">{f.explanation}</p>
+                  </div>
+
+                  {f.suggestion && (
+                    <div className="bg-brand-50 p-2.5 rounded-lg border border-brand-200 text-xs text-brand-800 font-medium">
+                      💡 <strong>Action:</strong> {f.suggestion}
+                    </div>
+                  )}
+
+                  <div className="flex items-center space-x-2 pt-2 border-t border-slate-100">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAcceptFinding(f.id);
+                      }}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg flex items-center space-x-1"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Accept Finding</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRejectFinding(f.id);
+                      }}
+                      className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg flex items-center space-x-1"
+                    >
+                      <X className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Reject (False Positive)</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId));
+                      }}
+                      className="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 border border-brand-200 font-semibold text-xs rounded-lg flex items-center space-x-1 ml-auto"
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span>Correct Mapping</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Code Context & Workflow Guide */}
+        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm flex flex-col">
+          <h3 className="text-sm font-bold text-slate-900">Review Decision & Action</h3>
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-3">
+            <p className="font-bold text-slate-900">How to handle findings:</p>
+            <ul className="list-disc pl-4 space-y-1.5 text-slate-600">
+              <li><strong>Accept Finding:</strong> Confirms the issue is real and requires correction.</li>
+              <li><strong>Reject Finding:</strong> Marks finding as a false positive (no code change required).</li>
+              <li><strong>Correct Mapping & Re-convert:</strong> Opens the Mapping Editor to change field components, then re-converts to version v2.</li>
+            </ul>
+          </div>
+
+          <div className="mt-auto pt-4 border-t border-slate-100 space-y-3">
+            <Button
+              onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+              className="w-full space-x-2 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white py-2.5"
             >
-              Save Draft
-            </button>
-            <button
+              <Sliders className="w-4 h-4" />
+              <span>Correct Mapping & Re-convert (Step 4 &rarr; Step 5)</span>
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))}
-              className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs rounded-xl shadow-2xs transition-all cursor-pointer"
+              className="w-full space-x-2 text-xs font-semibold"
             >
-              Continue
-            </button>
+              <span>Finalize & Export Package (.zip)</span>
+              <Download className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Not Applicable Modal Overlay */}
-      <NotApplicableModal
-        isOpen={!!modalFinding}
-        onClose={() => setModalFinding(null)}
-        onConfirm={handleConfirmNotApplicable}
-        findingLineNumber={modalFinding?.lineNumber}
-      />
+      {/* Sticky Bottom Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 px-6 py-4 shadow-2xl">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center space-x-3 text-xs font-semibold text-slate-700">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>{resolvedCount} of {totalCount} findings reviewed</span>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+              className="space-x-1.5 text-xs font-semibold"
+            >
+              <Sliders className="w-3.5 h-3.5 text-brand-600" />
+              <span>Correct Mapping & Re-convert</span>
+            </Button>
+            <Button
+              onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))}
+              className="space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white"
+            >
+              <span>Finalize & Export (.zip)</span>
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

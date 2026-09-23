@@ -118,16 +118,17 @@ export const ProjectsListPage: React.FC = () => {
           filteredProjects.map((p) => (
             <div
               key={p.id}
-              className="bg-white border border-[#D9E2EC] rounded-2xl p-6 shadow-2xs hover:border-[#0652CC]/50 transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6"
+              onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
+              className="bg-white border border-[#D9E2EC] hover:border-[#0652CC] rounded-2xl p-6 shadow-2xs hover:shadow-md transition-all flex flex-col lg:flex-row lg:items-center justify-between gap-6 cursor-pointer group"
             >
               <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[#E8F1FF] text-[#0652CC] group-hover:bg-[#0652CC] group-hover:text-white transition-colors flex items-center justify-center shrink-0">
                     <FolderKanban className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h3 className="font-bold text-base text-[#091E42]">{p.name}</h3>
+                      <h3 className="font-bold text-base text-[#091E42] group-hover:text-[#0652CC] transition-colors">{p.name}</h3>
                       <StatusBadge status={p.status} />
                     </div>
                     {p.description && <p className="text-xs text-[#42526E] mt-0.5 line-clamp-1">{p.description}</p>}
@@ -151,7 +152,10 @@ export const ProjectsListPage: React.FC = () => {
               {/* Actions */}
               <div className="flex items-center space-x-2 pt-4 lg:pt-0 border-t lg:border-t-0 border-[#E5EAF0]">
                 <Button
-                  onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(ROUTES.PROJECTS.SCREENS(p.id));
+                  }}
                   className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs font-bold space-x-1.5 shadow-2xs"
                 >
                   <span>Open Workspace</span>
@@ -159,7 +163,10 @@ export const ProjectsListPage: React.FC = () => {
                 </Button>
                 <Button
                   variant="secondary"
-                  onClick={() => navigate(ROUTES.PROJECTS.DELETE(p.id))}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(ROUTES.PROJECTS.DELETE(p.id));
+                  }}
                   className="p-2 border border-[#D9E2EC] text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors rounded-xl"
                   title="Delete Project"
                 >
