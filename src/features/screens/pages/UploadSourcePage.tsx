@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, Cpu } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Cpu } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -38,6 +38,26 @@ export const UploadSourcePage: React.FC = () => {
     if (e.target.files?.length) void handleFiles(Array.from(e.target.files));
     // Reset so selecting the exact same file(s) again still fires onChange.
     e.target.value = '';
+  };
+
+  const acceptedExtensions = activeTab === 'screens' ? ['.bms', '.dspf'] : ['.cob', '.cbl', '.cpy'];
+
+  /** Folder picks (webkitdirectory) return every file in the tree, including ones we don't
+   * accept (README, .gitignore, etc.) and files nested in different subfolders (e.g. a
+   * carddemo layout with sibling cbl/ and cpy/ dirs) — only the browser-reported basename
+   * (not the subfolder path) is sent to the backend, so programs and their copybooks still
+   * land in the same upload bundle/directory regardless of which subfolder they came from. */
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files ? Array.from(e.target.files) : [];
+    e.target.value = '';
+    const matched = picked.filter((file) =>
+      acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
+    );
+    if (matched.length === 0) return;
+    if (matched.length < picked.length) {
+      console.warn(`Skipped ${picked.length - matched.length} file(s) with unsupported extension from folder upload`);
+    }
+    void handleFiles(matched);
   };
 
   const failedRow = (file: File): SourceFile => ({
@@ -190,20 +210,36 @@ export const UploadSourcePage: React.FC = () => {
           multiple
           className="hidden"
         />
-        <label htmlFor="file-upload" className="cursor-pointer space-y-4 block">
-          <div className="w-16 h-16 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto text-brand-600 group-hover:scale-110 transition-transform">
-            <UploadCloud className="w-8 h-8" />
-          </div>
-          <div>
-            <p className="text-base font-bold text-slate-900">Drag and drop your files here</p>
-            <p className="text-xs text-brand-600 font-semibold mt-1">or click to browse from device</p>
-          </div>
-          <p className="text-xs text-slate-500">
-            {activeTab === 'screens'
-              ? 'Accepted: .bms, .dspf — select or drop multiple screens at once (max 50MB/file)'
-              : 'Accepted: .cob, .cbl, .cpy — select the program together with its copybooks in one go (max 50MB/file)'}
+        <input
+          type="file"
+          id="folder-upload"
+          onChange={handleFolderSelect}
+          multiple
+          className="hidden"
+          {...{ webkitdirectory: 'true', directory: 'true', mozdirectory: 'true' }}
+        />
+        <div className="w-16 h-16 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto text-brand-600 group-hover:scale-110 transition-transform">
+          <UploadCloud className="w-8 h-8" />
+        </div>
+        <div className="mt-4">
+          <label htmlFor="file-upload" className="text-base font-bold text-slate-900 cursor-pointer block">
+            Drag and drop your files here
+          </label>
+          <p className="text-xs text-brand-600 font-semibold mt-1">
+            <label htmlFor="file-upload" className="underline hover:text-brand-800 cursor-pointer">
+              click to browse from device
+            </label>
+            {' · '}
+            <label htmlFor="folder-upload" className="underline hover:text-brand-800 cursor-pointer">
+              select an entire folder
+            </label>
           </p>
-        </label>
+        </div>
+        <p className="text-xs text-slate-500 mt-4">
+          {activeTab === 'screens'
+            ? 'Accepted: .bms, .dspf — select or drop multiple screens at once (max 50MB/file)'
+            : 'Accepted: .cob, .cbl, .cpy — select the program(s) together with their copybooks, or select the whole application folder at once (max 50MB/file)'}
+        </p>
       </div>
 
       {isUploading && (
@@ -292,6 +328,12 @@ export const UploadSourcePage: React.FC = () => {
             <Button type="button" variant="outline" className="space-x-1.5 cursor-pointer font-semibold">
               <FolderPlus className="w-4 h-4 text-slate-600" />
               <span>Add More Files</span>
+            </Button>
+          </label>
+          <label htmlFor="folder-upload">
+            <Button type="button" variant="outline" className="space-x-1.5 cursor-pointer font-semibold">
+              <FolderUp className="w-4 h-4 text-slate-600" />
+              <span>Add Folder</span>
             </Button>
           </label>
           <Button onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))} className="space-x-2 font-semibold">
