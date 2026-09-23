@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Shield, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -10,7 +10,7 @@ import { Button } from '@/shared/ui/Button';
 import { useConversionJob } from '../queries/useConversionJob';
 import { useConversionResult } from '../queries/useConversionResult';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
-import { generateScreenBundle, parseConvertedTsx } from '../utils/screenGenerator';
+import { generateScreenBundle } from '../utils/screenGenerator';
 
 export const PreviewStudioPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -35,14 +35,6 @@ export const PreviewStudioPage: React.FC = () => {
 
   const screenName = screen?.name ?? screenId;
   const fallbackBundle = useMemo(() => generateScreenBundle(screenName), [screenName]);
-
-  const screenBundle = useMemo(() => {
-    const tsxFile = resultBundle?.files?.find((f) => f.relativePath.endsWith('.tsx')) ?? resultBundle?.files?.[0];
-    if (tsxFile?.content) {
-      return parseConvertedTsx(tsxFile.content, screenName);
-    }
-    return fallbackBundle;
-  }, [resultBundle, screenName, fallbackBundle]);
 
   const previewTitle = screenName.replace(/\.(bms|dspf)$/i, '.tsx');
 

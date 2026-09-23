@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Play, Download, RefreshCw, CheckCircle2, Shield, Sliders, AlertCircle, FileSearch, Eye, XCircle } from 'lucide-react';
+import { Play, Download, RefreshCw, CheckCircle2, Sliders, AlertCircle, FileSearch, Eye, XCircle } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import { useConversionJob } from '../queries/useConversionJob';
 import { useCreateConversionJob } from '../queries/useCreateConversionJob';
@@ -64,13 +64,7 @@ export const ConvertScreenPage: React.FC = () => {
   }, [resultBundle, isCompleted, fallbackBundle]);
   const selectedFile = files[selectedFileIndex] ?? files[0] ?? null;
 
-  const screenBundle = useMemo(() => {
-    const tsxFile = files.find((f) => f.relativePath.endsWith('.tsx')) ?? files[0];
-    if (tsxFile?.content) {
-      return parseConvertedTsx(tsxFile.content, screenName);
-    }
-    return fallbackBundle;
-  }, [files, screenName, fallbackBundle]);
+
 
   const metadata = useMemo(() => {
     const jsonFile = files.find((f) => f.relativePath.endsWith('.metadata.json'));
