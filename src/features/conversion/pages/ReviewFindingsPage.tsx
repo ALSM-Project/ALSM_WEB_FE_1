@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
@@ -20,12 +20,21 @@ import { StatusBadge } from '@/shared/ui/Badge';
 import { useConversionJob } from '../queries/useConversionJob';
 import {
   useTriggerAiValidation,
+  useReviewValidationFinding,
   useValidationFindings,
   useValidationRun,
   useValidationRuns,
 } from '../queries/useValidation';
-import { ValidationFindingStatus, ValidationRunStatus } from '../types/validation';
 import {
+  ValidationFindingStatus,
+  ValidationRunStatus,
+  type HumanReviewTargetStatus,
+  type ValidationFinding,
+} from '../types/validation';
+import { FindingCard } from '../components/FindingCard';
+import { NotApplicableModal } from '../components/NotApplicableModal';
+import {
+  deriveReviewOperationState,
   deriveReviewFindingsPageState,
   selectLatestValidationRun,
 } from './reviewFindingsState';
@@ -50,6 +59,18 @@ function triggerErrorMessage(error: unknown): string | null {
     503: 'AI validation is currently unavailable.',
   };
   return messages[error.status] ?? 'AI validation could not be started. Please try again.';
+}
+
+function reviewErrorMessage(error: unknown): string | null {
+  if (!error) return null;
+  if (!(error instanceof ApiError)) return 'The review decision could not be saved. Please try again.';
+  const messages: Record<number, string> = {
+    400: 'This review transition is no longer valid. The latest finding state has been reloaded.',
+    403: 'You do not have permission to review this finding.',
+    404: 'The validation finding could not be found.',
+    409: 'This finding was updated by another reviewer. The latest state has been reloaded.',
+  };
+  return messages[error.status] ?? 'The review decision could not be saved. Please try again.';
 }
 
 function StatePanel({
@@ -93,6 +114,9 @@ export const ReviewFindingsPage: React.FC = () => {
   const currentRun = runQuery.data ?? selectedRun;
   const completedRun = currentRun?.status === ValidationRunStatus.COMPLETED;
   const findingsQuery = useValidationFindings(projectId, currentRun?.id, completedRun);
+  const reviewFinding = useReviewValidationFinding(projectId, currentRun?.id);
+  const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
+  const [notApplicableFinding, setNotApplicableFinding] = useState<ValidationFinding | null>(null);
 
   const pageState = deriveReviewFindingsPageState({
     conversion,
@@ -109,8 +133,28 @@ export const ReviewFindingsPage: React.FC = () => {
   const validationActive =
     currentRun?.status === ValidationRunStatus.QUEUED ||
     currentRun?.status === ValidationRunStatus.PROCESSING;
-  const continueDisabled = validationActive || triggerValidation.isPending;
+  const reviewConflict = reviewFinding.error instanceof ApiError && reviewFinding.error.status === 409;
+  const reviewOperationState = deriveReviewOperationState(reviewFinding.isPending, reviewConflict);
+  const continueDisabled = validationActive || triggerValidation.isPending || reviewFinding.isPending;
   const triggerError = triggerErrorMessage(triggerValidation.error);
+  const reviewError = reviewErrorMessage(reviewFinding.error);
+  const selectedFinding =
+    findings.find((finding) => finding.id === selectedFindingId) ?? findings[0];
+
+  const submitReview = (finding: ValidationFinding, status: HumanReviewTargetStatus) => {
+    reviewFinding.mutate({ findingId: finding.id, input: { status } });
+  };
+
+  const submitNotApplicable = (reason: string) => {
+    if (!notApplicableFinding) return;
+    reviewFinding.mutate(
+      {
+        findingId: notApplicableFinding.id,
+        input: { status: ValidationFindingStatus.NOT_APPLICABLE, reviewNote: reason },
+      },
+      { onSuccess: () => setNotApplicableFinding(null) },
+    );
+  };
 
   const runValidationButton = (label: string) => (
     <Button
@@ -252,22 +296,27 @@ export const ReviewFindingsPage: React.FC = () => {
               </div>
               <StatusBadge status="Completed" />
             </div>
+            {reviewOperationState === 'REVIEW_MUTATING' && (
+              <p className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm font-medium text-blue-700" role="status">
+                Saving review decision…
+              </p>
+            )}
+            {reviewError && (
+              <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-700" role="alert">
+                {reviewError}
+              </p>
+            )}
             <div className="space-y-3">
               {findings.map((finding) => (
-                <article key={finding.id} className="rounded-xl border border-slate-200 p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded bg-indigo-50 px-2 py-1 text-[11px] font-bold text-indigo-700">
-                      {finding.source}
-                    </span>
-                    <span className="rounded bg-rose-50 px-2 py-1 text-[11px] font-bold text-rose-700">
-                      {finding.severity}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500">{finding.category}</span>
-                    <span className="ml-auto text-xs font-bold text-slate-600">{finding.status}</span>
-                  </div>
-                  <h3 className="mt-3 text-sm font-bold text-slate-900">{finding.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-slate-600">{finding.explanation}</p>
-                </article>
+                <FindingCard
+                  key={finding.id}
+                  finding={finding}
+                  isSelected={finding.id === selectedFinding?.id}
+                  isSubmitting={reviewFinding.isPending}
+                  onSelect={() => setSelectedFindingId(finding.id)}
+                  onReview={submitReview}
+                  onMarkNotApplicable={setNotApplicableFinding}
+                />
               ))}
             </div>
           </div>
@@ -317,6 +366,16 @@ export const ReviewFindingsPage: React.FC = () => {
       </header>
 
       {renderState()}
+
+      {notApplicableFinding && (
+        <NotApplicableModal
+          findingTitle={notApplicableFinding.title}
+          onClose={() => setNotApplicableFinding(null)}
+          onConfirm={submitNotApplicable}
+          isSubmitting={reviewFinding.isPending}
+          errorMessage={reviewError}
+        />
+      )}
 
       <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white px-6 py-4 shadow-2xl">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">

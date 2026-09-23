@@ -18,6 +18,17 @@ export type ReviewFindingsPageState =
   | 'VALIDATION_COMPLETED_WITH_FINDINGS'
   | 'VALIDATION_FAILED';
 
+export type ReviewOperationState = 'IDLE' | 'REVIEW_MUTATING' | 'REVIEW_CONFLICT';
+
+export function deriveReviewOperationState(
+  isPending: boolean,
+  isConflict: boolean,
+): ReviewOperationState {
+  if (isPending) return 'REVIEW_MUTATING';
+  if (isConflict) return 'REVIEW_CONFLICT';
+  return 'IDLE';
+}
+
 interface DeriveReviewFindingsPageStateInput {
   conversion: ConversionJob | null | undefined;
   conversionLoading: boolean;

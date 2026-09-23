@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ValidationRunStatus, type ValidationRun } from '../types/validation';
-import { selectLatestValidationRun } from './reviewFindingsState';
+import { deriveReviewOperationState, selectLatestValidationRun } from './reviewFindingsState';
 
 function run(id: string, createdAt: string): ValidationRun {
   return {
@@ -25,5 +25,15 @@ describe('selectLatestValidationRun', () => {
         run('newer', '2026-09-23T00:00:00.000Z'),
       ])?.id,
     ).toBe('newer');
+  });
+});
+
+describe('deriveReviewOperationState', () => {
+  it('makes an in-flight server review explicit', () => {
+    expect(deriveReviewOperationState(true, false)).toBe('REVIEW_MUTATING');
+  });
+
+  it('makes a stale-review conflict explicit', () => {
+    expect(deriveReviewOperationState(false, true)).toBe('REVIEW_CONFLICT');
   });
 });

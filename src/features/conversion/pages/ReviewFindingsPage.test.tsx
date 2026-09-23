@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApiError } from '@/services/api/apiError';
 import type { ConversionJob } from '../services/conversion.service';
 import {
   ValidationFindingStatus,
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   useValidationRun: vi.fn(),
   useValidationFindings: vi.fn(),
   useTriggerAiValidation: vi.fn(),
+  useReviewValidationFinding: vi.fn(),
 }));
 
 vi.mock('../queries/useConversionJob', () => ({ useConversionJob: mocks.useConversionJob }));
@@ -24,6 +26,7 @@ vi.mock('../queries/useValidation', () => ({
   useValidationRun: mocks.useValidationRun,
   useValidationFindings: mocks.useValidationFindings,
   useTriggerAiValidation: mocks.useTriggerAiValidation,
+  useReviewValidationFinding: mocks.useReviewValidationFinding,
 }));
 
 const conversion: ConversionJob = {
@@ -87,6 +90,11 @@ beforeEach(() => {
   mocks.useValidationFindings.mockReturnValue(queryResult([]));
   mocks.useTriggerAiValidation.mockReturnValue({
     data: undefined,
+    mutate: vi.fn(),
+    isPending: false,
+    error: null,
+  });
+  mocks.useReviewValidationFinding.mockReturnValue({
     mutate: vi.fn(),
     isPending: false,
     error: null,
@@ -182,5 +190,129 @@ describe('ReviewFindingsPage validation lifecycle', () => {
     expect(screen.getByText('AI_PROVIDER_UNAVAILABLE')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Run Validation Again' }));
     expect(mutate).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    ['Needs Correction', ValidationFindingStatus.NEEDS_CORRECTION],
+    ['Manual Review', ValidationFindingStatus.MANUAL_REVIEW],
+  ] as const)('persists the %s decision through the review mutation', (label, status) => {
+    const mutate = vi.fn();
+    const completedWithFindings = { ...run, findingCount: 1 };
+    mocks.useValidationRuns.mockReturnValue(queryResult([completedWithFindings]));
+    mocks.useValidationRun.mockReturnValue(queryResult(completedWithFindings));
+    mocks.useValidationFindings.mockReturnValue(queryResult([finding]));
+    mocks.useReviewValidationFinding.mockReturnValue({ mutate, isPending: false, error: null });
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: label }));
+
+    expect(mutate).toHaveBeenCalledWith({
+      findingId: 'finding-1',
+      input: { status },
+    });
+  });
+
+  it('requires a reason before persisting Not Applicable', () => {
+    const mutate = vi.fn();
+    const completedWithFindings = { ...run, findingCount: 1 };
+    mocks.useValidationRuns.mockReturnValue(queryResult([completedWithFindings]));
+    mocks.useValidationRun.mockReturnValue(queryResult(completedWithFindings));
+    mocks.useValidationFindings.mockReturnValue(queryResult([finding]));
+    mocks.useReviewValidationFinding.mockReturnValue({ mutate, isPending: false, error: null });
+    renderPage();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Not Applicable' }));
+    const confirm = screen.getByRole('button', { name: 'Confirm' });
+    expect(confirm).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/Reason/), {
+      target: { value: 'This branch is not used by the migrated flow.' },
+    });
+    fireEvent.click(confirm);
+
+    expect(mutate).toHaveBeenCalledWith(
+      {
+        findingId: 'finding-1',
+        input: {
+          status: ValidationFindingStatus.NOT_APPLICABLE,
+          reviewNote: 'This branch is not used by the migrated flow.',
+        },
+      },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+  });
+
+  it('only exposes Resolved when the backend transition map allows it', () => {
+    const mutate = vi.fn();
+    const completedWithFindings = { ...run, findingCount: 1 };
+    mocks.useValidationRuns.mockReturnValue(queryResult([completedWithFindings]));
+    mocks.useValidationRun.mockReturnValue(queryResult(completedWithFindings));
+    mocks.useValidationFindings.mockReturnValue(queryResult([finding]));
+    mocks.useReviewValidationFinding.mockReturnValue({ mutate, isPending: false, error: null });
+    const { rerender } = renderPage();
+
+    expect(screen.queryByRole('button', { name: 'Resolved' })).not.toBeInTheDocument();
+
+    mocks.useValidationFindings.mockReturnValue(
+      queryResult([{ ...finding, status: ValidationFindingStatus.NEEDS_CORRECTION }]),
+    );
+    rerender(
+      <MemoryRouter initialEntries={['/projects/project-1/screens/screen-1/review']}>
+        <Routes>
+          <Route
+            path="/projects/:projectId/screens/:screenId/review"
+            element={<ReviewFindingsPage />}
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Resolved' }));
+    expect(mutate).toHaveBeenCalledWith({
+      findingId: 'finding-1',
+      input: { status: ValidationFindingStatus.RESOLVED },
+    });
+  });
+
+  it('shows the conflict message without applying a local status change', () => {
+    const completedWithFindings = { ...run, findingCount: 1 };
+    mocks.useValidationRuns.mockReturnValue(queryResult([completedWithFindings]));
+    mocks.useValidationRun.mockReturnValue(queryResult(completedWithFindings));
+    mocks.useValidationFindings.mockReturnValue(queryResult([finding]));
+    mocks.useReviewValidationFinding.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+      error: new ApiError('Conflict', 409),
+    });
+    renderPage();
+
+    expect(
+      screen.getByText(
+        'This finding was updated by another reviewer. The latest state has been reloaded.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Pending')).toBeInTheDocument();
+  });
+
+  it('reconstructs reviewed status and notes from query data', () => {
+    const completedWithFindings = { ...run, findingCount: 1 };
+    mocks.useValidationRuns.mockReturnValue(queryResult([completedWithFindings]));
+    mocks.useValidationRun.mockReturnValue(queryResult(completedWithFindings));
+    mocks.useValidationFindings.mockReturnValue(
+      queryResult([
+        {
+          ...finding,
+          status: ValidationFindingStatus.NOT_APPLICABLE,
+          reviewNote: 'Confirmed as out of scope.',
+          reviewedBy: 'reviewer-1',
+          reviewedAt: '2026-09-23T02:00:00.000Z',
+        },
+      ]),
+    );
+    renderPage();
+
+    expect(screen.getAllByText('1 of 1 findings reviewed')).toHaveLength(2);
+    expect(screen.getByText(/Confirmed as out of scope/)).toBeInTheDocument();
+    expect(screen.getByText('Reviewed by reviewer-1')).toBeInTheDocument();
   });
 });
