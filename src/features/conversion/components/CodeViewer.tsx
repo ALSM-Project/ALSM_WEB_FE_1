@@ -5,9 +5,17 @@ export interface CodeViewerProps {
   code: string;
   language?: string;
   filename?: string;
+  highlightStartLine?: number;
+  highlightEndLine?: number;
 }
 
-export const CodeViewer: React.FC<CodeViewerProps> = ({ code, language = 'tsx', filename }) => {
+export const CodeViewer: React.FC<CodeViewerProps> = ({
+  code,
+  language = 'tsx',
+  filename,
+  highlightStartLine,
+  highlightEndLine,
+}) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -37,12 +45,31 @@ export const CodeViewer: React.FC<CodeViewerProps> = ({ code, language = 'tsx', 
       <div className="p-4 overflow-auto flex-grow max-h-[500px]">
         <table className="w-full border-collapse">
           <tbody>
-            {lines.map((line, idx) => (
-              <tr key={idx} className="hover:bg-slate-900/60 leading-relaxed">
-                <td className="w-10 select-none text-slate-600 text-right pr-4 py-0.5">{idx + 1}</td>
-                <td className="text-slate-200 whitespace-pre py-0.5">{line}</td>
-              </tr>
-            ))}
+            {lines.map((line, idx) => {
+              const lineNumber = idx + 1;
+              const highlighted =
+                highlightStartLine !== undefined &&
+                lineNumber >= highlightStartLine &&
+                lineNumber <= (highlightEndLine ?? highlightStartLine);
+              return (
+                <tr
+                  key={idx}
+                  data-highlighted={highlighted || undefined}
+                  className={`leading-relaxed ${
+                    highlighted ? 'bg-amber-500/20' : 'hover:bg-slate-900/60'
+                  }`}
+                >
+                  <td
+                    className={`w-10 select-none py-0.5 pr-4 text-right ${
+                      highlighted ? 'text-amber-300' : 'text-slate-600'
+                    }`}
+                  >
+                    {lineNumber}
+                  </td>
+                  <td className="text-slate-200 whitespace-pre py-0.5">{line}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

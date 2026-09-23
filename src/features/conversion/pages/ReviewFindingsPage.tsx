@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock3,
   Download,
+  FileCode,
   LoaderCircle,
   Play,
   Sliders,
@@ -18,6 +19,7 @@ import { Button } from '@/shared/ui/Button';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { useConversionJob } from '../queries/useConversionJob';
+import { useConversionResult } from '../queries/useConversionResult';
 import {
   useTriggerAiValidation,
   useReviewValidationFinding,
@@ -32,10 +34,12 @@ import {
   type ValidationFinding,
 } from '../types/validation';
 import { FindingCard } from '../components/FindingCard';
+import { CodeViewer } from '../components/CodeViewer';
 import { NotApplicableModal } from '../components/NotApplicableModal';
 import {
   deriveReviewOperationState,
   deriveReviewFindingsPageState,
+  findResultFileForLocation,
   selectLatestValidationRun,
 } from './reviewFindingsState';
 
@@ -102,6 +106,10 @@ export const ReviewFindingsPage: React.FC = () => {
   const conversionQuery = useConversionJob(projectId, screenId);
   const conversion = conversionQuery.data;
   const conversionCompleted = conversion?.status === 'COMPLETED';
+  const conversionResultQuery = useConversionResult(
+    conversion?.id,
+    Boolean(conversionCompleted && conversion?.resultReference),
+  );
   const runsQuery = useValidationRuns(projectId, conversion?.id, conversionCompleted);
   const triggerValidation = useTriggerAiValidation(projectId, conversion?.id);
 
@@ -116,6 +124,7 @@ export const ReviewFindingsPage: React.FC = () => {
   const findingsQuery = useValidationFindings(projectId, currentRun?.id, completedRun);
   const reviewFinding = useReviewValidationFinding(projectId, currentRun?.id);
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
+  const [selectedGeneratedFilePath, setSelectedGeneratedFilePath] = useState<string | null>(null);
   const [notApplicableFinding, setNotApplicableFinding] = useState<ValidationFinding | null>(null);
 
   const pageState = deriveReviewFindingsPageState({
@@ -140,6 +149,19 @@ export const ReviewFindingsPage: React.FC = () => {
   const reviewError = reviewErrorMessage(reviewFinding.error);
   const selectedFinding =
     findings.find((finding) => finding.id === selectedFindingId) ?? findings[0];
+  const generatedFiles = conversionResultQuery.data?.files ?? [];
+  const locationGeneratedFile = findResultFileForLocation(
+    generatedFiles,
+    selectedFinding?.targetLocation,
+  );
+  const manuallySelectedGeneratedFile = generatedFiles.find(
+    (file) => file.relativePath === selectedGeneratedFilePath,
+  );
+  const selectedGeneratedFile =
+    manuallySelectedGeneratedFile ?? locationGeneratedFile ?? generatedFiles[0];
+  const locationMatchesSelectedFile =
+    Boolean(locationGeneratedFile) &&
+    locationGeneratedFile?.relativePath === selectedGeneratedFile?.relativePath;
 
   const submitReview = (finding: ValidationFinding, status: HumanReviewTargetStatus) => {
     reviewFinding.mutate({ findingId: finding.id, input: { status } });
@@ -286,39 +308,118 @@ export const ReviewFindingsPage: React.FC = () => {
         );
       case 'VALIDATION_COMPLETED_WITH_FINDINGS':
         return (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="grid gap-6 lg:grid-cols-12">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-7">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">Validation Finding Summary</h2>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {reviewedCount} of {findings.length} findings reviewed
+                  </p>
+                </div>
+                <StatusBadge status="Completed" />
+              </div>
+              {reviewOperationState === 'REVIEW_MUTATING' && (
+                <p className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm font-medium text-blue-700" role="status">
+                  Saving review decision…
+                </p>
+              )}
+              {reviewError && (
+                <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-700" role="alert">
+                  {reviewError}
+                </p>
+              )}
+              <div className="space-y-3">
+                {findings.map((finding) => (
+                  <FindingCard
+                    key={finding.id}
+                    finding={finding}
+                    isSelected={finding.id === selectedFinding?.id}
+                    isSubmitting={reviewFinding.isPending}
+                    onSelect={() => {
+                      setSelectedFindingId(finding.id);
+                      setSelectedGeneratedFilePath(null);
+                    }}
+                    onReview={submitReview}
+                    onMarkNotApplicable={setNotApplicableFinding}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <aside className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-5">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Validation Finding Summary</h2>
+                <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                  <FileCode className="h-4 w-4 text-brand-600" />
+                  Code context
+                </h2>
                 <p className="mt-1 text-xs text-slate-500">
-                  {reviewedCount} of {findings.length} findings reviewed
+                  Locations come from the persisted finding. No code snippets are fabricated.
                 </p>
               </div>
-              <StatusBadge status="Completed" />
-            </div>
-            {reviewOperationState === 'REVIEW_MUTATING' && (
-              <p className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm font-medium text-blue-700" role="status">
-                Saving review decision…
-              </p>
-            )}
-            {reviewError && (
-              <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-700" role="alert">
-                {reviewError}
-              </p>
-            )}
-            <div className="space-y-3">
-              {findings.map((finding) => (
-                <FindingCard
-                  key={finding.id}
-                  finding={finding}
-                  isSelected={finding.id === selectedFinding?.id}
-                  isSubmitting={reviewFinding.isPending}
-                  onSelect={() => setSelectedFindingId(finding.id)}
-                  onReview={submitReview}
-                  onMarkNotApplicable={setNotApplicableFinding}
-                />
-              ))}
-            </div>
+
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                  Original legacy source
+                </p>
+                <p className="mt-2 text-sm font-semibold text-slate-800">Source preview unavailable</p>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  No authorized source-file read endpoint is available. Use the source file and line
+                  metadata shown on the finding.
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                  Generated code
+                </p>
+                {generatedFiles.length > 1 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {generatedFiles.map((file) => (
+                      <button
+                        key={file.relativePath}
+                        type="button"
+                        onClick={() => setSelectedGeneratedFilePath(file.relativePath)}
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-mono ${
+                          file.relativePath === selectedGeneratedFile?.relativePath
+                            ? 'border-brand-300 bg-brand-50 font-semibold text-brand-700'
+                            : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {file.relativePath}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-3">
+                  {conversionResultQuery.isLoading ? (
+                    <p className="rounded-lg border border-slate-200 p-4 text-sm text-slate-500">
+                      Loading generated code…
+                    </p>
+                  ) : selectedGeneratedFile ? (
+                    <CodeViewer
+                      code={selectedGeneratedFile.content}
+                      filename={selectedGeneratedFile.relativePath}
+                      language="java"
+                      highlightStartLine={
+                        locationMatchesSelectedFile
+                          ? selectedFinding?.targetLocation?.startLine
+                          : undefined
+                      }
+                      highlightEndLine={
+                        locationMatchesSelectedFile
+                          ? selectedFinding?.targetLocation?.endLine
+                          : undefined
+                      }
+                    />
+                  ) : (
+                    <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
+                      Generated code preview is unavailable for this conversion.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </aside>
           </div>
         );
     }

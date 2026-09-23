@@ -13,6 +13,7 @@ import { ReviewFindingsPage } from './ReviewFindingsPage';
 
 const mocks = vi.hoisted(() => ({
   useConversionJob: vi.fn(),
+  useConversionResult: vi.fn(),
   useValidationRuns: vi.fn(),
   useValidationRun: vi.fn(),
   useValidationFindings: vi.fn(),
@@ -21,6 +22,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../queries/useConversionJob', () => ({ useConversionJob: mocks.useConversionJob }));
+vi.mock('../queries/useConversionResult', () => ({
+  useConversionResult: mocks.useConversionResult,
+}));
 vi.mock('../queries/useValidation', () => ({
   useValidationRuns: mocks.useValidationRuns,
   useValidationRun: mocks.useValidationRun,
@@ -85,6 +89,7 @@ function renderPage() {
 
 beforeEach(() => {
   mocks.useConversionJob.mockReturnValue(queryResult(conversion));
+  mocks.useConversionResult.mockReturnValue(queryResult(undefined));
   mocks.useValidationRuns.mockReturnValue(queryResult([]));
   mocks.useValidationRun.mockReturnValue(queryResult(undefined));
   mocks.useValidationFindings.mockReturnValue(queryResult([]));
@@ -314,5 +319,32 @@ describe('ReviewFindingsPage validation lifecycle', () => {
     expect(screen.getAllByText('1 of 1 findings reviewed')).toHaveLength(2);
     expect(screen.getByText(/Confirmed as out of scope/)).toBeInTheDocument();
     expect(screen.getByText('Reviewed by reviewer-1')).toBeInTheDocument();
+  });
+
+  it('shows authorized generated code and highlights the finding target location', () => {
+    const completedWithFindings = { ...run, findingCount: 1 };
+    mocks.useValidationRuns.mockReturnValue(queryResult([completedWithFindings]));
+    mocks.useValidationRun.mockReturnValue(queryResult(completedWithFindings));
+    mocks.useValidationFindings.mockReturnValue(
+      queryResult([
+        {
+          ...finding,
+          targetLocation: { file: 'src/Payment.java', startLine: 2, endLine: 2 },
+        },
+      ]),
+    );
+    mocks.useConversionResult.mockReturnValue(
+      queryResult({
+        conversionJobId: 'job-1',
+        files: [
+          { relativePath: 'src/Payment.java', content: 'class Payment {\n  void pay() {}\n}' },
+        ],
+      }),
+    );
+    renderPage();
+
+    expect(screen.getByText('Source preview unavailable')).toBeInTheDocument();
+    expect(screen.getByText('src/Payment.java')).toBeInTheDocument();
+    expect(screen.getAllByRole('row')[1]).toHaveAttribute('data-highlighted', 'true');
   });
 });

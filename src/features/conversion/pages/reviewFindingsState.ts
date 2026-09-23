@@ -1,9 +1,31 @@
 import type { ConversionJob } from '../services/conversion.service';
+import type { ConversionResultFile } from '../types/conversion';
 import {
+  type CodeLocation,
   ValidationRunStatus,
   type ValidationFinding,
   type ValidationRun,
 } from '../types/validation';
+
+function normalizedPath(path: string): string {
+  return path.replace(/\\/g, '/').replace(/^\.\//, '').toLowerCase();
+}
+
+export function findResultFileForLocation(
+  files: ConversionResultFile[],
+  location: CodeLocation | undefined,
+): ConversionResultFile | undefined {
+  if (!location?.file) return undefined;
+  const requestedPath = normalizedPath(location.file);
+  const exactMatch = files.find((file) => normalizedPath(file.relativePath) === requestedPath);
+  if (exactMatch) return exactMatch;
+
+  const requestedName = requestedPath.split('/').at(-1);
+  const basenameMatches = files.filter(
+    (file) => normalizedPath(file.relativePath).split('/').at(-1) === requestedName,
+  );
+  return basenameMatches.length === 1 ? basenameMatches[0] : undefined;
+}
 
 export type ReviewFindingsPageState =
   | 'LOADING_CONVERSION'
