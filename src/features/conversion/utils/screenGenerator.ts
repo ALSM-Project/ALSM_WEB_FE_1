@@ -100,7 +100,6 @@ export function parseConvertedTsx(tsxCode: string, fallbackName = 'Screen'): Gen
     files: [],
     linesOfCode: tsxCode.split('\n').length,
   };
-}xCode.split('\n').length,
-  };
 }
+
 
