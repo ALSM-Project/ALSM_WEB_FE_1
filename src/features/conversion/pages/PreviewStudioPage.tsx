@@ -10,6 +10,7 @@ import { Button } from '@/shared/ui/Button';
 import { useConversionJob } from '../queries/useConversionJob';
 import { useConversionResult } from '../queries/useConversionResult';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
+import { generateScreenBundle } from '../utils/screenGenerator';
 
 export const PreviewStudioPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
