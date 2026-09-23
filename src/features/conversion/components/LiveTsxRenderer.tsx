@@ -15,7 +15,7 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
   onEditMapping,
   metadata,
 }) => {
-  const [viewMode, setViewMode] = useState<'legacy' | 'ui' | 'code'>(metadata ? 'legacy' : 'ui');
+  const viewMode = metadata ? 'legacy' : 'ui';
 
   // Parse TSX code into structured bundle (title, subtitle, fields)
   const bundle = useMemo(() => parseConvertedTsx(tsxCode, screenName), [tsxCode, screenName]);
@@ -69,27 +69,10 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
             <div className="bg-slate-200 p-0.5 rounded-lg flex items-center text-xs font-semibold">
               <button
                 type="button"
-                onClick={() => setViewMode('ui')}
-                className={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 ${
-                  viewMode === 'ui'
-                    ? 'bg-white text-slate-900 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className="px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 bg-white text-slate-900 shadow-xs font-bold"
               >
                 <Monitor className="w-3.5 h-3.5 text-[#0652CC]" />
                 <span>Modern UI</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('code')}
-                className={`px-3 py-1 rounded-md transition-all flex items-center space-x-1.5 ${
-                  viewMode === 'code'
-                    ? 'bg-white text-slate-900 shadow-xs font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <Code className="w-3.5 h-3.5 text-slate-600" />
-                <span>Generated TSX</span>
               </button>
             </div>
           )}
@@ -125,7 +108,7 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
             )}
           </div>
         </div>
-      ) : viewMode === 'ui' ? (
+      ) : (
         <div className="p-6 sm:p-8 bg-white space-y-6">
           {/* Live Interactive Form */}
           <form onSubmit={handleFormSubmit} className="space-y-5 text-xs">
@@ -193,11 +176,6 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
               </div>
             )}
           </form>
-        </div>
-      ) : (
-        /* TSX Code View */
-        <div className="p-4 bg-[#0d1117] text-slate-100 font-mono text-xs overflow-auto max-h-[480px]">
-          <pre>{tsxCode || '// No TSX code available'}</pre>
         </div>
       )}
     </div>
