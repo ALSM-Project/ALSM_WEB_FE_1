@@ -142,6 +142,7 @@ export function parseConvertedTsx(tsxCode: string, fallbackName = 'Screen'): Gen
         type: 'text',
       });
     }
+  }
   // 5. Dynamic fallback if no input/label fields were matched
   if (fields.length === 0) {
     const screenKey = fallbackName.toUpperCase();
