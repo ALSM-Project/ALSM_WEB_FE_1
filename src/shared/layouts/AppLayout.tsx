@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { Bell, Settings, ChevronDown, Sparkles, User, CreditCard, LogOut } from 'lucide-react';
+import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
+import { Bell, Settings, ChevronDown, User, CreditCard, LogOut } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
@@ -17,10 +17,18 @@ const getInitials = (name?: string) => {
 
 export const AppLayoutContent: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const { theme } = useWeb1Theme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  React.useEffect(() => {
+    const match = location.pathname.match(/^\/projects\/([^/]+)/);
+    if (match && match[1] && match[1] !== 'create' && match[1] !== 'new') {
+      localStorage.setItem('last_active_project_id', match[1]);
+    }
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     await logout();
@@ -116,7 +124,7 @@ export const AppLayoutContent: React.FC = () => {
                     }}
                     className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <CreditCard className="w-3.5 h-3.5 text-slate-400" />
                     <span>Contact & Upgrade</span>
                   </button>
                   <Link
@@ -146,15 +154,13 @@ export const AppLayoutContent: React.FC = () => {
               )}
             </div>
 
-            {/* Upgrade Button to the right of Avatar */}
+            {/* Simple text Upgrade Button */}
             <button
               type="button"
               onClick={() => navigate('/workspace/contact')}
-              className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer"
-              title="Reach limit? Click to Contact & Upgrade"
+              className="px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Upgrade</span>
+              Upgrade
             </button>
           </div>
         </header>
