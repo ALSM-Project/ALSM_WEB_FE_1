@@ -12,7 +12,7 @@ import { Button } from '@/shared/ui/Button';
 import { CodeViewer } from '../components/CodeViewer';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 
-import { generateScreenBundle, parseConvertedTsx } from '../utils/screenGenerator';
+import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
 
 export const ConvertScreenPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -217,70 +217,12 @@ export const ConvertScreenPage: React.FC = () => {
 
           <div className="p-8 md:p-12 flex justify-center bg-slate-100 min-h-[400px]">
             {isCompleted ? (
-              /* Dynamic BMS Screen Render after conversion algorithm runs */
-              <div className="w-full max-w-xl bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-md space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold">
-                      <Shield className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900 font-mono">{screenBundle.title}</h3>
-                      <p className="text-xs text-slate-500">{screenBundle.subtitle}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
-                      className="bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 text-xs px-2.5 py-1 rounded-full font-semibold flex items-center space-x-1"
-                    >
-                      <Sliders className="w-3.5 h-3.5" />
-                      <span>Fix / Edit Mapping</span>
-                    </button>
-                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-1 rounded-full font-semibold">
-                      Algorithm Generated
-                    </span>
-                  </div>
-                </div>
-
-                {screenBundle.fields.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                      {screenBundle.fields.map((f) => (
-                        <div key={f.name} className={f.fullWidth ? 'md:col-span-2' : ''}>
-                          <label className="block text-slate-700 font-semibold mb-1">{f.label}</label>
-                          {f.type === 'select' ? (
-                            <select defaultValue={f.defaultValue} className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-900 shadow-xs font-semibold">
-                              {(f.options || []).map((opt) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <input
-                              type={f.type || 'text'}
-                              defaultValue={f.defaultValue}
-                              className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 font-mono text-slate-900 shadow-xs"
-                            />
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex space-x-3 pt-2">
-                      <button className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-xs">
-                        Submit Process
-                      </button>
-                      <button className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg shadow-xs">
-                        Cancel
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-xs text-slate-500 font-medium">React Component Source ({screenName}):</p>
-                    {selectedFile && <CodeViewer code={selectedFile.content} language="typescript" />}
-                  </div>
-                )}
+              <div className="w-full max-w-3xl">
+                <LiveTsxRenderer
+                  tsxCode={selectedFile?.content ?? ''}
+                  screenName={screenName}
+                  onEditMapping={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+                />
               </div>
             ) : (
               /* Pending State before user clicks Run Conversion Algorithm */
