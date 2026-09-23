@@ -276,8 +276,9 @@ export const ConvertScreenPage: React.FC = () => {
                     </div>
                   </>
                 ) : (
-                  <div className="text-center py-8 text-slate-500 text-xs font-mono bg-slate-50 rounded-xl border border-slate-200">
-                    Pure Modernized React Component Generated (No static mock fields).
+                  <div className="space-y-3">
+                    <p className="text-xs text-slate-500 font-medium">React Component Source ({screenName}):</p>
+                    {selectedFile && <CodeViewer code={selectedFile.content} language="typescript" />}
                   </div>
                 )}
               </div>

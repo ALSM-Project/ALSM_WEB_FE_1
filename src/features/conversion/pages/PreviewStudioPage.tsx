@@ -137,8 +137,8 @@ export const PreviewStudioPage: React.FC = () => {
                   </div>
                 </form>
               ) : (
-                <div className="text-center py-8 text-slate-500 text-xs font-mono bg-slate-50 rounded-xl border border-slate-200">
-                  Pure Modernized React Component Generated (No static mock fields).
+                <div className="p-4 bg-slate-900 text-slate-100 rounded-xl font-mono text-xs overflow-auto max-h-60 border border-slate-700">
+                  <pre>{resultBundle?.files?.[0]?.content ?? '// Generated React TSX Component Code'}</pre>
                 </div>
               )}
             </div>
