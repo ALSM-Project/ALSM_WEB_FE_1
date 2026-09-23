@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { RefreshCcw } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
