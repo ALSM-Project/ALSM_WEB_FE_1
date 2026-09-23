@@ -56,5 +56,7 @@ export interface FieldMapping {
     minLength: number;
     maxLength: number;
     regexPattern: string;
+    displayRow?: number;
+    displayCol?: number;
   };
 }
