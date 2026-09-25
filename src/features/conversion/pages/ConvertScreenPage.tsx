@@ -165,7 +165,17 @@ export const ConvertScreenPage: React.FC = () => {
         </div>
       </div>
 
-      {job?.status === 'FAILED' || job?.status === 'DEAD' ? (
+      {createJob.isError ? (
+        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <XCircle className="w-5 h-5 flex-shrink-0" />
+          <div>
+            <p className="font-semibold">Could not start the conversion.</p>
+            <p className="mt-0.5">
+              {createJob.error instanceof Error ? createJob.error.message : 'Please try again.'}
+            </p>
+          </div>
+        </div>
+      ) : job?.status === 'FAILED' || job?.status === 'DEAD' ? (
         <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
           <XCircle className="w-5 h-5 flex-shrink-0" />
           <div>
