@@ -124,6 +124,13 @@ export class ConversionService {
     return apiClient.get<ConversionResultBundle>(`/conversions/${jobId}/result`);
   }
 
+  /** Re-enqueues a real failed/dead conversion job. The backend rejects this for a job that
+   * isn't FAILED/DEAD (CONVERSION_JOB_NOT_RETRYABLE) — no client-side status check here,
+   * the server is the source of truth. */
+  async retryConversion(jobId: string): Promise<ConversionJob> {
+    return apiClient.post<ConversionJob>(`/conversions/${jobId}/retry`);
+  }
+
   async bulkConvertScreens(projectId: string, screenIds: string[]): Promise<ConversionJob[]> {
     // Real conversion jobs start QUEUED — the real per-screen status now comes from the
     // backend (synced onto the Screen record as its job progresses), not a local guess.
