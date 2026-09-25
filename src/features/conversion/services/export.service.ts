@@ -11,31 +11,13 @@ export class ExportService {
   async fetchExportPreviewFromApi(
     config: ExportConfiguration
   ): Promise<{ fileTree: ExportFileItem[]; metrics: BundleMetrics }> {
-    try {
-      const response = await apiClient.post<{ fileTree: ExportFileItem[]; metrics: BundleMetrics }>(
-        `/projects/${config.projectId}/export/preview`,
-        config
-      );
-      return response;
-    } catch {
-      const mockScreens: LegacyScreen[] = config.selectedScreenIds.map((id) => ({
-        id,
-        projectId: config.projectId,
-        name: `${id}.bms`,
-        sourceType: 'BMS',
-        framework: 'React',
-        status: 'Ready',
-        complexity: 'Medium',
-        fieldsCount: 15,
-        targetFramework: 'React TypeScript',
-        lastConverted: 'Just now',
-        lastUpdated: 'Just now',
-      }));
-      return {
-        fileTree: this.generateFileTreePreview(config, mockScreens),
-        metrics: this.calculateMetrics(config, mockScreens),
-      };
-    }
+    // projectId is already part of the URL; the backend DTO rejects unknown body
+    // fields (whitelist validation), so it must not also be sent in the body.
+    const { projectId, ...body } = config;
+    return apiClient.post<{ fileTree: ExportFileItem[]; metrics: BundleMetrics }>(
+      `/projects/${projectId}/export/preview`,
+      body
+    );
   }
 
   /**
@@ -45,31 +27,15 @@ export class ExportService {
     config: ExportConfiguration,
     onProgress?: (percent: number, stepLabel: string) => void
   ): Promise<Blob> {
-    try {
-      onProgress?.(30, 'Connecting to ALSM Backend Export Engine...');
-      const response = await apiClient.post<Blob>(
-        `/projects/${config.projectId}/export/download`,
-        config,
-        { responseType: 'blob' }
-      );
-      onProgress?.(100, 'Package downloaded from Backend server!');
-      return response;
-    } catch {
-      const mockScreens: LegacyScreen[] = config.selectedScreenIds.map((id) => ({
-        id,
-        projectId: config.projectId,
-        name: `${id}.bms`,
-        sourceType: 'BMS',
-        framework: 'React',
-        status: 'Ready',
-        complexity: 'Medium',
-        fieldsCount: 15,
-        targetFramework: 'React TypeScript',
-        lastConverted: 'Just now',
-        lastUpdated: 'Just now',
-      }));
-      return this.generateZipBundle(config, mockScreens, onProgress);
-    }
+    const { projectId, ...body } = config;
+    onProgress?.(30, 'Connecting to ALSM Backend Export Engine...');
+    const response = await apiClient.post<Blob>(
+      `/projects/${projectId}/export/download`,
+      body,
+      { responseType: 'blob' }
+    );
+    onProgress?.(100, 'Package downloaded from Backend server!');
+    return response;
   }
   /**
    * Generates a virtual file tree for live UI preview based on current configuration
