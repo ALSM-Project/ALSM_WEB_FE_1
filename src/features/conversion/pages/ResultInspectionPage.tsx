@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Download, RefreshCw, Sliders, FileCode, Files, Eye } from 'lucide-react';
+import { Download, RefreshCw, Sliders, FileCode, Files, Eye, RotateCw } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { ConversionJob } from '../services/conversion.service';
 import { useConversionJob } from '../queries/useConversionJob';
 import { useConversionResult } from '../queries/useConversionResult';
+import { useRetryConversionJob } from '../queries/useRetryConversionJob';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { CodeViewer } from '../components/CodeViewer';
@@ -51,6 +52,8 @@ export const ResultInspectionPage: React.FC = () => {
   const { data: job } = useConversionJob(projectId, screenId);
   const hasRealResult = Boolean(job?.status === 'COMPLETED' && job.resultReference);
   const { data: resultBundle } = useConversionResult(job?.id, hasRealResult);
+  const retryJob = useRetryConversionJob(projectId, screenId);
+  const isRetryable = job?.status === 'FAILED' || job?.status === 'DEAD';
 
   const screenName = screen?.name ?? screenId;
   const screenBundle = useMemo(() => generateScreenBundle(screenName), [screenName]);
@@ -121,12 +124,30 @@ export const ResultInspectionPage: React.FC = () => {
       </div>
 
       {!hasRealResult && (
-        <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs font-medium">
-          {job
-            ? job.status === 'FAILED' || job.status === 'DEAD'
-              ? `This screen's conversion job failed${job.errorCode ? ` (${job.errorCode})` : ''}: ${job.errorMessage ?? 'see Review Findings for details.'}`
-              : `This screen's conversion job is currently "${JOB_STATUS_LABELS[job.status]}" — code will appear here once it completes.`
-            : 'No conversion job has been run for this screen yet.'}
+        <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <span>
+            {job
+              ? isRetryable
+                ? `This screen's conversion job failed${job.errorCode ? ` (${job.errorCode})` : ''}: ${job.errorMessage ?? 'see Review Findings for details.'}`
+                : `This screen's conversion job is currently "${JOB_STATUS_LABELS[job.status]}" — code will appear here once it completes.`
+              : 'No conversion job has been run for this screen yet.'}
+          </span>
+          {isRetryable && job && (
+            <Button
+              variant="outline"
+              onClick={() => retryJob.mutate(job.id)}
+              isLoading={retryJob.isPending}
+              className="space-x-1.5 text-xs font-bold border-[#FEDF89] text-[#DC6803] bg-white hover:bg-amber-50 flex-shrink-0"
+            >
+              <RotateCw className="w-3.5 h-3.5" />
+              <span>Retry Job</span>
+            </Button>
+          )}
+        </div>
+      )}
+      {retryJob.isError && (
+        <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-rose-700 text-xs font-medium">
+          Failed to retry this job: {retryJob.error instanceof Error ? retryJob.error.message : 'unknown error'}
         </div>
       )}
 

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   getScreenById: vi.fn(),
   getLatestConversion: vi.fn(),
   getConversionResult: vi.fn(),
+  retryConversion: vi.fn(),
 }));
 
 vi.mock('../services/conversion.service', () => ({
@@ -21,6 +22,7 @@ vi.mock('../services/conversion.service', () => ({
     getScreenById: mocks.getScreenById,
     getLatestConversion: mocks.getLatestConversion,
     getConversionResult: mocks.getConversionResult,
+    retryConversion: mocks.retryConversion,
   },
 }));
 
@@ -41,6 +43,14 @@ const completedJob: ConversionJob = {
   createdAt: '2026-09-25T00:00:00.000Z',
   startedAt: '2026-09-25T00:00:00.000Z',
   completedAt: '2026-09-25T00:00:05.000Z',
+};
+
+const failedJob: ConversionJob = {
+  id: 'job-2',
+  status: 'FAILED',
+  errorCode: 'CONVERSION_ENGINE_UNAVAILABLE',
+  errorMessage: 'No Java files were generated.',
+  createdAt: '2026-09-25T00:00:00.000Z',
 };
 
 const resultBundle: ConversionResultBundle = {
@@ -101,5 +111,30 @@ describe('ResultInspectionPage', () => {
     expect(await screen.findByText(/No generated files yet/i)).toBeInTheDocument();
     // No hardcoded fake '0.8s' execution time when the job never actually ran.
     expect(screen.queryByText('0.8s')).not.toBeInTheDocument();
+  });
+
+  it('shows a real Retry Job button for a FAILED job and calls the real retry endpoint (UC-54)', async () => {
+    mocks.getScreenById.mockResolvedValue(screen1);
+    mocks.getLatestConversion.mockResolvedValue(failedJob);
+    mocks.retryConversion.mockResolvedValue({ ...failedJob, status: 'QUEUED', errorCode: undefined, errorMessage: undefined });
+
+    renderPage();
+
+    const retryBtn = await screen.findByRole('button', { name: /Retry Job/i });
+    fireEvent.click(retryBtn);
+
+    await waitFor(() => {
+      expect(mocks.retryConversion).toHaveBeenCalledWith('job-2');
+    });
+  });
+
+  it('does not show a Retry Job button for a job that is not FAILED/DEAD', async () => {
+    mocks.getScreenById.mockResolvedValue(screen1);
+    mocks.getLatestConversion.mockResolvedValue({ ...completedJob, status: 'PROCESSING', resultReference: undefined });
+
+    renderPage();
+
+    await screen.findByText(/currently "Processing"/i);
+    expect(screen.queryByRole('button', { name: /Retry Job/i })).not.toBeInTheDocument();
   });
 });
