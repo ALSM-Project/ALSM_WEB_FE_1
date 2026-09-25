@@ -6,7 +6,6 @@ export { FieldMappingPage } from './pages/FieldMappingPage';
 export { ExportCodePage } from './pages/ExportCodePage';
 export { ReviewFindingsPage } from './pages/ReviewFindingsPage';
 
-export { ASTTree } from './components/ASTTree';
 export { CodeViewer } from './components/CodeViewer';
 export { DeviceSwitcher } from './components/DeviceSwitcher';
 export { ExportFileTree } from './components/ExportFileTree';
