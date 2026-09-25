@@ -33,17 +33,35 @@ export const DiagnosticsPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [patching, setPatching] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'info' | 'warning'; message: string } | null>(
     null
   );
 
   useEffect(() => {
-    diagnosticsService.getDiagnosticsLogs(projectId).then((data) => {
-      setLogs(data);
-      if (data.length > 0) {
-        setSelectedId(data[0].id);
-      }
-    });
+    let cancelled = false;
+    setIsLoading(true);
+    setLoadError(null);
+    diagnosticsService
+      .getDiagnosticsLogs(projectId)
+      .then((data) => {
+        if (cancelled) return;
+        setLogs(data);
+        if (data.length > 0) {
+          setSelectedId(data[0].id);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load error logs', err);
+        if (!cancelled) setLoadError('Could not load error logs. Please try again.');
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [projectId]);
 
   const selectedLog = logs.find((l) => l.id === selectedId) || logs[0];
@@ -57,7 +75,7 @@ export const DiagnosticsPage: React.FC = () => {
     if (!selectedLog) return;
     setPatching(true);
     try {
-      await diagnosticsService.applyDiagnosticPatch(selectedLog.id);
+      await diagnosticsService.applyDiagnosticPatch(selectedLog.id, projectId);
       setLogs((prev) => prev.map((l) => (l.id === selectedLog.id ? { ...l, resolved: true } : l)));
       showNotification('success', `Patch successfully applied for ${selectedLog.screenName} (${selectedLog.errorCode}).`);
     } catch {
@@ -81,8 +99,8 @@ export const DiagnosticsPage: React.FC = () => {
     showNotification('success', `Log sent to Manual Review queue.`);
   };
 
-  const handleDownloadFullLog = async () => {
-    const content = await diagnosticsService.downloadFullLog(projectId);
+  const handleDownloadFullLog = () => {
+    const content = diagnosticsService.downloadFullLog(projectId, logs);
     const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -227,7 +245,19 @@ export const DiagnosticsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5EAF0]">
-              {filteredLogs.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-[#6B778C] font-sans text-xs">
+                    Loading error logs…
+                  </td>
+                </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-rose-600 font-sans text-xs font-medium">
+                    {loadError}
+                  </td>
+                </tr>
+              ) : filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-[#6B778C] font-sans text-xs">
                     No error logs matching your current filter.
