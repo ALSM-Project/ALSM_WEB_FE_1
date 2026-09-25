@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Code2, Stethoscope, Trash2 } from 'lucide-react';
+import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Code2, Stethoscope, Trash2, GitBranch } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -9,6 +9,7 @@ import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
+import { DependencyDiagnosticsModal } from '../components/DependencyDiagnosticsModal';
 
 const PROGRAM_SOURCE_TYPES = new Set(['COBOL', 'RPG']);
 
@@ -20,6 +21,7 @@ export const ScreensListPage: React.FC = () => {
   const [allAssets, setAllAssets] = useState<LegacyScreen[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [dependencyModalScreenId, setDependencyModalScreenId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LegacyScreen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -306,13 +308,25 @@ export const ScreensListPage: React.FC = () => {
                   <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-center space-x-1.5 shrink-0 whitespace-nowrap">
                       {item.status === 'Failed' ? (
-                        <Link
-                          to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
-                          className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
-                        >
-                          <Stethoscope className="w-3.5 h-3.5" />
-                          <span>Diagnostics</span>
-                        </Link>
+                        <>
+                          <Link
+                            to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
+                            className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
+                          >
+                            <Stethoscope className="w-3.5 h-3.5" />
+                            <span>Diagnostics</span>
+                          </Link>
+                          {PROGRAM_SOURCE_TYPES.has(item.sourceType) && (
+                            <button
+                              onClick={() => setDependencyModalScreenId(item.id)}
+                              className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] hover:bg-slate-100 transition-colors"
+                              title="View copybook dependency diagnostics"
+                            >
+                              <GitBranch className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Dependencies</span>
+                            </button>
+                          )}
+                        </>
                       ) : (
                         <>
                           <Link
@@ -422,6 +436,13 @@ export const ScreensListPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      <DependencyDiagnosticsModal
+        isOpen={dependencyModalScreenId !== null}
+        onClose={() => setDependencyModalScreenId(null)}
+        screenId={dependencyModalScreenId}
+      />
+
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
