@@ -40,18 +40,3 @@ export interface BundleMetrics {
   selectedScreensCount: number;
 }
 
-export type FindingStatus = 'pending' | 'needs-correction' | 'manual-review' | 'not-applicable';
-
-export interface Finding {
-  id: string;
-  lineNumber: string; // e.g. "Ln 20", "Ln 27-30"
-  startLine: number;
-  endLine?: number;
-  badge?: string; // e.g. "AI-Suggested"
-  title?: string;
-  description: string;
-  status: FindingStatus;
-  notApplicableReason?: string;
-  codeSnippet?: string;
-}
-

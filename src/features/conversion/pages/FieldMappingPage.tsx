@@ -4,9 +4,9 @@ import { Search, AlertTriangle, Save, CheckCircle2 } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { FieldMapping } from '../types/conversion';
 import { ROUTES } from '@/shared/constants/routes';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
 
 export const FieldMappingPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -18,16 +18,34 @@ export const FieldMappingPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
+  const [tsxCode, setTsxCode] = useState('');
+  const [metadata, setMetadata] = useState<any>(null);
 
   useEffect(() => {
     let cancelled = false;
     setMappingsLoading(true);
-    conversionService.getFieldMappings(projectId, screenId).then((data) => {
+    conversionService.getFieldMappings(projectId, screenId).then((mappingData) => {
       if (cancelled) return;
-      setMappings(data);
-      setSelectedId(data[0]?.id ?? '');
+      setMappings(mappingData);
+      setSelectedId(mappingData[0]?.id ?? '');
       setMappingsLoading(false);
     });
+
+    conversionService.getLatestConversion(projectId, screenId).then((job) => {
+      if (cancelled || !job) return;
+      conversionService.getConversionResult(job.id).then((result) => {
+        if (cancelled) return;
+        const tsxFile = result.files.find((f) => f.relativePath.endsWith('.tsx'));
+        if (tsxFile) setTsxCode(tsxFile.content);
+        const jsonFile = result.files.find((f) => f.relativePath.endsWith('.metadata.json'));
+        if (jsonFile?.content) {
+          try {
+            setMetadata(JSON.parse(jsonFile.content));
+          } catch (e) {}
+        }
+      });
+    });
+
     return () => {
       cancelled = true;
     };
@@ -55,10 +73,16 @@ export const FieldMappingPage: React.FC = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await conversionService.saveFieldMapping(projectId, screenId, mappings);
-      setSavedMsg('Field mapping updated! Code re-generated successfully.');
+      await conversionService.reconvert(projectId, screenId, mappings);
+      setSavedMsg('Field mapping saved! Version v2 created, algorithm re-executed & Rule Validator completed.');
       setTimeout(() => {
-        navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
+        navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
+      }, 1000);
+    } catch (err) {
+      await conversionService.saveFieldMapping(projectId, screenId, mappings);
+      setSavedMsg('Field mapping updated!');
+      setTimeout(() => {
+        navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
       }, 1000);
     } finally {
       setLoading(false);
@@ -69,17 +93,32 @@ export const FieldMappingPage: React.FC = () => {
     m.legacyField.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const liveMetadata = React.useMemo(() => {
+    if (!metadata) return null;
+    const patched = JSON.parse(JSON.stringify(metadata));
+    mappings.forEach(m => {
+      const fieldName = m.legacyField.name;
+      const { displayRow, displayCol } = m.componentMapping;
+      if (displayRow !== undefined || displayCol !== undefined) {
+        // Patch inputs
+        const input = patched.inputs?.find((i: any) => i.name === fieldName);
+        if (input) {
+          if (displayRow !== undefined && displayRow > 0) input.row = displayRow;
+          if (displayCol !== undefined && displayCol > 0) input.col = displayCol;
+        }
+        // Patch labels (if they match the name)
+        const label = patched.labels?.find((l: any) => l.name === fieldName);
+        if (label) {
+          if (displayRow !== undefined && displayRow > 0) label.row = displayRow;
+          if (displayCol !== undefined && displayCol > 0) label.col = displayCol;
+        }
+      }
+    });
+    return patched;
+  }, [metadata, mappings]);
+
   return (
-    <div className="space-y-6 py-2">
-      <Breadcrumb
-        items={[
-          { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Acme Corp Modernization', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Screens', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'LoginScreen.bms' },
-          { label: 'Edit Mapping' },
-        ]}
-      />
+    <div className="space-y-6">
 
       <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div>
@@ -88,17 +127,17 @@ export const FieldMappingPage: React.FC = () => {
         </div>
 
         <div className="flex space-x-3">
-          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId))} className="text-xs font-semibold">
+          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))} className="text-xs font-semibold">
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             isLoading={loading}
             disabled={mappingsLoading}
-            className="space-x-1.5 text-xs font-semibold"
+            className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
           >
             <Save className="w-4 h-4" />
-            <span>Save Mapping & Re-generate</span>
+            <span>Save & Re-convert (Create Version v2)</span>
           </Button>
         </div>
       </div>
@@ -113,6 +152,20 @@ export const FieldMappingPage: React.FC = () => {
       <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs flex items-center space-x-3 font-medium">
         <AlertTriangle className="w-5 h-5 flex-shrink-0" />
         <span>Modifying this mapping will trigger a re-generation of the screen code upon saving.</span>
+      </div>
+
+      {/* Live Preview Header */}
+      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Live Preview (Legacy Terminal)</h3>
+        {tsxCode && liveMetadata ? (
+          <LiveTsxRenderer
+            tsxCode={tsxCode}
+            screenName={screenId}
+            metadata={liveMetadata}
+          />
+        ) : (
+          <div className="text-slate-500 text-xs text-center py-8">Loading live preview...</div>
+        )}
       </div>
 
       {mappingsLoading ? (
@@ -187,6 +240,26 @@ export const FieldMappingPage: React.FC = () => {
               value={selectedMapping.componentMapping.labelText}
               onChange={(e) => handleUpdateCurrent('labelText', e.target.value)}
             />
+          </div>
+
+          <div className="border-t border-slate-100 pt-4 space-y-4">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-brand-600">Layout Overrides</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Display Row (Override)"
+                type="number"
+                value={selectedMapping.componentMapping.displayRow ?? ''}
+                onChange={(e) => handleUpdateCurrent('displayRow', e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder="Leave blank to use default"
+              />
+              <Input
+                label="Display Col (Override)"
+                type="number"
+                value={selectedMapping.componentMapping.displayCol ?? ''}
+                onChange={(e) => handleUpdateCurrent('displayCol', e.target.value ? parseInt(e.target.value) : undefined)}
+                placeholder="Leave blank to use default"
+              />
+            </div>
           </div>
 
           <div className="border-t border-slate-100 pt-4 space-y-4">

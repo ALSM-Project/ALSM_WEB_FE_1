@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Cpu } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Code2, Play, Eye } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -16,14 +16,39 @@ export const UploadSourcePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('screens');
-
-  // Starts empty — no seed/demo rows. Real rows only appear once a real file has
-  // actually been uploaded to the backend (see handleUpload).
   const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
   const [programFiles, setProgramFiles] = useState<SourceFile[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Load existing uploaded source screens for this project from backend
+  React.useEffect(() => {
+    let cancelled = false;
+    conversionService.getScreens(projectId).then((screens) => {
+      if (cancelled) return;
+      const loadedFiles: SourceFile[] = screens.map((s) => ({
+        id: s.id,
+        fileName: s.name,
+        sizeKb: s.sizeKb ?? 10,
+        uploadedAt: s.lastUpdated ?? 'Recently',
+        status: s.status, // Uses real status from API (Ready, Converted, Completed, Processing)
+        inputReference: s.inputReference,
+        screenId: s.id,
+      }));
+      setScreenFiles(loadedFiles);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
 
   const files = activeTab === 'screens' ? screenFiles : programFiles;
   const readyCount = files.filter((f) => f.status === 'Ready').length;
+
+  const totalCount = files.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedFiles = files.slice(startIndex, startIndex + pageSize);
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -97,7 +122,9 @@ export const UploadSourcePage: React.FC = () => {
             fileName: uploaded?.name ?? file.name,
             sizeKb: Math.round((uploaded?.sizeBytes ?? file.size) / 1024),
             uploadedAt: 'Just now',
-            status: 'Ready',
+            // Real status from the backend (e.g. already COMPLETED if this screen name
+            // matches a prior successful conversion) rather than always assuming 'Ready'.
+            status: screen?.status ?? 'Ready',
             inputReference: result.inputReference,
             screenId: screen?.id,
           };
@@ -180,10 +207,10 @@ export const UploadSourcePage: React.FC = () => {
         currentStep="upload"
         completedSteps={[]}
         onStepClick={(stepId) => {
-          if (stepId === 'analysis') navigate(ROUTES.PROJECTS.SCREENS(projectId));
-          if (stepId === 'mapping') navigate(ROUTES.PROJECTS.MAPPING(projectId, 'scr-acct010'));
-          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, 'scr-acct010'));
-          if (stepId === 'validation' || stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, 'scr-acct010'));
+          const firstScreenId = screenFiles[0]?.screenId || screenFiles[0]?.id || 'Screen';
+          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+          if (stepId === 'validation') navigate(ROUTES.PROJECTS.REVIEW(projectId, firstScreenId));
+          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, firstScreenId));
           if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
         }}
       />
@@ -194,7 +221,10 @@ export const UploadSourcePage: React.FC = () => {
           { id: 'programs', label: 'Programs (COBOL / RPG)', count: programFiles.length },
         ]}
         activeTab={activeTab}
-        onChange={setActiveTab}
+        onChange={(tab) => {
+          setActiveTab(tab);
+          setCurrentPage(1);
+        }}
       />
 
       <div
@@ -252,51 +282,98 @@ export const UploadSourcePage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm space-y-4">
-        <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h3 className="text-sm font-bold text-slate-900">Uploaded Files ({files.length})</h3>
+      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
+        <div className="p-4 border-b border-[#D9E2EC] flex justify-between items-center bg-[#F7F9FC]">
+          <h3 className="text-sm font-bold text-[#091E42]">Uploaded Files ({files.length})</h3>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+          <table className="w-full min-w-[850px] text-left text-xs table-fixed">
+            <colgroup>
+              <col className="w-[30%]" />
+              <col className="w-[12%]" />
+              <col className="w-[20%]" />
+              <col className="w-[14%]" />
+              <col className="w-[24%]" />
+            </colgroup>
+            <thead className="bg-[#F7F9FC] text-[#42526E] font-bold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
               <tr>
-                <th className="p-3.5">File Name</th>
-                <th className="p-3.5">Size</th>
-                <th className="p-3.5">Uploaded</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5 text-right">Actions</th>
+                <th className="py-3.5 px-4">FILE NAME</th>
+                <th className="py-3.5 px-4">SIZE</th>
+                <th className="py-3.5 px-4">UPLOADED</th>
+                <th className="py-3.5 px-4">STATUS</th>
+                <th className="py-3.5 px-4 text-center">ACTIONS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {files.map((file) => (
-                <tr key={file.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="p-3.5 font-mono text-xs font-semibold text-slate-900 flex items-center space-x-2">
-                    <FileText className="w-4 h-4 text-brand-600 flex-shrink-0" />
-                    <span>{file.fileName}</span>
+            <tbody className="divide-y divide-[#E5EAF0]">
+              {paginatedFiles.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-8 px-4 text-center text-slate-500">
+                    No files uploaded yet. Drag and drop a file above to start.
                   </td>
-                  <td className="p-3.5 text-slate-500">{file.sizeKb} KB</td>
-                  <td className="p-3.5 text-slate-500">{file.uploadedAt}</td>
-                  <td className="p-3.5">
+                </tr>
+              )}
+              {paginatedFiles.map((file) => (
+                <tr
+                  key={file.id}
+                  onClick={() => {
+                    if (file.screenId) {
+                      navigate(ROUTES.PROJECTS.CONVERT(projectId, file.screenId));
+                    }
+                  }}
+                  className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
+                >
+                  <td className="py-3.5 px-4 font-mono text-xs font-bold text-[#091E42]">
+                    <div className="flex items-center space-x-2.5 min-w-0">
+                      <FileText className="w-4 h-4 text-[#0652CC] flex-shrink-0" />
+                      <span className="group-hover:text-[#0652CC] group-hover:underline truncate">
+                        {file.fileName}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-3.5 px-4 text-slate-600 font-mono">{file.sizeKb} KB</td>
+                  <td className="py-3.5 px-4 text-slate-600 truncate">{file.uploadedAt}</td>
+                  <td className="py-3.5 px-4">
                     <StatusBadge status={file.status} />
                   </td>
-                  <td className="p-3.5 text-right">
-                    <div className="flex items-center justify-end space-x-2">
-                      {file.status === 'Ready' && file.screenId && (
-                        <Link
-                          to={ROUTES.PROJECTS.CONVERT(projectId, file.screenId)}
-                          className="inline-flex items-center space-x-1 text-xs text-brand-700 font-semibold hover:bg-brand-100 bg-brand-50 px-2.5 py-1.5 rounded-lg border border-brand-200 transition-colors"
-                        >
-                          <Cpu className="w-3.5 h-3.5" />
-                          <span>Convert</span>
-                        </Link>
+                  <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-center space-x-1.5 shrink-0 whitespace-nowrap">
+                      {file.screenId && (
+                        <>
+                          <Link
+                            to={ROUTES.PROJECTS.MAPPING(projectId, file.screenId)}
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
+                            title="Inspect Field Mapping"
+                          >
+                            <Code2 className="w-3.5 h-3.5" />
+                            <span>Mapping</span>
+                          </Link>
+
+                          <Link
+                            to={ROUTES.PROJECTS.CONVERT(projectId, file.screenId)}
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+                            title="Run Conversion Algorithm"
+                          >
+                            <Play className="w-3.5 h-3.5" />
+                            <span>Convert</span>
+                          </Link>
+
+                          <Link
+                            to={ROUTES.PROJECTS.RESULT(projectId, file.screenId)}
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                            title="View Modernized Output"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Result</span>
+                          </Link>
+                        </>
                       )}
                       <button
                         onClick={() => handleRemove(file.id)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 transition-colors rounded-lg hover:bg-rose-50"
+                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition-colors"
                         title="Remove file"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </td>
@@ -304,6 +381,68 @@ export const UploadSourcePage: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Server-Side Style Pagination Footer */}
+        <div className="bg-[#F7F9FC] px-4 py-3 border-t border-[#D9E2EC] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6B778C] font-medium">
+          <div className="flex items-center space-x-3">
+            <span>
+              Showing {totalCount === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, totalCount)} of {totalCount}{' '}
+              uploaded {activeTab === 'screens' ? 'screens' : 'programs'}
+            </span>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-[11px] text-[#42526E]">Per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="bg-white border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-lg px-2 py-1 focus:outline-none"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center space-x-1">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-2.5 py-1 rounded-lg border border-[#D9E2EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors"
+              >
+                Previous
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-[#0652CC] text-white shadow-2xs'
+                      : 'bg-white border border-[#D9E2EC] text-[#42526E] hover:bg-slate-50'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-2.5 py-1 rounded-lg border border-[#D9E2EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 export interface ModalProps {
@@ -40,12 +41,17 @@ export const Modal: React.FC<ModalProps> = ({
     '2xl': 'max-w-2xl',
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#091E42]/80 backdrop-blur-md animate-fade-in">
+  return createPortal(
+    <div
+      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
+      style={{ zIndex: 999999 }}
+      onClick={onClose}
+    >
       <div
-        className={`w-full ${maxWidths[maxWidth]} bg-white border border-[#D9E2EC] rounded-3xl shadow-[0_20px_60px_rgba(9,30,66,0.15)] overflow-hidden flex flex-col`}
+        className={`w-full ${maxWidths[maxWidth]} bg-white border border-[#D9E2EC] rounded-3xl shadow-[0_20px_60px_rgba(9,30,66,0.15)] overflow-hidden flex flex-col my-auto animate-scaleUp`}
         role="dialog"
         aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className="flex items-center justify-between px-6 py-5 border-b border-[#D9E2EC]">
@@ -61,7 +67,8 @@ export const Modal: React.FC<ModalProps> = ({
         )}
         <div className="p-6 overflow-y-auto max-h-[85vh]">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 export default Modal;

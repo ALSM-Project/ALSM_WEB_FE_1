@@ -4,6 +4,7 @@ export { ProjectOverviewPage } from './pages/ProjectOverviewPage';
 export { CreateProjectPage } from './pages/CreateProjectPage';
 export { DeleteProjectPage } from './pages/DeleteProjectPage';
 export { CreateProjectModal } from './components/CreateProjectModal';
+export { DeleteProjectModal } from './components/DeleteProjectModal';
 export { projectService } from './services/project.service';
 export type * from './types/project';
 

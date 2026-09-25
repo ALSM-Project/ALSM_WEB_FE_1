@@ -7,7 +7,6 @@ import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
 import { StatusBadge } from '@/shared/ui/Badge';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 
 export const BulkConvertPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
@@ -16,7 +15,6 @@ export const BulkConvertPage: React.FC = () => {
   const [screens, setScreens] = useState<LegacyScreen[]>([]);
   const [screensLoading, setScreensLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [targetFramework, setTargetFramework] = useState('React');
   const [scheduleMode, setScheduleMode] = useState<'immediately' | 'later'>('immediately');
   const bulkConvert = useBulkConvert(projectId);
 
@@ -53,14 +51,6 @@ export const BulkConvertPage: React.FC = () => {
 
   return (
     <div className="space-y-6 py-2">
-      <Breadcrumb
-        items={[
-          { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Acme Corp Modernization', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Bulk Convert Screens' },
-        ]}
-      />
-
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Bulk Convert Screens</h1>
         <p className="text-slate-500 text-sm mt-1">Convert multiple legacy screens to modern frameworks simultaneously.</p>
@@ -126,59 +116,52 @@ export const BulkConvertPage: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-6 shadow-sm">
-            <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Conversion Settings</h3>
+          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-6 space-y-6 shadow-2xs">
+            <h3 className="text-xs font-bold text-[#42526E] uppercase tracking-wider">Conversion Settings</h3>
 
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">TARGET FRAMEWORK</label>
-              <select
-                value={targetFramework}
-                onChange={(e) => setTargetFramework(e.target.value)}
-                className="w-full bg-white border border-slate-300 text-slate-900 rounded-lg p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-600 shadow-xs font-medium"
-              >
-                <option value="React">React (Next.js compatible)</option>
-                <option value="Vue">Vue 3 Composition API</option>
-                <option value="Angular">Angular 17</option>
-              </select>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+            <div className="bg-[#F7F9FC] p-4 rounded-xl border border-[#D9E2EC] space-y-3 text-xs">
               <div className="flex justify-between items-center font-medium">
-                <span className="text-slate-600">PoC Execution Engine</span>
-                <span className="text-brand-600 font-semibold">Active Workspace</span>
+                <span className="text-[#6B778C]">Target Framework</span>
+                <span className="text-[#0652CC] font-bold">React 19 + TypeScript</span>
               </div>
-              <p className="text-brand-700 font-semibold">{selectedIds.length} screen(s) selected for bulk modernization synthesis.</p>
+              <div className="flex justify-between items-center font-medium">
+                <span className="text-[#6B778C]">Conversion Engine</span>
+                <span className="text-[#091E42] font-semibold">ALSM Synthesis Pipeline</span>
+              </div>
+              <p className="text-[#0652CC] font-semibold pt-1 border-t border-[#E5EAF0]">
+                {selectedIds.length} screen(s) selected for bulk modernization synthesis.
+              </p>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700">SCHEDULING</label>
+              <label className="block text-xs font-semibold text-[#42526E]">SCHEDULING</label>
               <div className="space-y-2 text-xs">
-                <label className="flex items-center space-x-2.5 p-2.5 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                <label className="flex items-center space-x-2.5 p-2.5 bg-[#F7F9FC] rounded-xl border border-[#D9E2EC] cursor-pointer hover:bg-slate-100 transition-colors">
                   <input
                     type="radio"
                     name="schedule"
                     checked={scheduleMode === 'immediately'}
                     onChange={() => setScheduleMode('immediately')}
-                    className="text-brand-600 focus:ring-brand-600"
+                    className="text-[#0652CC] focus:ring-[#0652CC]"
                   />
-                  <span className="text-slate-800 font-medium">Start immediately</span>
+                  <span className="text-[#091E42] font-semibold">Start immediately</span>
                 </label>
-                <label className="flex items-center space-x-2.5 p-2.5 bg-slate-50 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
+                <label className="flex items-center space-x-2.5 p-2.5 bg-[#F7F9FC] rounded-xl border border-[#D9E2EC] cursor-pointer hover:bg-slate-100 transition-colors">
                   <input
                     type="radio"
                     name="schedule"
                     checked={scheduleMode === 'later'}
                     onChange={() => setScheduleMode('later')}
-                    className="text-brand-600 focus:ring-brand-600"
+                    className="text-[#0652CC] focus:ring-[#0652CC]"
                   />
-                  <span className="text-slate-800 font-medium">Schedule for later (Off-peak)</span>
+                  <span className="text-[#091E42] font-semibold">Schedule for later (Off-peak)</span>
                 </label>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 text-xs text-slate-500 pt-2 border-t border-slate-100 font-medium">
-              <Clock className="w-4 h-4 text-brand-600" />
-              <span>Estimated total time: 3 minutes</span>
+            <div className="flex items-center space-x-2 text-xs text-[#6B778C] pt-2 border-t border-[#E5EAF0] font-medium">
+              <Clock className="w-4 h-4 text-[#0652CC]" />
+              <span>Estimated total time: ~{Math.max(1, selectedIds.length * 0.5)} minutes</span>
             </div>
 
             <div className="space-y-2 pt-2">
@@ -186,7 +169,7 @@ export const BulkConvertPage: React.FC = () => {
                 onClick={handleStartConversion}
                 isLoading={bulkConvert.isPending}
                 disabled={selectedIds.length === 0 || screensLoading}
-                className="w-full py-2.5 space-x-2 font-semibold"
+                className="w-full py-2.5 space-x-2 font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-xs"
               >
                 <Play className="w-4 h-4" />
                 <span>Start Conversion ({selectedIds.length})</span>

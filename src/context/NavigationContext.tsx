@@ -9,7 +9,7 @@ import {
 } from '@/features/menus/utils/navigationTreeUtils';
 import { apiClient } from '@/services/api/apiClient';
 
-const LOCAL_STORAGE_KEY = 'alsm_workspace_navigation_tree_v5';
+const LOCAL_STORAGE_KEY = 'alsm_workspace_navigation_tree_v7';
 
 export interface NavigationContextType {
   sidebarNav: MenuItem[];
@@ -61,6 +61,7 @@ function loadInitialTree(): MenuItem[] {
     localStorage.removeItem('alsm_navigation_tree_v1');
     localStorage.removeItem('alsm_poc_navigation_tree_v2');
     localStorage.removeItem('alsm_poc_navigation_tree_v3');
+    localStorage.removeItem('alsm_workspace_navigation_tree_v5');
 
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
