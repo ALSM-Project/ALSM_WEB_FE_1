@@ -29,6 +29,7 @@ export const ROUTES = {
     HISTORY: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/history`,
     PREVIEW: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/preview`,
     MAPPING: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/mapping`,
+    METHOD_MAPPING: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/method-mapping`,
     REVIEW: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/review`,
     EXPORT: (id = ':projectId') => `/projects/${id}/export`,
     DIAGNOSTICS: (id = ':projectId') => `/projects/${id}/diagnostics`,

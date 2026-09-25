@@ -177,3 +177,75 @@ describe('ConvertScreenPage - conversion start errors', () => {
     expect(screen.getByText('Could not start the conversion.')).toBeInTheDocument();
   });
 });
+
+// UC-28: a COBOL screen must never show the BMS field-mapping UI (which has no
+// relationship to, and no effect on, COBOL->Java output) - it must route to Method Mapping
+// instead, and must never call the BMS field-mapping endpoint at all.
+describe('ConvertScreenPage - COBOL screens route to Method Mapping, not Field Mapping (UC-28)', () => {
+  const renderPage = () =>
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/projects/proj-acme/screens/scr-cobol/convert']}>
+          <Routes>
+            <Route path="/projects/:projectId/screens/:screenId/convert" element={<ConvertScreenPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+  const cobolScreen: LegacyScreen = {
+    id: 'scr-cobol',
+    projectId: 'proj-acme',
+    name: 'CBACT01C.cbl',
+    sourceType: 'COBOL',
+    status: 'Completed',
+    framework: 'React',
+    lastUpdated: 'just now',
+  };
+
+  it('shows a Method Mapping tab, not Field Mapping, for a COBOL screen', async () => {
+    mocks.getScreenById.mockResolvedValue(cobolScreen);
+    mocks.getLatestConversion.mockResolvedValue(null);
+
+    renderPage();
+
+    expect(await screen.findByText('Method Mapping')).toBeInTheDocument();
+    expect(screen.queryByText('Field Mapping')).not.toBeInTheDocument();
+  });
+
+  it('never calls the BMS field-mapping endpoint for a COBOL screen', async () => {
+    // This test file has no global mock-clearing between tests, so isolate against calls
+    // made by earlier (BMS) tests in this same file rather than asserting a global zero.
+    mocks.getFieldMappings.mockClear();
+    mocks.getScreenById.mockResolvedValue(cobolScreen);
+    mocks.getLatestConversion.mockResolvedValue(null);
+
+    renderPage();
+    await screen.findByText('Method Mapping');
+
+    expect(mocks.getFieldMappings).not.toHaveBeenCalled();
+  });
+
+  it('navigates to the method-mapping route, not the BMS mapping route, on "Edit Method Mapping"', async () => {
+    mocks.getScreenById.mockResolvedValue(cobolScreen);
+    mocks.getLatestConversion.mockResolvedValue(null);
+
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/projects/proj-acme/screens/scr-cobol/convert']}>
+          <Routes>
+            <Route path="/projects/:projectId/screens/:screenId/convert" element={<ConvertScreenPage />} />
+            <Route path="/projects/:projectId/screens/:screenId/method-mapping" element={<div>METHOD_MAPPING_PAGE</div>} />
+            <Route path="/projects/:projectId/screens/:screenId/mapping" element={<div>BMS_MAPPING_PAGE</div>} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+    const editButtons = await screen.findAllByRole('button', { name: /Edit Method Mapping/i });
+    fireEvent.click(editButtons[0]);
+
+    expect(await screen.findByText('METHOD_MAPPING_PAGE')).toBeInTheDocument();
+    expect(screen.queryByText('BMS_MAPPING_PAGE')).not.toBeInTheDocument();
+  });
+});

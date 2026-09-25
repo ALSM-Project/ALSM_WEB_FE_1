@@ -281,11 +281,17 @@ export const ResultInspectionPage: React.FC = () => {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+            onClick={() =>
+              navigate(
+                screen?.sourceType === 'COBOL'
+                  ? ROUTES.PROJECTS.METHOD_MAPPING(projectId, screenId)
+                  : ROUTES.PROJECTS.MAPPING(projectId, screenId),
+              )
+            }
             className="space-x-1.5 text-xs font-semibold"
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>Edit Field Mapping</span>
+            <span>{screen?.sourceType === 'COBOL' ? 'Edit Method Mapping' : 'Edit Field Mapping'}</span>
           </Button>
           <Button
             onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))}

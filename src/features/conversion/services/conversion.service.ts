@@ -1,7 +1,7 @@
 import type { AxiosProgressEvent } from 'axios';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { apiClient } from '@/services/api/apiClient';
-import type { ConversionResultBundle, FieldMapping } from '../types/conversion';
+import type { ConversionResultBundle, FieldMapping, MethodMappingEntry, MethodMappingView } from '../types/conversion';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
 import type { ProgramAnalysis } from '@/features/screens/types/copybookDependency';
@@ -211,6 +211,25 @@ export class ConversionService {
         componentMapping: { componentType: 'Password Input', labelText: 'Password (PASSWD)', isRequired: true, minLength: 6, maxLength: 8, regexPattern: '' },
       },
     ];
+  }
+
+  /** Real class/method names detected in the screen's latest generated Java code (UC-28),
+   * plus any saved user overrides. No mock fallback — a COBOL screen with no completed
+   * conversion yet honestly reports hasGeneratedCode: false. */
+  async getMethodMapping(projectId: string, screenId: string): Promise<MethodMappingView> {
+    return apiClient.get<MethodMappingView>(`/projects/${projectId}/screens/${screenId}/method-mapping`);
+  }
+
+  /** Saves method-mapping renames. The backend applies them to the screen's latest
+   * generated Java code for real, not just as inert saved metadata. */
+  async saveMethodMapping(
+    projectId: string,
+    screenId: string,
+    entries: MethodMappingEntry[],
+  ): Promise<MethodMappingView> {
+    return apiClient.put<MethodMappingView>(`/projects/${projectId}/screens/${screenId}/method-mapping`, {
+      entries,
+    });
   }
 
   async saveFieldMapping(
