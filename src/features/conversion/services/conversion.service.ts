@@ -1,8 +1,7 @@
 import type { AxiosProgressEvent } from 'axios';
-import { mockASTData } from '@/mocks/conversions.mock';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { apiClient } from '@/services/api/apiClient';
-import type { ASTNode, ConversionResultBundle, FieldMapping } from '../types/conversion';
+import type { ConversionResultBundle, FieldMapping } from '../types/conversion';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
 
@@ -140,10 +139,6 @@ export class ConversionService {
     } catch {
       return null;
     }
-  }
-
-  async getASTData(_screenId: string): Promise<ASTNode> {
-    return mockASTData;
   }
 
   async getFieldMappings(projectId: string, screenId: string): Promise<FieldMapping[]> {
