@@ -199,7 +199,7 @@ describe('ConvertScreenPage - COBOL screens route to Method Mapping, not Field M
     name: 'CBACT01C.cbl',
     sourceType: 'COBOL',
     status: 'Completed',
-    framework: 'Java',
+    framework: 'React',
     lastUpdated: 'just now',
   };
 
