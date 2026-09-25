@@ -155,6 +155,19 @@ export class ConversionService {
     }
   }
 
+  /** Real, full conversion history for a screen (UC-19) — every past attempt, newest
+   * first. Same backend endpoint as getLatestConversion, but returns the whole array
+   * instead of discarding everything but jobs[0]. */
+  async getConversionHistory(projectId: string, screenId: string): Promise<ConversionJob[]> {
+    return apiClient.get<ConversionJob[]>(`/projects/${projectId}/screens/${screenId}/conversions`);
+  }
+
+  /** Fetches one specific conversion job by id — used to inspect a specific historical
+   * version's result rather than only ever the latest one. */
+  async getConversionJobById(jobId: string): Promise<ConversionJob> {
+    return apiClient.get<ConversionJob>(`/conversions/${jobId}`);
+  }
+
   async getFieldMappings(projectId: string, screenId: string): Promise<FieldMapping[]> {
     try {
       const res = await apiClient.get<FieldMappingResponse>(

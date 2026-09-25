@@ -26,6 +26,7 @@ export const ROUTES = {
     CONVERT: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/convert`,
     BULK_CONVERT: (id = ':projectId') => `/projects/${id}/screens/bulk-convert`,
     RESULT: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/result`,
+    HISTORY: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/history`,
     PREVIEW: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/preview`,
     MAPPING: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/mapping`,
     REVIEW: (projectId = ':projectId', screenId = ':screenId') => `/projects/${projectId}/screens/${screenId}/review`,

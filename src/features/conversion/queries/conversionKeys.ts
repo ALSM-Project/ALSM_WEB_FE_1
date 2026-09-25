@@ -2,6 +2,8 @@
 export const conversionKeys = {
   all: ['conversion'] as const,
   job: (projectId: string, screenId: string) => [...conversionKeys.all, 'job', projectId, screenId] as const,
+  history: (projectId: string, screenId: string) => [...conversionKeys.all, 'history', projectId, screenId] as const,
+  jobById: (jobId: string) => [...conversionKeys.all, 'jobById', jobId] as const,
   result: (jobId: string) => [...conversionKeys.all, 'result', jobId] as const,
   exportPreview: (projectId: string, config: unknown) =>
     [...conversionKeys.all, 'export-preview', projectId, config] as const,
