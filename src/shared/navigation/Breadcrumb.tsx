@@ -36,18 +36,18 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items: propItems, custom
 
         return (
           <React.Fragment key={`${item.label}-${index}`}>
-            {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-[#D9E2EC] shrink-0" />}
+            {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-[#97A0AF] shrink-0" />}
             {item.path && !isLast ? (
               <Link
                 to={item.path}
-                className="hover:text-[#0652CC] text-[#42526E] transition-colors truncate max-w-[160px]"
+                className="hover:text-[#0652CC] text-[#6B778C] font-medium text-xs transition-colors truncate max-w-[200px]"
               >
                 {item.label}
               </Link>
             ) : (
               <span
-                className={`truncate max-w-[200px] ${
-                  isLast ? 'text-[#091E42] font-semibold' : 'text-[#42526E]'
+                className={`truncate max-w-[240px] text-xs ${
+                  isLast ? 'text-[#091E42] font-semibold' : 'text-[#6B778C] font-medium'
                 }`}
               >
                 {item.label}

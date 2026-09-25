@@ -1,6 +1,7 @@
 import { apiClient } from '@/services/api/apiClient';
 import { mockQuota } from '@/mocks/projects.mock';
 import type { CreateProjectPayload, Project, WorkspaceQuota } from '../types/project';
+import { cacheProjectName } from '@/shared/utils/projectCache';
 
 /** Real, backend-backed project CRUD. No mock fallback on failure — a failed request
  * must surface as a real error the UI can show, never silently swap in fake data
@@ -9,23 +10,39 @@ import type { CreateProjectPayload, Project, WorkspaceQuota } from '../types/pro
  * into dead ends). */
 export class ProjectService {
   async getProjects(): Promise<Project[]> {
-    return apiClient.get<Project[]>('/projects');
+    const projects = await apiClient.get<Project[]>('/projects');
+    if (Array.isArray(projects)) {
+      projects.forEach((p) => cacheProjectName(p.id, p.name));
+    }
+    return projects;
   }
 
   async getProjectById(id: string): Promise<Project | null> {
     try {
-      return await apiClient.get<Project>(`/projects/${id}`);
+      const proj = await apiClient.get<Project>(`/projects/${id}`);
+      if (proj && proj.name) {
+        cacheProjectName(proj.id, proj.name);
+      }
+      return proj;
     } catch {
       return null;
     }
   }
 
+  async getProject(id: string): Promise<Project | null> {
+    return this.getProjectById(id);
+  }
+
   async createProject(payload: CreateProjectPayload): Promise<Project> {
-    return apiClient.post<Project>('/projects', {
+    const created = await apiClient.post<Project>('/projects', {
       name: payload.name,
       description: payload.description,
       conversionType: payload.conversionType,
     });
+    if (created && created.id && created.name) {
+      cacheProjectName(created.id, created.name);
+    }
+    return created;
   }
 
   async deleteProject(id: string): Promise<boolean> {

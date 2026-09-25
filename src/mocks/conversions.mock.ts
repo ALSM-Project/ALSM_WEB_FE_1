@@ -1,4 +1,4 @@
-import type { ASTNode, ConversionResult, FieldMapping } from '@/features/conversion/types/conversion';
+import type { ConversionResult, FieldMapping } from '@/features/conversion/types/conversion';
 
 export const mockConversionResult: ConversionResult = {
   screenId: 'scr-login',
@@ -84,43 +84,6 @@ export const LoginScreen: React.FC = () => {
 export default LoginScreen;`,
 };
 
-export const mockASTData: ASTNode = {
-  id: 'ast-root',
-  name: 'Program (DFHMSD TYPE=MAP)',
-  type: 'Program',
-  details: 'BMS Legacy Map SetDefinition',
-  children: [
-    {
-      id: 'ast-rootnode',
-      name: 'RootNode (DFHMDI SIZE=(24,80))',
-      type: 'RootNode',
-      children: [
-        {
-          id: 'ast-screendef',
-          name: 'ScreenDef: LoginScreen',
-          type: 'ScreenDef',
-          children: [
-            { id: 'ast-field1', name: 'VariableDecl: USER_ID (POS=R10 C15, LEN=20)', type: 'VariableDecl' },
-            { id: 'ast-field2', name: 'VariableDecl: PASS_KEY (POS=R12 C15, LEN=16, ATTR=UNPROT,DRK)', type: 'VariableDecl' },
-          ],
-        },
-        {
-          id: 'ast-actionblock',
-          name: 'ActionBlock: ON_ENTER',
-          type: 'ActionBlock',
-          children: [
-            { id: 'ast-call', name: 'CallStmt: AUTH_SVC (PARMS=USER_ID, PASS_KEY)', type: 'CallStmt' },
-          ],
-        },
-        {
-          id: 'ast-layoutdef',
-          name: 'LayoutDef: MainForm (ATTR=NUM,PROT)',
-          type: 'LayoutDef',
-        },
-      ],
-    },
-  ],
-};
 
 export const mockFieldMappings: FieldMapping[] = [
   {

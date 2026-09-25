@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Shield, Lock, Mail, ArrowRight, RefreshCcw } from 'lucide-react';
+import { RefreshCcw } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { DeviceSwitcher } from '../components/DeviceSwitcher';
 import type { DeviceMode } from '../components/DeviceSwitcher';
 import { Button } from '@/shared/ui/Button';
+import { useConversionJob } from '../queries/useConversionJob';
+import { useConversionResult } from '../queries/useConversionResult';
+import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
 
 export const PreviewStudioPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -26,7 +28,13 @@ export const PreviewStudioPage: React.FC = () => {
     };
   }, [screenId]);
 
-  const previewTitle = screen ? screen.name.replace(/\.(bms|dspf)$/i, '.tsx') : screenId;
+  const { data: job } = useConversionJob(projectId, screenId);
+  const isCompleted = job?.status === 'COMPLETED';
+  const { data: resultBundle } = useConversionResult(job?.id, isCompleted);
+
+  const screenName = screen?.name ?? screenId;
+
+  const previewTitle = screenName.replace(/\.(bms|dspf)$/i, '.tsx');
 
   const containerWidths = {
     desktop: 'w-full max-w-5xl',
@@ -35,15 +43,7 @@ export const PreviewStudioPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 py-2">
-      <Breadcrumb
-        items={[
-          { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Acme Corp Modernization', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Screens', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'UI Preview Studio' },
-        ]}
-      />
+    <div className="space-y-6">
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center space-x-3">
@@ -70,69 +70,24 @@ export const PreviewStudioPage: React.FC = () => {
               <span className="w-3 h-3 rounded-full bg-emerald-400"></span>
             </div>
             <div className="bg-white px-4 py-1 rounded-md border border-slate-200 text-slate-600 text-center flex-1 mx-8 truncate font-mono">
-              http://localhost:3000/login
+              http://localhost:3000/{screenName.toLowerCase().replace(/\.(bms|dspf|cob|cbl)$/i, '')}
             </div>
             <button className="text-slate-400 hover:text-slate-700">
               <RefreshCcw className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          <div className="p-8 sm:p-12 bg-slate-50 flex flex-col items-center justify-center min-h-[420px]">
-            <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-8 shadow-sm space-y-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center text-white font-bold shadow-xs">
-                  <Shield className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">ACME CORP</h2>
-                  <p className="text-xs text-slate-500">Sign in to your enterprise workspace</p>
-                </div>
-              </div>
-
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-4 text-xs">
-                <div>
-                  <label className="block text-slate-700 font-semibold mb-1.5">Email Address</label>
-                  <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type="email"
-                      defaultValue="admin@acmecorp.com"
-                      className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600 shadow-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-1.5">
-                    <label className="block text-slate-700 font-semibold">Password</label>
-                    <a href="#" className="text-brand-600 font-semibold hover:underline">Forgot password?</a>
-                  </div>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                    <input
-                      type="password"
-                      defaultValue="••••••••••••"
-                      className="w-full bg-white border border-slate-300 rounded-lg pl-9 pr-3 py-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600 shadow-xs"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-xs flex items-center justify-center space-x-2 text-sm transition-all"
-                >
-                  <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-
-              <div className="border-t border-slate-100 pt-4 text-center text-xs text-slate-500 flex justify-between">
-                <span>Don't have an account? <a href="#" className="text-brand-600 font-semibold hover:underline">Request Access</a></span>
-              </div>
+          <div className="p-6 sm:p-12 bg-slate-50 flex flex-col items-center justify-center min-h-[420px]">
+            <div className="w-full max-w-3xl">
+              <LiveTsxRenderer
+                tsxCode={resultBundle?.files?.[0]?.content ?? ''}
+                screenName={screenName}
+                onEditMapping={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+              />
             </div>
 
             <p className="text-[11px] text-slate-400 font-mono mt-6">
-              Secure connection. IT Support ID: 994-A
+              ALSM Modernization Preview • Generated deterministically
             </p>
           </div>
         </div>

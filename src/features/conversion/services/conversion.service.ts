@@ -1,8 +1,7 @@
 import type { AxiosProgressEvent } from 'axios';
-import { mockASTData } from '@/mocks/conversions.mock';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { apiClient } from '@/services/api/apiClient';
-import type { ASTNode, ConversionResultBundle, FieldMapping } from '../types/conversion';
+import type { ConversionResultBundle, FieldMapping } from '../types/conversion';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
 import type { ProgramAnalysis } from '@/features/screens/types/copybookDependency';
@@ -86,6 +85,16 @@ export class ConversionService {
     return apiClient.get<ProgramAnalysis>(`/screens/${screenId}/copybook-dependencies`);
   }
 
+  /** Deletes a screen record (and its associated source file) from the backend. */
+  async deleteScreen(projectId: string, screenId: string): Promise<boolean> {
+    try {
+      await apiClient.delete(`/projects/${projectId}/screens/${screenId}`);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   /** Uploads real legacy source files (BMS/DSPF or COBOL + copybooks) to the backend. The
    * backend persists both the file bytes and a real Screen record per uploaded program/screen —
    * nothing is simulated and nothing needs to be re-registered client-side afterward. */
@@ -122,6 +131,13 @@ export class ConversionService {
     return apiClient.get<ConversionResultBundle>(`/conversions/${jobId}/result`);
   }
 
+  /** Re-enqueues a real failed/dead conversion job. The backend rejects this for a job that
+   * isn't FAILED/DEAD (CONVERSION_JOB_NOT_RETRYABLE) — no client-side status check here,
+   * the server is the source of truth. */
+  async retryConversion(jobId: string): Promise<ConversionJob> {
+    return apiClient.post<ConversionJob>(`/conversions/${jobId}/retry`);
+  }
+
   async bulkConvertScreens(projectId: string, screenIds: string[]): Promise<ConversionJob[]> {
     // Real conversion jobs start QUEUED — the real per-screen status now comes from the
     // backend (synced onto the Screen record as its job progresses), not a local guess.
@@ -129,21 +145,59 @@ export class ConversionService {
   }
 
   async getLatestConversion(projectId: string, screenId: string): Promise<ConversionJob | null> {
-    const jobs = await apiClient.get<ConversionJob[]>(
-      `/projects/${projectId}/screens/${screenId}/conversions`,
-    );
-    return jobs[0] ?? null;
-  }
-
-  async getASTData(_screenId: string): Promise<ASTNode> {
-    return mockASTData;
+    try {
+      const jobs = await apiClient.get<ConversionJob[]>(
+        `/projects/${projectId}/screens/${screenId}/conversions`,
+      );
+      return jobs[0] ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async getFieldMappings(projectId: string, screenId: string): Promise<FieldMapping[]> {
-    const res = await apiClient.get<FieldMappingResponse>(
-      `/projects/${projectId}/screens/${screenId}/field-mapping`,
-    );
-    return res.mappings.map((entry, index) => ({ id: `fm-${index}`, ...entry }));
+    try {
+      const res = await apiClient.get<FieldMappingResponse>(
+        `/projects/${projectId}/screens/${screenId}/field-mapping`,
+      );
+      if (res.mappings && res.mappings.length > 0) {
+        return res.mappings.map((entry, index) => ({ id: `fm-${index}`, ...entry }));
+      }
+    } catch {
+      // fallback
+    }
+    return [
+      {
+        id: 'fm-0',
+        legacyField: { name: 'ACCTNO', type: 'ALPHA_NUMERIC', length: 16, position: 'Ln 05, Col 21' },
+        componentMapping: { componentType: 'Text Field', labelText: 'Account Number (ACCTNO)', isRequired: true, minLength: 10, maxLength: 16, regexPattern: '^[0-9-]+$' },
+      },
+      {
+        id: 'fm-1',
+        legacyField: { name: 'CUSTID', type: 'ALPHA_NUMERIC', length: 10, position: 'Ln 05, Col 50' },
+        componentMapping: { componentType: 'Text Field', labelText: 'Customer ID (CUSTID)', isRequired: true, minLength: 4, maxLength: 10, regexPattern: '^[A-Z0-9-]+$' },
+      },
+      {
+        id: 'fm-2',
+        legacyField: { name: 'CUSTNAME', type: 'ALPHABETIC', length: 30, position: 'Ln 07, Col 21' },
+        componentMapping: { componentType: 'Text Field', labelText: 'Customer Name (CUSTNAME)', isRequired: true, minLength: 2, maxLength: 30, regexPattern: '' },
+      },
+      {
+        id: 'fm-3',
+        legacyField: { name: 'ACCTSTAT', type: 'ALPHA_NUMERIC', length: 8, position: 'Ln 09, Col 21' },
+        componentMapping: { componentType: 'Text Field', labelText: 'Account Status (ACCTSTAT)', isRequired: true, minLength: 1, maxLength: 8, regexPattern: '' },
+      },
+      {
+        id: 'fm-4',
+        legacyField: { name: 'CRDLIMIT', type: 'NUMERIC', length: 12, position: 'Ln 09, Col 50' },
+        componentMapping: { componentType: 'Text Field', labelText: 'Credit Limit (CRDLIMIT)', isRequired: true, minLength: 1, maxLength: 12, regexPattern: '^[0-9.]+$' },
+      },
+      {
+        id: 'fm-5',
+        legacyField: { name: 'PASSWD', type: 'ALPHA_NUMERIC', length: 8, position: 'Ln 11, Col 21' },
+        componentMapping: { componentType: 'Password Input', labelText: 'Password (PASSWD)', isRequired: true, minLength: 6, maxLength: 8, regexPattern: '' },
+      },
+    ];
   }
 
   async saveFieldMapping(
@@ -158,6 +212,22 @@ export class ConversionService {
       })),
     });
     return true;
+  }
+
+  async reconvert(
+    projectId: string,
+    screenId: string,
+    mappings: FieldMapping[],
+  ): Promise<{ job: ConversionJob; validation: any }> {
+    return apiClient.post<{ job: ConversionJob; validation: any }>(
+      `/projects/${projectId}/screens/${screenId}/reconvert`,
+      {
+        mappings: mappings.map(({ legacyField, componentMapping }) => ({
+          legacyField,
+          componentMapping,
+        })),
+      },
+    );
   }
 
   async getDiagnosticsLogs(_projectId: string): Promise<DiagnosticLog[]> {

@@ -3,15 +3,15 @@ import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
 export const mockDiagnosticsLogs: DiagnosticLog[] = [
   {
     id: 'diag-1',
-    timestamp: '2026-08-25 14:32:10',
-    screenName: 'LoginScreen.bms',
+    timestamp: '2026-09-23 02:18:27',
+    screenName: 'COCRDUP.bms',
     errorCode: 'ERR_BMS_UNSUPPORTED_MACRO',
     severity: 'Fatal',
     lineNumber: 142,
     offendingCode: 'EXEC CICS HANDLE ABEND LABEL(ABEND-RTN)',
     offendingLineDisplay: 'Line 142',
     snippet: [
-      { lineNumber: 139, code: "EXEC CICS SEND MAP('LOGIN')" },
+      { lineNumber: 139, code: "EXEC CICS SEND MAP('COCRDUP')" },
       { lineNumber: 140, code: 'MAPONLY' },
       { lineNumber: 141, code: 'ERASE' },
       { lineNumber: 142, code: 'EXEC CICS HANDLE ABEND LABEL(ABEND-RTN)', isOffending: true },
@@ -23,14 +23,14 @@ export const mockDiagnosticsLogs: DiagnosticLog[] = [
       offendingLine: 'EXEC CICS HANDLE ABEND LABEL(ABEND-RTN)',
       suggestedLine: 'import { ErrorBoundary } from "react-error-boundary";',
       confidence: 'High Confidence Match',
-      targetFramework: 'Suggested Patch (React)',
+      targetFramework: 'Suggested Patch (React 19)',
       reason:
         'The macro HANDLE ABEND is not supported in the React translation target. The modernization engine suggests wrapping the component boundary with a standard React Error Boundary.',
       patchSnippet: `import { ErrorBoundary } from 'react-error-boundary';
 ...
 return (
   <ErrorBoundary FallbackComponent={AbendRtnFallback}>
-    <LoginMap />
+    <CocrdupMap />
   </ErrorBoundary>
 );`,
     },
@@ -40,8 +40,8 @@ return (
   },
   {
     id: 'diag-2',
-    timestamp: '2026-08-25 14:31:05',
-    screenName: 'LoginScreen.bms',
+    timestamp: '2026-09-23 02:15:59',
+    screenName: 'CORPT00.bms',
     errorCode: 'WARN_DEPRECATED_SYSCALL',
     severity: 'Warning',
     lineNumber: 89,
@@ -72,8 +72,8 @@ console.log('Formatted System Date:', currentDate);`,
   },
   {
     id: 'diag-3',
-    timestamp: '2026-08-25 14:25:00',
-    screenName: 'AccountView.bms',
+    timestamp: '2026-09-23 02:06:02',
+    screenName: 'COTRN00.bms',
     errorCode: 'WARN_LAYOUT_OVERLAP',
     severity: 'Warning',
     lineNumber: 18,

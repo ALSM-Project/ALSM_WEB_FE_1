@@ -33,14 +33,6 @@ export interface ConversionResultBundle {
   files: ConversionResultFile[];
 }
 
-export interface ASTNode {
-  id: string;
-  name: string;
-  type: string;
-  children?: ASTNode[];
-  details?: string;
-}
-
 export interface FieldMapping {
   id: string;
   legacyField: {
@@ -56,5 +48,7 @@ export interface FieldMapping {
     minLength: number;
     maxLength: number;
     regexPattern: string;
+    displayRow?: number;
+    displayCol?: number;
   };
 }

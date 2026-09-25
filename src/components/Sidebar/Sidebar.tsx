@@ -1,9 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useNavigation } from '@/hooks/useNavigation';
 import { SidebarItem } from './SidebarItem';
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import type { MenuItem } from '@/features/menus/types/menu';
+import { ROUTES } from '@/shared/constants/routes';
 
 import logo2 from '@/assets/logo2.png';
 
@@ -31,7 +33,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return (
       <div className="mb-5 last:mb-0">
         {!isCollapsed && (
-          <div className="px-2.5 text-[10px] font-bold uppercase tracking-wider text-[#6B778C] mb-2 select-none">
+          <div className="px-2.5 text-[11px] font-bold uppercase tracking-wider text-[#6B778C] mb-2 select-none">
             {title}
           </div>
         )}
@@ -55,13 +57,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }`}
       >
         {!isCollapsed && (
-          <div className="flex items-center flex-1 overflow-visible">
+          <Link to={ROUTES.DASHBOARD} className="flex items-center flex-1 overflow-visible cursor-pointer" title="Go to Dashboard">
             <img
               src={logo2}
               alt="ALSM"
-              className="w-[82px] h-auto object-contain scale-[1.6] origin-left"
+              className="w-[82px] h-auto object-contain scale-[1.6] origin-left hover:opacity-90 transition-opacity"
             />
-          </div>
+          </Link>
         )}
 
         <button

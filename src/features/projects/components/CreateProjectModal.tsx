@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { X, Plus, Info, Layers, Cpu } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { projectService } from '../services/project.service';
 import type { ConversionType } from '../types/project';
 import { ROUTES } from '@/shared/constants/routes';
@@ -25,14 +26,20 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Reset form when modal opens
+  // Lock body scroll and reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       setName('');
       setDescription('');
       setConversionType('BMS_DSPF_TO_FRONTEND');
       setError('');
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
   }, [isOpen]);
 
   // Handle ESC key press
@@ -72,9 +79,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     }
   };
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 bg-[#091E42]/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
+      style={{ zIndex: 999999 }}
       onClick={onClose}
     >
       <div
@@ -130,52 +138,6 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             />
           </div>
 
-          <div className="bg-[#E8F1FF] border border-[#B3D4FF] p-3.5 rounded-xl flex items-start space-x-3 text-xs text-[#0652CC]">
-            <Info className="w-4 h-4 flex-shrink-0 text-[#0652CC] mt-0.5" />
-            <p className="leading-relaxed text-[11.5px]">
-              Choose what this project converts — a project's conversion type can't be changed later.
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#091E42]">
-              Conversion Type
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <button
-                type="button"
-                onClick={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
-                className={`text-left p-3 rounded-xl border space-y-1 transition-colors ${
-                  conversionType === 'BMS_DSPF_TO_FRONTEND'
-                    ? 'bg-[#E8F1FF] border-[#0652CC] ring-1 ring-[#0652CC]'
-                    : 'bg-[#F8FAFC] border-[#E5EAF0] hover:border-[#0652CC]/40'
-                }`}
-              >
-                <span className="font-bold text-[#091E42] flex items-center space-x-1.5">
-                  <Layers className="w-3.5 h-3.5 text-[#0652CC]" />
-                  <span>BMS / DSPF Screens</span>
-                </span>
-                <p className="text-[11px] text-[#6B778C]">Converts legacy screen maps to React TypeScript components.</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setConversionType('COBOL_TO_JAVA')}
-                className={`text-left p-3 rounded-xl border space-y-1 transition-colors ${
-                  conversionType === 'COBOL_TO_JAVA'
-                    ? 'bg-[#E8F1FF] border-[#0652CC] ring-1 ring-[#0652CC]'
-                    : 'bg-[#F8FAFC] border-[#E5EAF0] hover:border-[#0652CC]/40'
-                }`}
-              >
-                <span className="font-bold text-[#091E42] flex items-center space-x-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-[#0652CC]" />
-                  <span>COBOL Logic</span>
-                </span>
-                <p className="text-[11px] text-[#6B778C]">Converts COBOL business logic to Java Spring Boot services.</p>
-              </button>
-            </div>
-          </div>
-
           {/* Modal Footer Actions */}
           <div className="pt-4 border-t border-[#E5EAF0] flex items-center justify-end space-x-3">
             <Button
@@ -197,7 +159,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

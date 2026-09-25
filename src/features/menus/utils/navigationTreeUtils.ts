@@ -22,20 +22,11 @@ export const DEFAULT_SIDEBAR_NAV: MenuItem[] = [
   },
   {
     id: 'screens',
-    label: 'Screens',
+    label: 'Screens & Programs',
     icon: 'Monitor',
     path: '/projects/proj-acme/screens',
     isVisible: true,
     order: 3,
-    category: 'MAIN',
-  },
-  {
-    id: 'conversion',
-    label: 'Conversion',
-    icon: 'Cpu',
-    path: '/projects/proj-acme/screens/bulk-convert',
-    isVisible: true,
-    order: 4,
     category: 'MAIN',
   },
   {
@@ -44,7 +35,7 @@ export const DEFAULT_SIDEBAR_NAV: MenuItem[] = [
     icon: 'Activity',
     path: '/projects/proj-acme/diagnostics',
     isVisible: true,
-    order: 5,
+    order: 4,
     category: 'MAIN',
   },
 

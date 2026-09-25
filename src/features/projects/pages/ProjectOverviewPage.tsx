@@ -130,24 +130,44 @@ export const ProjectOverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Metrics */}
+        {/* Quick Metrics - Clickable Interactive Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#E5EAF0]">
-          <div className="bg-[#F7F9FC] border border-[#D9E2EC] p-3 rounded-xl text-center">
-            <div className="text-xs text-[#6B778C]">Total Screens</div>
-            <div className="text-xl font-extrabold text-[#091E42]">{projectDetails.totalScreens}</div>
-          </div>
-          <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-center">
-            <div className="text-xs text-emerald-700">Converted</div>
-            <div className="text-xl font-extrabold text-emerald-800">{projectDetails.convertedScreens}</div>
-          </div>
-          <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl text-center">
-            <div className="text-xs text-amber-700">Review Required</div>
-            <div className="text-xl font-extrabold text-amber-800">{projectDetails.reviewRequired}</div>
-          </div>
-          <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-center">
-            <div className="text-xs text-rose-700">Failed / Errors</div>
-            <div className="text-xl font-extrabold text-rose-800">{projectDetails.failedScreens}</div>
-          </div>
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}
+            className="bg-[#F7F9FC] border border-[#D9E2EC] hover:border-[#0652CC] p-3 rounded-xl text-center cursor-pointer transition-all hover:scale-[1.02] shadow-2xs"
+            title="Click to view all screens"
+          >
+            <div className="text-xs font-semibold text-[#6B778C]">Total Screens</div>
+            <div className="text-xl font-extrabold text-[#091E42] mt-0.5">{projectDetails.totalScreens}</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}
+            className="bg-emerald-50 border border-emerald-200 hover:border-emerald-500 p-3 rounded-xl text-center cursor-pointer transition-all hover:scale-[1.02] shadow-2xs"
+            title="Click to view converted screens"
+          >
+            <div className="text-xs font-bold text-emerald-700">Converted</div>
+            <div className="text-xl font-extrabold text-emerald-800 mt-0.5">{projectDetails.convertedScreens}</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}
+            className="bg-amber-50 border border-amber-200 hover:border-amber-500 p-3 rounded-xl text-center cursor-pointer transition-all hover:scale-[1.02] shadow-2xs"
+            title="Click to view screens requiring review"
+          >
+            <div className="text-xs font-bold text-amber-700">Review Required</div>
+            <div className="text-xl font-extrabold text-amber-800 mt-0.5">{projectDetails.reviewRequired}</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.PROJECTS.DIAGNOSTICS(projectId))}
+            className="bg-rose-50 border border-rose-200 hover:border-rose-400 p-3 rounded-xl text-center cursor-pointer transition-all hover:scale-[1.02] shadow-2xs"
+            title="Click to view diagnostics and error logs"
+          >
+            <div className="text-xs font-bold text-rose-700">Failed / Errors</div>
+            <div className="text-xl font-extrabold text-rose-800 mt-0.5">{projectDetails.failedScreens}</div>
+          </button>
         </div>
       </div>
 
