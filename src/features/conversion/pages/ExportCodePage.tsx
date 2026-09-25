@@ -8,7 +8,6 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
-import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
 import { conversionService } from '../services/conversion.service';
@@ -229,18 +228,6 @@ export const ExportCodePage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-24">
-      {/* Navigation Breadcrumb */}
-      <Breadcrumb
-        items={[
-          { label: 'Projects', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          {
-            label: project?.name || 'Legacy Migration',
-            href: ROUTES.PROJECTS.SCREENS(projectId),
-          },
-          { label: 'Screens', href: ROUTES.PROJECTS.SCREENS(projectId) },
-          { label: 'Export Code Package' },
-        ]}
-      />
 
       {/* Page Header (ALSM Design System) */}
       <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">

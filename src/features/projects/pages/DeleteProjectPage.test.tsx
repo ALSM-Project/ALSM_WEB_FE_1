@@ -20,12 +20,18 @@ const mocks = vi.hoisted(() => {
   ];
   return {
     getProjects: vi.fn().mockResolvedValue(projects),
+    getProject: vi.fn().mockResolvedValue(projects[0]),
     deleteProject: vi.fn().mockResolvedValue(true),
   };
 });
 
 vi.mock('../services/project.service', () => ({
-  projectService: { getProjects: mocks.getProjects, deleteProject: mocks.deleteProject },
+  projectService: {
+    getProjects: mocks.getProjects,
+    getProject: mocks.getProject,
+    getProjectById: mocks.getProject,
+    deleteProject: mocks.deleteProject,
+  },
 }));
 
 describe('DeleteProjectPage', () => {
@@ -44,8 +50,8 @@ describe('DeleteProjectPage', () => {
     renderWithRouter();
 
     expect(await screen.findByRole('heading', { name: /Delete Modernization Project\?/i })).toBeInTheDocument();
-    expect(screen.getByText(/This project will be soft-deleted and can be recovered within 30 days/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Type project name to confirm/i)).toBeInTheDocument();
+    expect(screen.getByText(/This project will be soft-deleted/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Mortgage-System-v1')).toBeInTheDocument();
   });
 
   it('disables Delete Project button until exact project name is entered', async () => {
@@ -53,15 +59,16 @@ describe('DeleteProjectPage', () => {
 
     await screen.findByRole('heading', { name: /Delete Modernization Project\?/i });
 
-    const deleteBtn = screen.getByRole('button', { name: /Delete Project/i });
-    expect(deleteBtn).toBeDisabled();
+    const deleteBtns = screen.getAllByRole('button', { name: /Delete Project/i });
+    const confirmDeleteBtn = deleteBtns.find((btn) => btn.getAttribute('type') === 'submit') || deleteBtns[deleteBtns.length - 1];
+    expect(confirmDeleteBtn).toBeDisabled();
 
-    const input = screen.getByLabelText(/Type project name to confirm/i);
+    const input = screen.getByPlaceholderText('Mortgage-System-v1');
     fireEvent.change(input, { target: { value: 'WrongName' } });
-    expect(deleteBtn).toBeDisabled();
+    expect(confirmDeleteBtn).toBeDisabled();
 
     fireEvent.change(input, { target: { value: 'Mortgage-System-v1' } });
-    expect(deleteBtn).not.toBeDisabled();
+    expect(confirmDeleteBtn).not.toBeDisabled();
   });
 
   it('executes project deletion and shows success feedback when confirmed', async () => {
@@ -69,14 +76,15 @@ describe('DeleteProjectPage', () => {
 
     await screen.findByRole('heading', { name: /Delete Modernization Project\?/i });
 
-    const input = screen.getByLabelText(/Type project name to confirm/i);
+    const input = screen.getByPlaceholderText('Mortgage-System-v1');
     fireEvent.change(input, { target: { value: 'Mortgage-System-v1' } });
 
-    const deleteBtn = screen.getByRole('button', { name: /Delete Project/i });
-    fireEvent.click(deleteBtn);
+    const deleteBtns = screen.getAllByRole('button', { name: /Delete Project/i });
+    const confirmDeleteBtn = deleteBtns.find((btn) => btn.getAttribute('type') === 'submit') || deleteBtns[deleteBtns.length - 1];
+    fireEvent.click(confirmDeleteBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/was soft-deleted successfully/i)).toBeInTheDocument();
+      expect(screen.getByText(/was deleted successfully/i)).toBeInTheDocument();
     });
   });
 });

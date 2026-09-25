@@ -1,4 +1,5 @@
 import type { MenuItem } from '@/features/menus/types/menu';
+import { getProjectName } from '@/shared/utils/projectCache';
 
 export interface BreadcrumbNode {
   label: string;
@@ -7,88 +8,134 @@ export interface BreadcrumbNode {
 }
 
 /**
- * Searches the menu tree to find the active path of menu items leading to currentPath
- */
-function findMenuBreadcrumbPath(
-  items: MenuItem[],
-  currentPath: string,
-  ancestors: MenuItem[] = []
-): MenuItem[] | null {
-  for (const item of items) {
-    const currentAncestors = [...ancestors, item];
-    
-    if (item.path && (item.path === currentPath || (item.path !== '/' && currentPath.startsWith(item.path)))) {
-      return currentAncestors;
-    }
-
-    if (item.children && item.children.length > 0) {
-      const found = findMenuBreadcrumbPath(item.children, currentPath, currentAncestors);
-      if (found) return found;
-    }
-  }
-
-  return null;
-}
-
-/**
  * Derives a clean list of breadcrumb nodes for any URL pathname
  */
 export function getBreadcrumbsFromRoute(
   pathname: string,
-  menuItems: MenuItem[] = []
+  _menuItems: MenuItem[] = []
 ): BreadcrumbNode[] {
-  // 1. Attempt match against navigation model first
-  const menuMatch = findMenuBreadcrumbPath(menuItems, pathname);
-  if (menuMatch && menuMatch.length > 0) {
-    return menuMatch.map((item, index) => ({
-      label: item.label,
-      // Only set link path if not the last item and path exists
-      path: index < menuMatch.length - 1 ? item.path : undefined,
-    }));
-  }
+  const cleanPath = pathname.split('?')[0].replace(/\/+$/, '') || '/';
 
-  // 2. Fallback: Parse URL path segments dynamically
-  const segments = pathname.split('/').filter(Boolean);
-  if (segments.length === 0) {
+  if (cleanPath === '/' || cleanPath === '/dashboard') {
     return [{ label: 'Dashboard' }];
   }
 
+  if (cleanPath === '/projects') {
+    return [{ label: 'Projects' }];
+  }
+
+  // Handle /projects/:projectId/... pattern
+  const projectMatch = cleanPath.match(/^\/projects\/([^/]+)(?:\/(.*))?$/);
+  if (projectMatch) {
+    const [, projectId, rest] = projectMatch;
+    const projectLabel = projectId === 'create'
+      ? 'Create Project'
+      : getProjectName(projectId);
+
+    if (projectId === 'create') {
+      return [{ label: 'Projects', path: '/projects' }, { label: 'Create Project' }];
+    }
+
+    const baseBreadcrumb: BreadcrumbNode[] = [
+      { label: 'Projects', path: '/projects' },
+      { label: projectLabel, path: `/projects/${projectId}/screens` },
+    ];
+
+    if (!rest || rest === 'overview' || rest === 'screens') {
+      return [{ label: 'Projects', path: '/projects' }, { label: projectLabel }];
+    }
+
+    if (rest === 'delete') {
+      return [{ label: 'Projects', path: '/projects' }, { label: projectLabel }];
+    }
+
+    if (rest === 'upload') {
+      return [...baseBreadcrumb, { label: 'Upload Source File' }];
+    }
+
+    if (rest === 'bulk-convert') {
+      return [...baseBreadcrumb, { label: 'Bulk Convert' }];
+    }
+
+    if (rest === 'export') {
+      return [...baseBreadcrumb, { label: 'Export Code Package' }];
+    }
+
+    if (rest === 'diagnostics') {
+      return [...baseBreadcrumb, { label: 'Diagnostics & Error Logs' }];
+    }
+
+    // Handle /projects/:projectId/screens/:screenId/... pattern
+    const screenMatch = rest.match(/^screens\/([^/]+)(?:\/(.*))?$/);
+    if (screenMatch) {
+      const [, screenId, screenAction] = screenMatch;
+      const screenLabel = screenId.includes('.') ? screenId : screenId.toUpperCase();
+      const screenBase: BreadcrumbNode[] = [
+        ...baseBreadcrumb,
+        { label: screenLabel },
+      ];
+
+      if (!screenAction || screenAction === 'convert') {
+        return [...screenBase, { label: 'Convert' }];
+      }
+      if (screenAction === 'mapping') {
+        return [...screenBase, { label: 'Field Mapping' }];
+      }
+      if (screenAction === 'review') {
+        return [...screenBase, { label: 'Review Findings' }];
+      }
+      if (screenAction === 'result') {
+        return [...screenBase, { label: 'Result Inspection' }];
+      }
+      if (screenAction === 'preview') {
+        return [...screenBase, { label: 'Preview Studio' }];
+      }
+    }
+
+    return baseBreadcrumb;
+  }
+
+  // Handle standalone routes
+  if (cleanPath === '/diagnostics') {
+    return [{ label: 'Diagnostics & System Logs' }];
+  }
+
+  if (cleanPath === '/documentation' || cleanPath === '/docs') {
+    return [{ label: 'Resources' }, { label: 'Documentation' }];
+  }
+
+  if (cleanPath === '/user-guide') {
+    return [{ label: 'Resources' }, { label: 'User Guide' }];
+  }
+
+  if (cleanPath === '/modernization-guide') {
+    return [{ label: 'Resources' }, { label: 'Modernization Guide' }];
+  }
+
+  if (cleanPath.includes('/contact')) {
+    return [{ label: 'Resources' }, { label: 'Contact & Upgrade' }];
+  }
+
+  if (cleanPath.startsWith('/account')) {
+    const base: BreadcrumbNode[] = [{ label: 'Account' }];
+    if (cleanPath.includes('password')) return [...base, { label: 'Password & Security' }];
+    if (cleanPath.includes('profile')) return [...base, { label: 'Profile Settings' }];
+    return [...base, { label: 'Account Settings' }];
+  }
+
+  if (cleanPath.startsWith('/billing')) {
+    return [{ label: 'Account' }, { label: 'Subscription & Billing' }];
+  }
+
+  // Fallback segment parser
+  const segments = cleanPath.split('/').filter(Boolean);
   const result: BreadcrumbNode[] = [];
   let accumulatedPath = '';
-
-  const segmentLabels: Record<string, string> = {
-    projects: 'Projects',
-    screens: 'Screens',
-    account: 'Account & Security',
-    security: 'Security',
-    convert: 'Convert',
-    bulk: 'Bulk Convert',
-    result: 'Result Inspection',
-    preview: 'Preview Studio',
-    mapping: 'Field Mapping',
-    export: 'Export Code',
-    diagnostics: 'Diagnostics',
-    menus: 'Menu Builder',
-    password: 'Password',
-    '2fa': 'Two-Factor Authentication',
-    sessions: 'Active Sessions',
-  };
 
   segments.forEach((seg, index) => {
     accumulatedPath += `/${seg}`;
     const isLast = index === segments.length - 1;
-
-    let label = segmentLabels[seg.toLowerCase()];
-    if (!label) {
-      // If it looks like an ID (e.g. proj-acme, screen-123), format nicely
-      if (seg.startsWith('proj-')) {
-        label = `Project (${seg.replace('proj-', '').toUpperCase()})`;
-      } else if (seg.startsWith('screen-')) {
-        label = `Screen (${seg.replace('screen-', '')})`;
-      } else {
-        label = seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' ');
-      }
-    }
+    const label = seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' ');
 
     result.push({
       label,

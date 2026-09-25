@@ -24,12 +24,34 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
 
   // Check if current route matches item or any of its children
   const isChildActive = (node: MenuItem): boolean => {
-    if (node.path && (location.pathname === node.path || (node.path !== '/' && location.pathname.startsWith(node.path)))) {
-      return true;
+    const currentPath = location.pathname;
+    if (!node.path) return false;
+
+    // Projects menu item only active on exact projects list page (/projects)
+    if (node.id === 'projects') {
+      return currentPath === '/projects' || currentPath === '/projects/';
     }
-    if (node.children) {
-      return node.children.some(isChildActive);
+
+    // Screens menu item active when navigating inside screen workflows
+    if (node.id === 'screens') {
+      return (
+        currentPath.includes('/screens') ||
+        currentPath.includes('/upload') ||
+        currentPath.includes('/conversions') ||
+        currentPath.includes('/mapping') ||
+        currentPath.includes('/preview') ||
+        currentPath.includes('/review') ||
+        currentPath.includes('/result')
+      );
     }
+
+    if (node.id === 'conversion') {
+      return currentPath.includes('/bulk-convert');
+    }
+
+    if (currentPath === node.path) return true;
+    if (node.path !== '/' && currentPath.startsWith(node.path)) return true;
+    if (node.children) return node.children.some(isChildActive);
     return false;
   };
 
@@ -55,6 +77,18 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     ? 'pl-7 pr-2.5 justify-between'
     : 'pl-11 pr-2.5 justify-between';
 
+  const getDynamicPath = (node: MenuItem): string => {
+    if (node.id === 'screens') {
+      const lastProjId = localStorage.getItem('last_active_project_id') || 'proj-acme';
+      return `/projects/${lastProjId}/screens`;
+    }
+    if (node.id === 'diagnostics') {
+      const lastProjId = localStorage.getItem('last_active_project_id') || 'proj-acme';
+      return `/projects/${lastProjId}/diagnostics`;
+    }
+    return node.path || '#';
+  };
+
   return (
     <div className="w-full">
       {hasChildren ? (
@@ -62,20 +96,20 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`w-full h-9 flex items-center text-xs font-semibold rounded-lg transition-colors cursor-pointer border-l-4 ${paddingClass} ${
+            className={`w-full h-10 flex items-center text-sm font-semibold rounded-lg transition-colors cursor-pointer border-l-4 ${paddingClass} ${
               isActive
                 ? 'bg-[#E8F1FF] text-[#0652CC] border-[#0652CC] font-bold shadow-2xs'
                 : 'text-[#42526E] border-transparent hover:bg-[#F7F9FC] hover:text-[#091E42]'
             }`}
             title={isCollapsed ? item.label : undefined}
           >
-            <div className="flex items-center space-x-2.5 truncate min-w-0">
-              <DynamicIcon name={item.icon} className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#0652CC]' : 'text-[#6B778C]'}`} />
+            <div className="flex items-center space-x-3 truncate min-w-0">
+              <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#0652CC]' : 'text-[#6B778C]'}`} />
               {!isCollapsed && <span className="truncate">{item.label}</span>}
             </div>
             {!isCollapsed && (
               <span className="text-[#6B778C] shrink-0 ml-1">
-                {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               </span>
             )}
           </button>
@@ -97,19 +131,19 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
         </div>
       ) : (
         <NavLink
-          to={item.path || '#'}
+          to={getDynamicPath(item)}
           onClick={() => onTrackUsage && onTrackUsage(item.id)}
-          className={({ isActive: linkActive }) =>
-            `w-full h-9 flex items-center text-xs font-medium rounded-lg transition-all border-l-4 ${paddingClass} ${
-              linkActive
+          className={() =>
+            `w-full h-10 flex items-center text-sm font-semibold rounded-lg transition-all border-l-4 ${paddingClass} ${
+              isActive
                 ? 'bg-[#E8F1FF] text-[#0652CC] border-[#0652CC] font-bold shadow-2xs'
                 : 'text-[#42526E] border-transparent hover:bg-[#F7F9FC] hover:text-[#091E42]'
             }`
           }
           title={isCollapsed ? item.label : undefined}
         >
-          <div className="flex items-center space-x-2.5 truncate min-w-0">
-            <DynamicIcon name={item.icon} className="w-4 h-4 shrink-0" />
+          <div className="flex items-center space-x-3 truncate min-w-0">
+            <DynamicIcon name={item.icon} className="w-[18px] h-[18px] shrink-0" />
             {!isCollapsed && <span className="truncate">{item.label}</span>}
           </div>
           {!isCollapsed && item.badge && (
