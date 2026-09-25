@@ -242,7 +242,7 @@ export const ExportCodePage: React.FC = () => {
             </Badge>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Package and download modernized React components, application scaffolding, or component libraries from legacy BMS/DSPF screens.
+            Package and download modernized React components (from BMS/DSPF screens) or generated Java source (from COBOL programs), with optional application scaffolding.
           </p>
         </div>
 
