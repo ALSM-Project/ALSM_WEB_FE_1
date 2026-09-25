@@ -165,6 +165,13 @@ export const BulkConvertPage: React.FC = () => {
             </div>
 
             <div className="space-y-2 pt-2">
+              {bulkConvert.isError && (
+                <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
+                  {bulkConvert.error instanceof Error
+                    ? bulkConvert.error.message
+                    : 'Could not start the bulk conversion. Please try again.'}
+                </p>
+              )}
               <Button
                 onClick={handleStartConversion}
                 isLoading={bulkConvert.isPending}

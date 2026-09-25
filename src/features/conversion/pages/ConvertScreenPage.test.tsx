@@ -147,3 +147,33 @@ describe('ConvertScreenPage - Field Mapping tab (UC-98)', () => {
     expect(await screen.findByText(/Run the converter first/i)).toBeInTheDocument();
   });
 });
+
+// Regression test: a real backend failure when starting a conversion (e.g. the queue is
+// unavailable) used to be completely silent on this page — no error, no change, nothing.
+// It looked identical to the button just not doing anything.
+describe('ConvertScreenPage - conversion start errors', () => {
+  const renderPage = () =>
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/projects/proj-acme/screens/scr-1/convert']}>
+          <Routes>
+            <Route path="/projects/:projectId/screens/:screenId/convert" element={<ConvertScreenPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+  it('shows a real error banner when starting the conversion fails', async () => {
+    mocks.getScreenById.mockResolvedValue(screen1);
+    mocks.getLatestConversion.mockResolvedValue(null);
+    mocks.getFieldMappings.mockResolvedValue([]);
+    mocks.createConversion.mockRejectedValue(new Error('Conversion job could not be queued'));
+
+    renderPage();
+    const runButton = await screen.findByRole('button', { name: /Run Conversion Algorithm Now/i });
+    fireEvent.click(runButton);
+
+    expect(await screen.findByText('Conversion job could not be queued')).toBeInTheDocument();
+    expect(screen.getByText('Could not start the conversion.')).toBeInTheDocument();
+  });
+});
