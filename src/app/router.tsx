@@ -25,6 +25,7 @@ import {
   VersionHistoryPage,
   PreviewStudioPage,
   FieldMappingPage,
+  MethodMappingPage,
   ExportCodePage,
   ReviewFindingsPage,
 } from '@/features/conversion';
@@ -92,6 +93,7 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/history', element: <VersionHistoryPage /> },
           { path: '/projects/:projectId/screens/:screenId/preview', element: <PreviewStudioPage /> },
           { path: '/projects/:projectId/screens/:screenId/mapping', element: <FieldMappingPage /> },
+          { path: '/projects/:projectId/screens/:screenId/method-mapping', element: <MethodMappingPage /> },
           { path: '/projects/:projectId/screens/:screenId/review', element: <ReviewFindingsPage /> },
           { path: '/projects/:projectId/export', element: <ExportCodePage /> },
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },

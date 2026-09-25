@@ -37,7 +37,19 @@ export const ConvertScreenPage: React.FC = () => {
     };
   }, [screenId]);
 
+  // UC-28: COBOL screens have their own Method Mapping (class/method renames), which is
+  // fetched by MethodMappingPage itself, not here — the BMS field-mapping endpoint has
+  // nothing to do with COBOL screens and must not be called for one.
+  const isCobol = screen?.sourceType === 'COBOL';
+
   useEffect(() => {
+    // Wait until the screen's real sourceType is known — fetching before then would guess
+    // BMS and could call the field-mapping endpoint for what turns out to be a COBOL screen.
+    if (!screen) return;
+    if (isCobol) {
+      setMappingsLoaded(true);
+      return;
+    }
     let cancelled = false;
     setMappingsLoaded(false);
     conversionService
@@ -55,7 +67,11 @@ export const ConvertScreenPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [projectId, screenId]);
+  }, [projectId, screenId, screen, isCobol]);
+
+  const mappingRoute = isCobol
+    ? ROUTES.PROJECTS.METHOD_MAPPING(projectId, screenId)
+    : ROUTES.PROJECTS.MAPPING(projectId, screenId);
 
   const { data: job } = useConversionJob(projectId, screenId);
   const createJob = useCreateConversionJob(projectId, screenId);
@@ -150,13 +166,17 @@ export const ConvertScreenPage: React.FC = () => {
               Target: {screen?.framework ?? 'React'} TypeScript
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">Deterministic Conversion Engine: Parses BMS AST and converts into React TypeScript components & DTOs.</p>
+          <p className="text-xs text-slate-500 mt-1">
+            {isCobol
+              ? 'Deterministic Conversion Engine: Compiles COBOL programs into Java classes & methods via tool2java.'
+              : 'Deterministic Conversion Engine: Parses BMS AST and converts into React TypeScript components & DTOs.'}
+          </p>
         </div>
 
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))} className="space-x-1.5 text-xs font-semibold">
+          <Button variant="outline" onClick={() => navigate(mappingRoute)} className="space-x-1.5 text-xs font-semibold">
             <Sliders className="w-4 h-4 text-brand-600" />
-            <span>Edit Mapping & Correct</span>
+            <span>{isCobol ? 'Edit Method Mapping' : 'Edit Mapping & Correct'}</span>
           </Button>
           <Button onClick={handleRunConverter} isLoading={isRunning} className="space-x-2 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]">
             <Play className="w-4 h-4" />
@@ -235,7 +255,7 @@ export const ConvertScreenPage: React.FC = () => {
         tabs={[
           { id: 'preview', label: 'Preview' },
           { id: 'code', label: 'Code' },
-          { id: 'mapping', label: 'Field Mapping' },
+          { id: 'mapping', label: isCobol ? 'Method Mapping' : 'Field Mapping' },
           { id: 'findings', label: 'Findings (Validation)' },
         ]}
         activeTab={activeTab}
@@ -268,7 +288,7 @@ export const ConvertScreenPage: React.FC = () => {
                   tsxCode={selectedFile?.content ?? ''}
                   screenName={screenName}
                   metadata={metadata}
-                  onEditMapping={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+                  onEditMapping={() => navigate(mappingRoute)}
                 />
               </div>
             ) : (
@@ -330,7 +350,24 @@ export const ConvertScreenPage: React.FC = () => {
         )
       )}
 
-      {activeTab === 'mapping' && (
+      {activeTab === 'mapping' && isCobol && (
+        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
+          <div className="flex justify-between items-center">
+            <h3 className="text-sm font-bold text-slate-900">Method Mapping</h3>
+            <Link to={mappingRoute} className="text-xs text-brand-600 hover:underline flex items-center space-x-1 font-semibold">
+              <Sliders className="w-4 h-4" />
+              <span>Open Method Editor</span>
+            </Link>
+          </div>
+          <p className="text-xs text-slate-500">
+            {isCompleted
+              ? 'This COBOL program has real generated Java class/method names. Open the Method Editor to rename them.'
+              : 'Run the converter first to detect the real Java class/method names generated from this program.'}
+          </p>
+        </div>
+      )}
+
+      {activeTab === 'mapping' && !isCobol && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold text-slate-900">
@@ -408,9 +445,9 @@ export const ConvertScreenPage: React.FC = () => {
           Save as Template
         </Button>
         <div className="flex space-x-3">
-          <Button variant="outline" onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))} className="space-x-1.5 text-xs font-semibold">
+          <Button variant="outline" onClick={() => navigate(mappingRoute)} className="space-x-1.5 text-xs font-semibold">
             <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
-            <span>Edit & Re-convert</span>
+            <span>{isCobol ? 'Edit Method Mapping' : 'Edit & Re-convert'}</span>
           </Button>
           <Button
             onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))}
