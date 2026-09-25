@@ -13,7 +13,8 @@ import { CodeViewer } from '../components/CodeViewer';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
-import { generateScreenBundle } from '../utils/screenGenerator';
+import { generateScreenBundle, parseConvertedTsx } from '../utils/screenGenerator';
+import type { FieldMapping } from '../types/conversion';
 
 export const ConvertScreenPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -22,6 +23,8 @@ export const ConvertScreenPage: React.FC = () => {
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [activeTab, setActiveTab] = useState('preview');
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+  const [savedMappings, setSavedMappings] = useState<FieldMapping[]>([]);
+  const [mappingsLoaded, setMappingsLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -33,6 +36,26 @@ export const ConvertScreenPage: React.FC = () => {
       cancelled = true;
     };
   }, [screenId]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setMappingsLoaded(false);
+    conversionService
+      .getFieldMappings(projectId, screenId)
+      .then((data) => {
+        if (cancelled) return;
+        setSavedMappings(data);
+      })
+      .catch((err) => {
+        console.error('Failed to load field mappings', err);
+      })
+      .finally(() => {
+        if (!cancelled) setMappingsLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, screenId]);
 
   const { data: job } = useConversionJob(projectId, screenId);
   const createJob = useCreateConversionJob(projectId, screenId);
@@ -64,7 +87,13 @@ export const ConvertScreenPage: React.FC = () => {
   }, [resultBundle, isCompleted, fallbackBundle]);
   const selectedFile = files[selectedFileIndex] ?? files[0] ?? null;
 
-
+  /** Auto-detected field preview parsed directly from the real generated TSX (UC-98) — used
+   * only when nothing has been saved yet in the real field-mapping store, so the tab never
+   * shows fabricated example rows unrelated to this screen. */
+  const detectedFields = useMemo(() => {
+    if (!isCompleted || !selectedFile?.content) return [];
+    return parseConvertedTsx(selectedFile.content, screenName).fields;
+  }, [isCompleted, selectedFile, screenName]);
 
   const metadata = useMemo(() => {
     const jsonFile = files.find((f) => f.relativePath.endsWith('.metadata.json'));
@@ -294,22 +323,54 @@ export const ConvertScreenPage: React.FC = () => {
       {activeTab === 'mapping' && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
           <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-slate-900">Synthesized Field Mappings</h3>
+            <h3 className="text-sm font-bold text-slate-900">
+              {savedMappings.length > 0 ? 'Saved Field Mappings' : 'Auto-Detected Field Mappings'}
+            </h3>
             <Link to={ROUTES.PROJECTS.MAPPING(projectId, screenId)} className="text-xs text-brand-600 hover:underline flex items-center space-x-1 font-semibold">
               <Sliders className="w-4 h-4" />
               <span>Open Field Editor</span>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-              <p className="text-brand-700 font-bold">USER-ID-INPUT (BMS Pos R10 C15)</p>
-              <p className="text-slate-600">&rarr; Mapped to: &lt;TextField label="Username" /&gt;</p>
+
+          {!mappingsLoaded ? (
+            <p className="text-xs text-slate-500">Loading field mappings…</p>
+          ) : savedMappings.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+              {savedMappings.map((m) => (
+                <div key={m.id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                  <p className="text-brand-700 font-bold">
+                    {m.legacyField.name} (BMS Pos {m.legacyField.position})
+                  </p>
+                  <p className="text-slate-600">
+                    &rarr; Mapped to: &lt;{m.componentMapping.componentType} label="{m.componentMapping.labelText}" /&gt;
+                  </p>
+                </div>
+              ))}
             </div>
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-              <p className="text-brand-700 font-bold">PASS-KEY-ATTR (BMS Pos R12 C15)</p>
-              <p className="text-slate-600">&rarr; Mapped to: &lt;PasswordInput label="Password" /&gt;</p>
-            </div>
-          </div>
+          ) : detectedFields.length > 0 ? (
+            <>
+              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                No mapping has been saved for this screen yet — these fields were detected directly from the
+                generated code. Open the Field Editor to review and save them.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
+                {detectedFields.map((f) => (
+                  <div key={f.name} className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+                    <p className="text-brand-700 font-bold">{f.name}</p>
+                    <p className="text-slate-600">
+                      &rarr; Detected as: &lt;{f.type === 'password' ? 'PasswordInput' : f.type === 'select' ? 'Select' : 'TextField'} label="{f.label}" /&gt;
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="text-xs text-slate-500">
+              {isCompleted
+                ? 'No input fields were detected in the generated code for this screen.'
+                : 'Run the converter first to see field mappings.'}
+            </p>
+          )}
         </div>
       )}
 
