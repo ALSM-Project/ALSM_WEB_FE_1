@@ -294,10 +294,10 @@ export const ResultInspectionPage: React.FC = () => {
             <span>{screen?.sourceType === 'COBOL' ? 'Edit Method Mapping' : 'Edit Field Mapping'}</span>
           </Button>
           <Button
-            onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))}
+            onClick={() => navigate(ROUTES.PROJECTS.QUALITY_REVIEW(projectId, screenId))}
             className="space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white"
           >
-            <span>Proceed to Human Review & Findings &rarr;</span>
+            <span>Review Initial Quality &rarr;</span>
           </Button>
         </div>
       </div>
