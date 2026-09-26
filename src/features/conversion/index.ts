@@ -1,8 +1,10 @@
 export { ConvertScreenPage } from './pages/ConvertScreenPage';
 export { BulkConvertPage } from './pages/BulkConvertPage';
 export { ResultInspectionPage } from './pages/ResultInspectionPage';
+export { VersionHistoryPage } from './pages/VersionHistoryPage';
 export { PreviewStudioPage } from './pages/PreviewStudioPage';
 export { FieldMappingPage } from './pages/FieldMappingPage';
+export { MethodMappingPage } from './pages/MethodMappingPage';
 export { ExportCodePage } from './pages/ExportCodePage';
 export { ReviewFindingsPage } from './pages/ReviewFindingsPage';
 

@@ -1,9 +1,10 @@
 import type { AxiosProgressEvent } from 'axios';
 import { mockDiagnosticsLogs } from '@/mocks/diagnostics.mock';
 import { apiClient } from '@/services/api/apiClient';
-import type { ConversionResultBundle, FieldMapping } from '../types/conversion';
+import type { ConversionResultBundle, FieldMapping, MethodMappingEntry, MethodMappingView } from '../types/conversion';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { DiagnosticLog } from '@/features/diagnostics/types/diagnostics';
+import type { ProgramAnalysis } from '@/features/screens/types/copybookDependency';
 
 /** Shape returned by the real backend — see ScreenRecord in ALSM_WEB_BE. */
 interface ScreenRecordDto {
@@ -78,6 +79,12 @@ export class ConversionService {
     }
   }
 
+  /** Real COBOL copybook dependency analysis for one screen (computed by the backend at
+   * upload time). No mock fallback — a real failure here must surface as a real error. */
+  async getCopybookDependencies(screenId: string): Promise<ProgramAnalysis> {
+    return apiClient.get<ProgramAnalysis>(`/screens/${screenId}/copybook-dependencies`);
+  }
+
   /** Deletes a screen record (and its associated source file) from the backend. */
   async deleteScreen(projectId: string, screenId: string): Promise<boolean> {
     try {
@@ -148,6 +155,19 @@ export class ConversionService {
     }
   }
 
+  /** Real, full conversion history for a screen (UC-19) — every past attempt, newest
+   * first. Same backend endpoint as getLatestConversion, but returns the whole array
+   * instead of discarding everything but jobs[0]. */
+  async getConversionHistory(projectId: string, screenId: string): Promise<ConversionJob[]> {
+    return apiClient.get<ConversionJob[]>(`/projects/${projectId}/screens/${screenId}/conversions`);
+  }
+
+  /** Fetches one specific conversion job by id — used to inspect a specific historical
+   * version's result rather than only ever the latest one. */
+  async getConversionJobById(jobId: string): Promise<ConversionJob> {
+    return apiClient.get<ConversionJob>(`/conversions/${jobId}`);
+  }
+
   async getFieldMappings(projectId: string, screenId: string): Promise<FieldMapping[]> {
     try {
       const res = await apiClient.get<FieldMappingResponse>(
@@ -191,6 +211,25 @@ export class ConversionService {
         componentMapping: { componentType: 'Password Input', labelText: 'Password (PASSWD)', isRequired: true, minLength: 6, maxLength: 8, regexPattern: '' },
       },
     ];
+  }
+
+  /** Real class/method names detected in the screen's latest generated Java code (UC-28),
+   * plus any saved user overrides. No mock fallback — a COBOL screen with no completed
+   * conversion yet honestly reports hasGeneratedCode: false. */
+  async getMethodMapping(projectId: string, screenId: string): Promise<MethodMappingView> {
+    return apiClient.get<MethodMappingView>(`/projects/${projectId}/screens/${screenId}/method-mapping`);
+  }
+
+  /** Saves method-mapping renames. The backend applies them to the screen's latest
+   * generated Java code for real, not just as inert saved metadata. */
+  async saveMethodMapping(
+    projectId: string,
+    screenId: string,
+    entries: MethodMappingEntry[],
+  ): Promise<MethodMappingView> {
+    return apiClient.put<MethodMappingView>(`/projects/${projectId}/screens/${screenId}/method-mapping`, {
+      entries,
+    });
   }
 
   async saveFieldMapping(

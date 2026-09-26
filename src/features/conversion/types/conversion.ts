@@ -52,3 +52,21 @@ export interface FieldMapping {
     displayCol?: number;
   };
 }
+
+/** UC-28: real class/method names detected in a screen's generated Java code (COBOL→Java),
+ * plus any user override. targetName equals originalName until the user renames it. */
+export interface MethodMappingEntry {
+  relativePath: string;
+  kind: 'CLASS' | 'METHOD';
+  originalName: string;
+  targetName: string;
+}
+
+export interface MethodMappingView {
+  projectId: string;
+  screenId: string;
+  hasGeneratedCode: boolean;
+  entries: MethodMappingEntry[];
+  updatedBy: string | null;
+  updatedAt: string | null;
+}

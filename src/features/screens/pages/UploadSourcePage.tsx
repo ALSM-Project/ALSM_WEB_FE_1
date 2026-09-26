@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, Code2, Play, Eye } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Code2, Play, Eye } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -52,59 +52,128 @@ export const UploadSourcePage: React.FC = () => {
 
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadLabel, setUploadLabel] = useState('');
 
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      void handleUpload(e.dataTransfer.files[0]);
-    }
+    if (e.dataTransfer.files.length) void handleFiles(Array.from(e.dataTransfer.files));
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      void handleUpload(e.target.files[0]);
-    }
+    if (e.target.files?.length) void handleFiles(Array.from(e.target.files));
+    // Reset so selecting the exact same file(s) again still fires onChange.
+    e.target.value = '';
   };
 
-  const handleUpload = async (file: File) => {
+  const acceptedExtensions = activeTab === 'screens' ? ['.bms', '.dspf'] : ['.cob', '.cbl', '.cpy'];
+
+  /** Folder picks (webkitdirectory) return every file in the tree, including ones we don't
+   * accept (README, .gitignore, etc.) and files nested in different subfolders (e.g. a
+   * carddemo layout with sibling cbl/ and cpy/ dirs) — only the browser-reported basename
+   * (not the subfolder path) is sent to the backend, so programs and their copybooks still
+   * land in the same upload bundle/directory regardless of which subfolder they came from. */
+  const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files ? Array.from(e.target.files) : [];
+    e.target.value = '';
+    const matched = picked.filter((file) =>
+      acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
+    );
+    if (matched.length === 0) return;
+    if (matched.length < picked.length) {
+      console.warn(`Skipped ${picked.length - matched.length} file(s) with unsupported extension from folder upload`);
+    }
+    void handleFiles(matched);
+  };
+
+  const failedRow = (file: File): SourceFile => ({
+    id: `file-${Date.now()}-${Math.random()}`,
+    fileName: file.name,
+    sizeKb: Math.round(file.size / 1024),
+    uploadedAt: 'Just now',
+    status: 'Failed to parse',
+  });
+
+  const handleFiles = (files: File[]) => {
+    if (activeTab === 'screens') {
+      // Each screen file is an independent conversion unit — upload one at a time so
+      // every file gets its own real inputReference/Screen instead of accidentally
+      // sharing one storage bundle with unrelated screens.
+      return handleUploadScreensSequentially(files);
+    }
+    // Program files (a .cob/.cbl plus its .cpy copybooks) must be uploaded together in
+    // one request — tool2java only resolves COPY statements from files in the same
+    // directory as the program, so splitting these into separate uploads would break it.
+    return handleUploadProgramBundle(files);
+  };
+
+  const handleUploadScreensSequentially = async (files: File[]) => {
     setIsUploading(true);
-    setUploadProgress(0);
     try {
-      const result = await conversionService.uploadSource(projectId, [file], setUploadProgress);
-      const uploaded = result.files[0];
-      const fileName = uploaded?.name ?? file.name;
-      const screen = result.screens[0];
-      const newFile: SourceFile = {
-        id: `file-${Date.now()}`,
-        fileName,
-        sizeKb: Math.round((uploaded?.sizeBytes ?? file.size) / 1024),
-        uploadedAt: 'Just now',
-        status: screen?.status ?? 'Ready',
-        inputReference: result.inputReference,
-        screenId: screen?.id,
-      };
-      if (activeTab === 'screens') {
-        setScreenFiles((prev) => [newFile, ...prev]);
-      } else {
-        setProgramFiles((prev) => [newFile, ...prev]);
-      }
-    } catch (err) {
-      console.error('Failed to upload source file', err);
-      const failedFile: SourceFile = {
-        id: `file-${Date.now()}`,
-        fileName: file.name,
-        sizeKb: Math.round(file.size / 1024),
-        uploadedAt: 'Just now',
-        status: 'Failed to parse',
-      };
-      if (activeTab === 'screens') {
-        setScreenFiles((prev) => [failedFile, ...prev]);
-      } else {
-        setProgramFiles((prev) => [failedFile, ...prev]);
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setUploadLabel(files.length > 1 ? `Uploading ${i + 1} of ${files.length}: ${file.name}` : `Uploading ${file.name}`);
+        setUploadProgress(0);
+        try {
+          const result = await conversionService.uploadSource(projectId, [file], setUploadProgress);
+          const uploaded = result.files[0];
+          const screen = result.screens[0];
+          const newFile: SourceFile = {
+            id: `file-${Date.now()}-${Math.random()}`,
+            fileName: uploaded?.name ?? file.name,
+            sizeKb: Math.round((uploaded?.sizeBytes ?? file.size) / 1024),
+            uploadedAt: 'Just now',
+            // Real status from the backend (e.g. already COMPLETED if this screen name
+            // matches a prior successful conversion) rather than always assuming 'Ready'.
+            status: screen?.status ?? 'Ready',
+            inputReference: result.inputReference,
+            screenId: screen?.id,
+          };
+          setScreenFiles((prev) => [newFile, ...prev]);
+        } catch (err) {
+          console.error('Failed to upload source file', file.name, err);
+          setScreenFiles((prev) => [failedRow(file), ...prev]);
+        }
       }
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
+      setUploadLabel('');
+    }
+  };
+
+  /** Real upload: the file(s) are stored by the backend and the returned inputReference is
+   * what conversion jobs use to run the actual COBOL conversion tool — nothing is simulated. */
+  const handleUploadProgramBundle = async (files: File[]) => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadLabel(
+      files.length > 1
+        ? `Uploading ${files.length} files (program + copybooks)…`
+        : `Uploading ${files[0].name}`,
+    );
+    try {
+      const result = await conversionService.uploadSource(projectId, files, setUploadProgress);
+      // The backend already created real, persisted Screen records for this upload (one
+      // per program file — copybooks don't get their own screen) — nothing to register
+      // client-side. Match each uploaded file back to its screen (if any) by name.
+      const screenByName = new Map(result.screens.map((s) => [s.name, s]));
+      const newRows: SourceFile[] = result.files.map((f) => ({
+        id: `file-${Date.now()}-${Math.random()}`,
+        fileName: f.name,
+        sizeKb: Math.round(f.sizeBytes / 1024),
+        uploadedAt: 'Just now',
+        status: 'Ready',
+        inputReference: result.inputReference,
+        screenId: screenByName.get(f.name)?.id,
+      }));
+      setProgramFiles((prev) => [...newRows, ...prev]);
+    } catch (err) {
+      console.error('Failed to upload source files', err);
+      setProgramFiles((prev) => [...files.map(failedRow), ...prev]);
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      setUploadLabel('');
     }
   };
 
@@ -168,28 +237,45 @@ export const UploadSourcePage: React.FC = () => {
           id="file-upload"
           accept={activeTab === 'screens' ? '.bms,.dspf' : '.cob,.cbl,.cpy'}
           onChange={handleFileSelect}
+          multiple
           className="hidden"
         />
-        <label htmlFor="file-upload" className="cursor-pointer space-y-4 block">
-          <div className="w-16 h-16 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto text-brand-600 group-hover:scale-110 transition-transform">
-            <UploadCloud className="w-8 h-8" />
-          </div>
-          <div>
-            <p className="text-base font-bold text-slate-900">Drag and drop your files here</p>
-            <p className="text-xs text-brand-600 font-semibold mt-1">or click to browse from device</p>
-          </div>
-          <p className="text-xs text-slate-500">
-            {activeTab === 'screens'
-              ? 'Accepted: .bms, .dspf (max 50MB/file)'
-              : 'Accepted: .cob, .cbl, .cpy — upload the program together with its copybooks (max 50MB/file)'}
+        <input
+          type="file"
+          id="folder-upload"
+          onChange={handleFolderSelect}
+          multiple
+          className="hidden"
+          {...{ webkitdirectory: 'true', directory: 'true', mozdirectory: 'true' }}
+        />
+        <div className="w-16 h-16 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto text-brand-600 group-hover:scale-110 transition-transform">
+          <UploadCloud className="w-8 h-8" />
+        </div>
+        <div className="mt-4">
+          <label htmlFor="file-upload" className="text-base font-bold text-slate-900 cursor-pointer block">
+            Drag and drop your files here
+          </label>
+          <p className="text-xs text-brand-600 font-semibold mt-1">
+            <label htmlFor="file-upload" className="underline hover:text-brand-800 cursor-pointer">
+              click to browse from device
+            </label>
+            {' · '}
+            <label htmlFor="folder-upload" className="underline hover:text-brand-800 cursor-pointer">
+              select an entire folder
+            </label>
           </p>
-        </label>
+        </div>
+        <p className="text-xs text-slate-500 mt-4">
+          {activeTab === 'screens'
+            ? 'Accepted: .bms, .dspf — select or drop multiple screens at once (max 50MB/file)'
+            : 'Accepted: .cob, .cbl, .cpy — select the program(s) together with their copybooks, or select the whole application folder at once (max 50MB/file)'}
+        </p>
       </div>
 
       {isUploading && (
         <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 shadow-sm">
           <div className="flex justify-between text-xs font-semibold">
-            <span className="text-brand-600">Uploading file...</span>
+            <span className="text-brand-600">{uploadLabel || 'Uploading…'}</span>
             <span className="text-slate-700">{uploadProgress}%</span>
           </div>
           <ProgressBar progress={uploadProgress} color="indigo" />
@@ -381,6 +467,12 @@ export const UploadSourcePage: React.FC = () => {
             <Button type="button" variant="outline" className="space-x-1.5 cursor-pointer font-semibold">
               <FolderPlus className="w-4 h-4 text-slate-600" />
               <span>Add More Files</span>
+            </Button>
+          </label>
+          <label htmlFor="folder-upload">
+            <Button type="button" variant="outline" className="space-x-1.5 cursor-pointer font-semibold">
+              <FolderUp className="w-4 h-4 text-slate-600" />
+              <span>Add Folder</span>
             </Button>
           </label>
           <Button onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))} className="space-x-2 font-semibold">

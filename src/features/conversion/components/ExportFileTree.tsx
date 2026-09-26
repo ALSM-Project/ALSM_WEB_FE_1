@@ -37,6 +37,9 @@ const TreeItem: React.FC<TreeItemProps> = ({
     if (name.endsWith('.tsx') || name.endsWith('.ts')) {
       return <FileCode className="w-3.5 h-3.5 text-cyan-400 shrink-0" />;
     }
+    if (name.endsWith('.java')) {
+      return <FileCode className="w-3.5 h-3.5 text-orange-400 shrink-0" />;
+    }
     if (name.endsWith('.json') || name.endsWith('.js')) {
       return <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
     }

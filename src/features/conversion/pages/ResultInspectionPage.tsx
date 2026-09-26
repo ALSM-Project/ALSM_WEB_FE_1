@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Download, RefreshCw, Sliders, FileCode, Files, Eye, RotateCw } from 'lucide-react';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { Download, RefreshCw, Sliders, FileCode, Files, Eye, RotateCw, History } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { ConversionJob } from '../services/conversion.service';
 import { useConversionJob } from '../queries/useConversionJob';
+import { useConversionJobById } from '../queries/useConversionJobById';
 import { useConversionResult } from '../queries/useConversionResult';
 import { useRetryConversionJob } from '../queries/useRetryConversionJob';
 import type { LegacyScreen } from '@/features/screens/types/screen';
@@ -34,6 +35,10 @@ function fallbackResultFilename(screenName: string): string {
 export const ResultInspectionPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // UC-19: viewing a specific historical version from the Version History page passes
+  // ?jobId=; without it, this page keeps behaving exactly as before (the screen's latest job).
+  const viewingJobId = searchParams.get('jobId') ?? undefined;
   const [validating, setValidating] = useState(false);
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
@@ -49,7 +54,9 @@ export const ResultInspectionPage: React.FC = () => {
     };
   }, [screenId]);
 
-  const { data: job } = useConversionJob(projectId, screenId);
+  const latestJobQuery = useConversionJob(projectId, screenId);
+  const specificJobQuery = useConversionJobById(viewingJobId);
+  const job = viewingJobId ? specificJobQuery.data : latestJobQuery.data;
   const hasRealResult = Boolean(job?.status === 'COMPLETED' && job.resultReference);
   const { data: resultBundle } = useConversionResult(job?.id, hasRealResult);
   const retryJob = useRetryConversionJob(projectId, screenId);
@@ -110,6 +117,14 @@ export const ResultInspectionPage: React.FC = () => {
         <div className="flex items-center space-x-3">
           <Button
             variant="outline"
+            onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+            className="space-x-1.5 text-xs font-semibold"
+          >
+            <History className="w-4 h-4" />
+            <span>Version History</span>
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
             className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
           >
@@ -122,6 +137,15 @@ export const ResultInspectionPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {viewingJobId && (
+        <div className="bg-[#E8F1FF] border border-[#B3D4FF] p-3 rounded-xl text-[#0652CC] text-xs font-medium flex items-center justify-between">
+          <span>Viewing a past version from {job ? new Date(job.createdAt).toLocaleString() : '…'}.</span>
+          <Link to={ROUTES.PROJECTS.RESULT(projectId, screenId)} className="font-semibold hover:underline">
+            View latest instead
+          </Link>
+        </div>
+      )}
 
       {!hasRealResult && (
         <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -257,11 +281,17 @@ export const ResultInspectionPage: React.FC = () => {
           </Button>
           <Button
             variant="secondary"
-            onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+            onClick={() =>
+              navigate(
+                screen?.sourceType === 'COBOL'
+                  ? ROUTES.PROJECTS.METHOD_MAPPING(projectId, screenId)
+                  : ROUTES.PROJECTS.MAPPING(projectId, screenId),
+              )
+            }
             className="space-x-1.5 text-xs font-semibold"
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>Edit Field Mapping</span>
+            <span>{screen?.sourceType === 'COBOL' ? 'Edit Method Mapping' : 'Edit Field Mapping'}</span>
           </Button>
           <Button
             onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))}

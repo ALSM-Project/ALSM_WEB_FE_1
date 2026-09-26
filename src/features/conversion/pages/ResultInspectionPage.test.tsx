@@ -13,6 +13,7 @@ import { ResultInspectionPage } from './ResultInspectionPage';
 const mocks = vi.hoisted(() => ({
   getScreenById: vi.fn(),
   getLatestConversion: vi.fn(),
+  getConversionJobById: vi.fn(),
   getConversionResult: vi.fn(),
   retryConversion: vi.fn(),
 }));
@@ -21,6 +22,7 @@ vi.mock('../services/conversion.service', () => ({
   conversionService: {
     getScreenById: mocks.getScreenById,
     getLatestConversion: mocks.getLatestConversion,
+    getConversionJobById: mocks.getConversionJobById,
     getConversionResult: mocks.getConversionResult,
     retryConversion: mocks.retryConversion,
   },
@@ -136,5 +138,55 @@ describe('ResultInspectionPage', () => {
 
     await screen.findByText(/currently "Processing"/i);
     expect(screen.queryByRole('button', { name: /Retry Job/i })).not.toBeInTheDocument();
+  });
+});
+
+// UC-19: this page must also be able to show one specific historical version (linked from
+// the Version History page via ?jobId=), not only the screen's latest job.
+describe('ResultInspectionPage - viewing a specific historical version (UC-19)', () => {
+  const renderWithJobId = () =>
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/projects/proj-acme/screens/scr-1/result?jobId=job-old']}>
+          <Routes>
+            <Route path="/projects/:projectId/screens/:screenId/result" element={<ResultInspectionPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+  const oldCompletedJob: ConversionJob = {
+    id: 'job-old',
+    status: 'COMPLETED',
+    resultReference: 'results/proj-acme/job-old',
+    createdAt: '2026-09-01T00:00:00.000Z',
+    startedAt: '2026-09-01T00:00:00.000Z',
+    completedAt: '2026-09-01T00:00:03.000Z',
+  };
+
+  it('fetches and shows the specific job from ?jobId= instead of the latest job', async () => {
+    mocks.getScreenById.mockResolvedValue(screen1);
+    mocks.getConversionJobById.mockResolvedValue(oldCompletedJob);
+    mocks.getConversionResult.mockResolvedValue(resultBundle);
+    // The latest job is intentionally different (never rendered here) - if the page ever
+    // regresses to always using the latest job, this test would show the wrong data.
+    mocks.getLatestConversion.mockResolvedValue(completedJob);
+
+    renderWithJobId();
+
+    expect(mocks.getConversionJobById).toHaveBeenCalledWith('job-old');
+    expect(await screen.findByText(/Viewing a past version from/i)).toBeInTheDocument();
+  });
+
+  it('offers a link back to the latest result', async () => {
+    mocks.getScreenById.mockResolvedValue(screen1);
+    mocks.getConversionJobById.mockResolvedValue(oldCompletedJob);
+    mocks.getConversionResult.mockResolvedValue(resultBundle);
+    mocks.getLatestConversion.mockResolvedValue(completedJob);
+
+    renderWithJobId();
+
+    const link = await screen.findByRole('link', { name: /View latest instead/i });
+    expect(link.getAttribute('href')).toBe('/projects/proj-acme/screens/scr-1/result');
   });
 });

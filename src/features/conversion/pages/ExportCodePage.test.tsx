@@ -27,6 +27,15 @@ const mocks = vi.hoisted(() => {
       framework: 'React',
       lastUpdated: '10 mins ago',
     },
+    {
+      id: 'scr-cobol',
+      projectId: 'proj-acme',
+      name: 'CBACT01C.cbl',
+      sourceType: 'COBOL',
+      status: 'Completed',
+      framework: 'React',
+      lastUpdated: '1 day ago',
+    },
   ];
   return { getScreens: vi.fn().mockResolvedValue(mockScreens) };
 });
@@ -83,6 +92,22 @@ describe('ExportCodePage', () => {
     downloadButtons.forEach((btn) => {
       expect(btn).toBeDisabled();
     });
+  });
+
+  // UC-30: a completed COBOL screen must be selectable for export just like a BMS one -
+  // the export pipeline no longer silently drops its Java output, so it must not be
+  // excluded from screen selection either.
+  it('shows a completed COBOL screen as selectable, not excluded from export', async () => {
+    renderWithRouter();
+
+    const cobolRow = await screen.findByText('CBACT01C.cbl');
+    expect(cobolRow).toBeInTheDocument();
+    expect(screen.getByText('COBOL')).toBeInTheDocument();
+
+    const selectReadyBtn = screen.getByRole('button', { name: /Select Ready/i });
+    fireEvent.click(selectReadyBtn);
+
+    expect(screen.getByText(/SCREEN SELECTION \(2\/3\)/i)).toBeInTheDocument();
   });
 
   it('allows selecting ready screens', async () => {
