@@ -80,3 +80,25 @@ export interface UpgradePreview {
   currency: string;
   nextBillingDate: string;
 }
+
+export interface EnterpriseQuoteRequest {
+  fullName: string;
+  companyName: string;
+  email: string;
+  phone?: string;
+  message?: string;
+}
+
+export interface QuoteRequestResponse {
+  id: string;
+  status: 'PENDING' | 'CONTACTED' | 'CLOSED';
+  fullName: string;
+  companyName: string;
+  email: string;
+  phone?: string;
+  message?: string;
+  currentPlanTier: PlanTier | string;
+  createdAt: string;
+}
+
+export type QuoteRequestStatus = QuoteRequestResponse['status'];

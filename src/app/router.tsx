@@ -32,6 +32,7 @@ import {
 import { WorkspaceContactPage } from '@/features/contact';
 import { DiagnosticsPage } from '@/features/diagnostics';
 import { Web1WorkspacePreview } from '@/features/preview/Web1WorkspacePreview';
+import { RequestEnterprisePage, TrialActivationPage } from '@/features/billing';
 
 export const router = createBrowserRouter([
   // Public Routes (Header & Layout for all visitors)
@@ -98,6 +99,10 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/export', element: <ExportCodePage /> },
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },
           { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
+
+          // Billing & Enterprise Upgrade Routes (UC-32)
+          { path: '/billing/upgrade', element: <RequestEnterprisePage /> },
+          { path: '/billing/trial', element: <TrialActivationPage /> },
         ],
       },
     ],
