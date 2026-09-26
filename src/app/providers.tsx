@@ -36,11 +36,11 @@ function redirectAdminToStaffPortal(): void {
   // Admin users will use FE1 directly in development.
   // Uncomment below when FE2 is running at localhost:3002.
   //
-  // const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
-  // const accessToken = tokenStore.getAccessToken() || '';
-  // const refreshToken = tokenStore.getRefreshToken() || '';
-  // tokenStore.clear();
-  // window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+  const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
+  const accessToken = tokenStore.getAccessToken() || '';
+  const refreshToken = tokenStore.getRefreshToken() || '';
+  tokenStore.clear();
+  window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
 }
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
