@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
   AlertTriangle,
@@ -7,9 +7,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock3,
-  Code2,
   FileCode,
-  Files,
   Flag,
   LoaderCircle,
   RefreshCw,
@@ -30,13 +28,6 @@ import {
   ConversionQualityReviewStatus,
   type HumanQualityReviewTargetStatus,
 } from '../types/quality-review';
-
-const STATUS_BADGE_VARIANT: Record<ConversionQualityReviewStatus, 'neutral' | 'success' | 'warning' | 'error'> = {
-  [ConversionQualityReviewStatus.PENDING]: 'neutral',
-  [ConversionQualityReviewStatus.ACCEPTED]: 'success',
-  [ConversionQualityReviewStatus.NEEDS_REWORK]: 'warning',
-  [ConversionQualityReviewStatus.FLAGGED]: 'error',
-};
 
 const STATUS_DISPLAY_LABEL: Record<ConversionQualityReviewStatus, string> = {
   [ConversionQualityReviewStatus.PENDING]: 'Pending Review',
@@ -63,7 +54,6 @@ export const InitialQualityReviewPage: React.FC = () => {
   const {
     data: job,
     isLoading: jobLoading,
-    error: jobError,
     refetch: refetchJob,
   } = useConversionJob(projectId, screenId);
 
@@ -71,7 +61,6 @@ export const InitialQualityReviewPage: React.FC = () => {
   const {
     data: qualityReviewData,
     isLoading: reviewLoading,
-    error: reviewError,
     refetch: refetchReview,
   } = useConversionQualityReview(
     projectId,
@@ -81,7 +70,6 @@ export const InitialQualityReviewPage: React.FC = () => {
 
   // 3. Fetch generated code bundle for preview
   const { data: bundle } = useConversionResult(
-    projectId,
     job?.id,
     Boolean(job && job.status === 'COMPLETED'),
   );
