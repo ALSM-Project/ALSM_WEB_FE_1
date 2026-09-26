@@ -16,7 +16,6 @@ import {
   Clock,
   RefreshCw,
   PhoneCall,
-  XCircle,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';

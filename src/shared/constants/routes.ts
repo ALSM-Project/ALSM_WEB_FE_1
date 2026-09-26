@@ -37,6 +37,7 @@ export const ROUTES = {
     PRICING: '/billing/pricing',
     SUBSCRIPTION: '/billing/subscription',
     TRIAL: '/billing/trial',
+    UPGRADE_ENTERPRISE: '/billing/upgrade',
   },
 };
 

@@ -120,7 +120,7 @@ export const AppLayoutContent: React.FC = () => {
                   <button
                     onClick={() => {
                       setProfileOpen(false);
-                      navigate('/workspace/contact');
+                      navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE);
                     }}
                     className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
                   >
@@ -157,7 +157,7 @@ export const AppLayoutContent: React.FC = () => {
             {/* Simple text Upgrade Button */}
             <button
               type="button"
-              onClick={() => navigate('/workspace/contact')}
+              onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}
               className="px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer"
             >
               Upgrade
