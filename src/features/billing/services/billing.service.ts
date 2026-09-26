@@ -17,7 +17,9 @@ import type {
   UpgradePreview,
   UsageStatistics,
   BillingCycle,
+  EnterpriseQuoteRequest,
   PlanTier,
+  QuoteRequestResponse,
 } from '../types/billing';
 
 /**
@@ -83,6 +85,19 @@ export class BillingService {
       console.warn('[BillingService] API PUT /billing/subscription/upgrade failed, fallback simulation:', err);
       await new Promise((resolve) => setTimeout(resolve, 600));
       return true;
+    }
+  }
+
+  async requestEnterpriseQuote(data: EnterpriseQuoteRequest): Promise<QuoteRequestResponse> {
+    return apiClient.post<QuoteRequestResponse>('/billing/enterprise/request-quote', data);
+  }
+
+  async getMyQuoteRequest(): Promise<QuoteRequestResponse | null> {
+    try {
+      return await apiClient.get<QuoteRequestResponse | null>('/billing/enterprise/my-quote-request');
+    } catch (err) {
+      console.warn('[BillingService] GET /billing/enterprise/my-quote-request failed:', err);
+      return null;
     }
   }
 
