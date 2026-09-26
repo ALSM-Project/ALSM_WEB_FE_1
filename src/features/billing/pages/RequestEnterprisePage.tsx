@@ -21,7 +21,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
 import { useAuth } from '@/app/providers';
 import { billingService } from '@/features/billing/services/billing.service';
-import type { QuoteRequestResponse, QuoteRequestStatus } from '@/features/billing/types/billing';
+import type { QuoteRequestResponse } from '@/features/billing/types/billing';
 
 export const RequestEnterprisePage: React.FC = () => {
   const navigate = useNavigate();

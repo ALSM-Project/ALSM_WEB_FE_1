@@ -38,7 +38,6 @@ describe('RequestEnterprisePage', () => {
   it('renders existing PENDING request state when user has a pending request', async () => {
     vi.mocked(billingService.getMyQuoteRequest).mockResolvedValue({
       id: 'quote-100',
-      userId: 'user-123',
       companyName: 'Test Corp',
       fullName: 'Alice Test',
       email: 'alice@test.com',
@@ -57,7 +56,6 @@ describe('RequestEnterprisePage', () => {
   it('renders existing CONTACTED request state when sales team has contacted user', async () => {
     vi.mocked(billingService.getMyQuoteRequest).mockResolvedValue({
       id: 'quote-101',
-      userId: 'user-123',
       companyName: 'Test Corp',
       fullName: 'Alice Test',
       email: 'alice@test.com',
@@ -87,7 +85,6 @@ describe('RequestEnterprisePage', () => {
     vi.mocked(billingService.getMyQuoteRequest).mockResolvedValue(null);
     vi.mocked(billingService.requestEnterpriseQuote).mockResolvedValue({
       id: 'quote-102',
-      userId: 'user-123',
       companyName: 'Test Corp',
       fullName: 'Alice Test',
       email: 'alice@test.com',
