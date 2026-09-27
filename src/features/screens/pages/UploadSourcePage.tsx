@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Code2, Play, Eye } from 'lucide-react';
+import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Code2, Play, Eye, AlertCircle } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -53,6 +53,7 @@ export const UploadSourcePage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadLabel, setUploadLabel] = useState('');
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -108,6 +109,7 @@ export const UploadSourcePage: React.FC = () => {
 
   const handleUploadScreensSequentially = async (files: File[]) => {
     setIsUploading(true);
+    setUploadError(null);
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -131,6 +133,7 @@ export const UploadSourcePage: React.FC = () => {
           setScreenFiles((prev) => [newFile, ...prev]);
         } catch (err) {
           console.error('Failed to upload source file', file.name, err);
+          setUploadError(err instanceof Error ? err.message : 'Failed to upload this file.');
           setScreenFiles((prev) => [failedRow(file), ...prev]);
         }
       }
@@ -145,6 +148,7 @@ export const UploadSourcePage: React.FC = () => {
    * what conversion jobs use to run the actual COBOL conversion tool — nothing is simulated. */
   const handleUploadProgramBundle = async (files: File[]) => {
     setIsUploading(true);
+    setUploadError(null);
     setUploadProgress(0);
     setUploadLabel(
       files.length > 1
@@ -169,6 +173,7 @@ export const UploadSourcePage: React.FC = () => {
       setProgramFiles((prev) => [...newRows, ...prev]);
     } catch (err) {
       console.error('Failed to upload source files', err);
+      setUploadError(err instanceof Error ? err.message : 'Failed to upload these files.');
       setProgramFiles((prev) => [...files.map(failedRow), ...prev]);
     } finally {
       setIsUploading(false);
@@ -271,6 +276,13 @@ export const UploadSourcePage: React.FC = () => {
             : 'Accepted: .cob, .cbl, .cpy — select the program(s) together with their copybooks, or select the whole application folder at once (max 50MB/file)'}
         </p>
       </div>
+
+      {uploadError && (
+        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <span>{uploadError}</span>
+        </div>
+      )}
 
       {isUploading && (
         <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 shadow-sm">
