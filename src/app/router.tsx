@@ -28,6 +28,7 @@ import {
   MethodMappingPage,
   ExportCodePage,
   ReviewFindingsPage,
+  InitialQualityReviewPage,
 } from '@/features/conversion';
 import { WorkspaceContactPage } from '@/features/contact';
 import { DiagnosticsPage } from '@/features/diagnostics';
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/convert', element: <ConvertScreenPage /> },
           { path: '/projects/:projectId/screens/bulk-convert', element: <BulkConvertPage /> },
           { path: '/projects/:projectId/screens/:screenId/result', element: <ResultInspectionPage /> },
+          { path: '/projects/:projectId/screens/:screenId/quality-review', element: <InitialQualityReviewPage /> },
           { path: '/projects/:projectId/screens/:screenId/history', element: <VersionHistoryPage /> },
           { path: '/projects/:projectId/screens/:screenId/preview', element: <PreviewStudioPage /> },
           { path: '/projects/:projectId/screens/:screenId/mapping', element: <FieldMappingPage /> },
