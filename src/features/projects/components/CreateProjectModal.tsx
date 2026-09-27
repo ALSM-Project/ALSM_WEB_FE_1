@@ -127,6 +127,63 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
           <div className="space-y-1.5">
             <label className="block text-[11px] font-bold uppercase tracking-wider text-[#091E42]">
+              Conversion Type
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div
+                onClick={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
+                className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                  conversionType === 'BMS_DSPF_TO_FRONTEND'
+                    ? 'bg-blue-50/60 border-[#0652CC] ring-2 ring-[#0652CC]/20'
+                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/40'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-[#091E42]">BMS / DSPF &rarr; React</h4>
+                    <p className="text-[11px] text-[#6B778C] mt-0.5">
+                      Legacy BMS/DSPF screens to React 19 + TypeScript.
+                    </p>
+                  </div>
+                  <input
+                    type="radio"
+                    name="conversionType"
+                    checked={conversionType === 'BMS_DSPF_TO_FRONTEND'}
+                    onChange={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
+                    className="mt-0.5 text-[#0652CC] focus:ring-[#0652CC]"
+                  />
+                </div>
+              </div>
+
+              <div
+                onClick={() => setConversionType('COBOL_TO_JAVA')}
+                className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                  conversionType === 'COBOL_TO_JAVA'
+                    ? 'bg-blue-50/60 border-[#0652CC] ring-2 ring-[#0652CC]/20'
+                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/40'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-[#091E42]">COBOL &rarr; Java</h4>
+                    <p className="text-[11px] text-[#6B778C] mt-0.5">
+                      COBOL programs to Java 21 + Spring Boot.
+                    </p>
+                  </div>
+                  <input
+                    type="radio"
+                    name="conversionType"
+                    checked={conversionType === 'COBOL_TO_JAVA'}
+                    onChange={() => setConversionType('COBOL_TO_JAVA')}
+                    className="mt-0.5 text-[#0652CC] focus:ring-[#0652CC]"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#091E42]">
               Description (Optional)
             </label>
             <textarea
