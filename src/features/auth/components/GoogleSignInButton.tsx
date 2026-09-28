@@ -25,7 +25,7 @@ declare global {
   }
 }
 
-const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
+const SCRIPT_SRC = 'https://accounts.google.com/gsi/client?hl=en';
 
 let scriptLoading: Promise<void> | null = null;
 let initializedClientId: string | null = null;
@@ -95,7 +95,6 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
         width,
         text: 'signin_with',
         shape: 'rectangular',
-        locale: 'en',
       });
     };
 
