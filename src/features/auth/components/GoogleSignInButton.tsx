@@ -93,7 +93,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
         theme: 'outline',
         size: 'large',
         width,
-        text: 'continue_with',
+        text: 'signin_with',
         shape: 'rectangular',
       });
     };
