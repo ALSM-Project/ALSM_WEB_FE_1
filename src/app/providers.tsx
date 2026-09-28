@@ -88,50 +88,34 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLogin = useCallback(async (credentials: LoginCredentials): Promise<User | null> => {
-    setIsLoading(true);
-    try {
-      const loggedInUser = await authService.login(credentials);
+    // Do not toggle the global isLoading here: GuestRoute renders a full-screen
+    // loader when it is true, which unmounts the login form (and its error
+    // state) before the request resolves. The page's own `loading` state drives
+    // the button spinner instead.
+    const loggedInUser = await authService.login(credentials);
 
-      // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-      if (isUserAdmin(loggedInUser)) {
-        redirectAdminToStaffPortal();
-      }
-
-      setUser(loggedInUser);
-      setIsLoading(false);
-      return loggedInUser;
-    } catch (err) {
-      setIsLoading(false);
-      throw err;
+    // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
+    if (isUserAdmin(loggedInUser)) {
+      redirectAdminToStaffPortal();
     }
+
+    setUser(loggedInUser);
+    return loggedInUser;
   }, []);
 
   const handleRegister = useCallback(async (data: RegisterData): Promise<RegisterResponse> => {
-    setIsLoading(true);
-    try {
-      const res = await authService.register(data);
-      setIsLoading(false);
-      return res;
-    } catch (err) {
-      setIsLoading(false);
-      throw err;
-    }
+    // See handleLogin: keep the global isLoading untouched so GuestRoute does
+    // not unmount the register form before its error state can render.
+    return authService.register(data);
   }, []);
 
   const handleVerifyEmail = useCallback(async (email: string, code: string): Promise<User | null> => {
-    setIsLoading(true);
-    try {
-      const verifiedUser = await authService.verifyEmail(email, code);
-      if (isUserAdmin(verifiedUser)) {
-        redirectAdminToStaffPortal();
-      }
-      setUser(verifiedUser);
-      setIsLoading(false);
-      return verifiedUser;
-    } catch (err) {
-      setIsLoading(false);
-      throw err;
+    const verifiedUser = await authService.verifyEmail(email, code);
+    if (isUserAdmin(verifiedUser)) {
+      redirectAdminToStaffPortal();
     }
+    setUser(verifiedUser);
+    return verifiedUser;
   }, []);
 
   const handleResendVerification = useCallback(async (email: string): Promise<void> => {
@@ -139,22 +123,15 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<User | null> => {
-    setIsLoading(true);
-    try {
-      const loggedInUser = await authService.loginWithGoogle(idToken);
+    const loggedInUser = await authService.loginWithGoogle(idToken);
 
-      // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-      if (isUserAdmin(loggedInUser)) {
-        redirectAdminToStaffPortal();
-      }
-
-      setUser(loggedInUser);
-      setIsLoading(false);
-      return loggedInUser;
-    } catch (err) {
-      setIsLoading(false);
-      throw err;
+    // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
+    if (isUserAdmin(loggedInUser)) {
+      redirectAdminToStaffPortal();
     }
+
+    setUser(loggedInUser);
+    return loggedInUser;
   }, []);
 
   const handleLogout = useCallback(async () => {

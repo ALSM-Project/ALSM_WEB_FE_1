@@ -25,7 +25,7 @@ declare global {
   }
 }
 
-const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
+const SCRIPT_SRC = 'https://accounts.google.com/gsi/client?hl=en';
 
 let scriptLoading: Promise<void> | null = null;
 let initializedClientId: string | null = null;
@@ -73,31 +73,42 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
 
   useEffect(() => {
     let cancelled = false;
+    let observer: ResizeObserver | null = null;
 
     if (!env.googleClientId) {
       setUnavailable(true);
       return;
     }
 
+    const render = (width: number) => {
+      if (cancelled || !containerRef.current || !window.google?.accounts?.id) return;
+      initializeGis(env.googleClientId, (response: { credential?: string }) => {
+        if (response.credential) {
+          onCredentialRef.current(response.credential);
+        }
+      });
+      containerRef.current.innerHTML = '';
+      window.google.accounts.id.renderButton(containerRef.current, {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        width,
+        text: 'signin_with',
+        shape: 'rectangular',
+      });
+    };
+
     loadGisScript()
       .then(() => {
         if (cancelled || !containerRef.current || !window.google?.accounts?.id) return;
-
-        initializeGis(env.googleClientId, (response: { credential?: string }) => {
-          if (response.credential) {
-            onCredentialRef.current(response.credential);
-          }
+        render(containerRef.current.clientWidth);
+        // Re-render at the measured width so the button fills the form column,
+        // matching the full-width Sign In button above it.
+        observer = new ResizeObserver((entries) => {
+          const width = entries[0]?.contentRect.width;
+          if (width) render(width);
         });
-
-        containerRef.current.innerHTML = '';
-        window.google.accounts.id.renderButton(containerRef.current, {
-          type: 'standard',
-          theme: 'outline',
-          size: 'large',
-          width: 360,
-          text: 'continue_with',
-          shape: 'rectangular',
-        });
+        observer.observe(containerRef.current);
       })
       .catch(() => {
         if (!cancelled) {
@@ -108,6 +119,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
 
     return () => {
       cancelled = true;
+      observer?.disconnect();
     };
   }, []);
 
@@ -129,7 +141,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
     );
   }
 
-  return <div ref={containerRef} className="flex justify-center" />;
+  return <div ref={containerRef} className="w-full flex justify-center" />;
 };
 
 export default GoogleSignInButton;
