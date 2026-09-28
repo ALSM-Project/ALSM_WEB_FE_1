@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '@/shared/layouts/AppLayout';
 import PublicLayout from '@/shared/layouts/PublicLayout';
 import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
-import { GuestRoute, ProtectedRoute } from './guards';
+import { GuestRoute, ProtectedRoute, RoleGuard } from './guards';
 
 // Feature Modules
 import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage, VerifyEmailPage } from '@/features/auth';
@@ -92,7 +92,13 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/convert', element: <ConvertScreenPage /> },
           { path: '/projects/:projectId/screens/bulk-convert', element: <BulkConvertPage /> },
           { path: '/projects/:projectId/screens/:screenId/result', element: <ResultInspectionPage /> },
-          { path: '/projects/:projectId/screens/:screenId/quality-review', element: <InitialQualityReviewPage /> },
+          // UC-31: Review Initial Conversion Quality — restricted to MEMBER, ADMIN, OWNER
+          {
+            element: <RoleGuard allowedRoles={['MEMBER', 'ADMIN', 'OWNER', 'ENTERPRISE_CUSTOMER', 'ENTERPRISE_ADMIN']} />,
+            children: [
+              { path: '/projects/:projectId/screens/:screenId/quality-review', element: <InitialQualityReviewPage /> },
+            ],
+          },
           { path: '/projects/:projectId/screens/:screenId/history', element: <VersionHistoryPage /> },
           { path: '/projects/:projectId/screens/:screenId/preview', element: <PreviewStudioPage /> },
           { path: '/projects/:projectId/screens/:screenId/mapping', element: <FieldMappingPage /> },
