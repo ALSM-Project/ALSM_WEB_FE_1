@@ -95,6 +95,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
         width,
         text: 'signin_with',
         shape: 'rectangular',
+        locale: 'en',
       });
     };
 
