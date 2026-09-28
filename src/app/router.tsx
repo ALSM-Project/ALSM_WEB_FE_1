@@ -92,9 +92,9 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/convert', element: <ConvertScreenPage /> },
           { path: '/projects/:projectId/screens/bulk-convert', element: <BulkConvertPage /> },
           { path: '/projects/:projectId/screens/:screenId/result', element: <ResultInspectionPage /> },
-          // UC-31: Review Initial Conversion Quality — restricted to MEMBER, ADMIN, OWNER
+          // UC-31: Review Initial Conversion Quality — allowed for standard users (USER, MEMBER, ENGINEER, ADMIN, OWNER, etc.)
           {
-            element: <RoleGuard allowedRoles={['MEMBER', 'ADMIN', 'OWNER', 'ENTERPRISE_CUSTOMER', 'ENTERPRISE_ADMIN']} />,
+            element: <RoleGuard allowedRoles={['USER', 'MEMBER', 'ENGINEER', 'ADMIN', 'OWNER', 'ENTERPRISE_CUSTOMER', 'ENTERPRISE_ADMIN']} />,
             children: [
               { path: '/projects/:projectId/screens/:screenId/quality-review', element: <InitialQualityReviewPage /> },
             ],
