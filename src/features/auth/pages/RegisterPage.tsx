@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Lock, Mail, User } from 'lucide-react';
+import { Lock, Mail, User, Check, X } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
 import { Input, PasswordInput } from '@/shared/ui/Input';
@@ -24,21 +24,37 @@ export const RegisterPage: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const getPasswordStrength = () => {
-    if (!password) return { label: 'None', width: '0%', color: 'bg-slate-200' };
-    let score = 0;
-    if (password.length >= MIN_PASSWORD_LENGTH) score++;
-    if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+  // Password rules validation (mirrors ChangePasswordPage strength meter)
+  const rule8Chars = password.length >= MIN_PASSWORD_LENGTH;
+  const ruleUpperLower = /[A-Z]/.test(password) && /[a-z]/.test(password);
+  const ruleNumber = /[0-9]/.test(password);
+  const ruleSpecial = /[^A-Za-z0-9]/.test(password);
 
-    if (score <= 1) return { label: 'Weak', width: '25%', color: 'bg-rose-500' };
-    if (score === 2) return { label: 'Fair', width: '50%', color: 'bg-amber-500' };
-    if (score === 3) return { label: 'Good', width: '75%', color: 'bg-[#0652CC]' };
-    return { label: 'Strong', width: '100%', color: 'bg-emerald-500' };
-  };
+  const rulesPassedCount = [rule8Chars, ruleUpperLower, ruleNumber, ruleSpecial].filter(Boolean).length;
 
-  const strength = getPasswordStrength();
+  let strengthLabel = '';
+  let strengthColor = 'bg-slate-200';
+  let strengthTextColor = 'text-slate-500';
+
+  if (password.length > 0) {
+    if (rulesPassedCount <= 1) {
+      strengthLabel = 'Weak';
+      strengthColor = 'bg-rose-500';
+      strengthTextColor = 'text-rose-600';
+    } else if (rulesPassedCount === 2) {
+      strengthLabel = 'Fair';
+      strengthColor = 'bg-amber-500';
+      strengthTextColor = 'text-amber-600';
+    } else if (rulesPassedCount === 3) {
+      strengthLabel = 'Good';
+      strengthColor = 'bg-blue-500';
+      strengthTextColor = 'text-blue-600';
+    } else {
+      strengthLabel = 'Strong';
+      strengthColor = 'bg-emerald-500';
+      strengthTextColor = 'text-emerald-600';
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,14 +144,38 @@ export const RegisterPage: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               icon={<Lock className="w-4 h-4 text-slate-400" />}
             />
-            <div className="mt-1 space-y-0.5">
-              <div className="flex justify-between text-[11px] text-slate-500">
-                <span>Strength:</span>
-                <span className="font-semibold text-slate-700">{strength.label}</span>
+            {/* Password Strength Meter (mirrors ChangePasswordPage) */}
+            <div className="mt-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-slate-700">Password strength</span>
+                <span className={`font-bold ${strengthTextColor}`}>{strengthLabel || 'None'}</span>
               </div>
-              <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full transition-all duration-300 ${strength.color}`} style={{ width: strength.width }}></div>
+
+              <div className="grid grid-cols-4 gap-2">
+                <div className={`h-2 rounded-full transition-all ${rulesPassedCount >= 1 ? strengthColor : 'bg-slate-200'}`} />
+                <div className={`h-2 rounded-full transition-all ${rulesPassedCount >= 2 ? strengthColor : 'bg-slate-200'}`} />
+                <div className={`h-2 rounded-full transition-all ${rulesPassedCount >= 3 ? strengthColor : 'bg-slate-200'}`} />
+                <div className={`h-2 rounded-full transition-all ${rulesPassedCount >= 4 ? strengthColor : 'bg-slate-200'}`} />
               </div>
+
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs pt-0.5">
+                <li className={`flex items-center space-x-2 ${rule8Chars ? 'text-emerald-700 font-medium' : 'text-slate-500'}`}>
+                  {rule8Chars ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+                  <span>8+ characters</span>
+                </li>
+                <li className={`flex items-center space-x-2 ${ruleUpperLower ? 'text-emerald-700 font-medium' : 'text-slate-500'}`}>
+                  {ruleUpperLower ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+                  <span>Uppercase & lowercase</span>
+                </li>
+                <li className={`flex items-center space-x-2 ${ruleNumber ? 'text-emerald-700 font-medium' : 'text-slate-500'}`}>
+                  {ruleNumber ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+                  <span>At least one number</span>
+                </li>
+                <li className={`flex items-center space-x-2 ${ruleSpecial ? 'text-emerald-700 font-medium' : 'text-slate-500'}`}>
+                  {ruleSpecial ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+                  <span>At least one special character</span>
+                </li>
+              </ul>
             </div>
           </div>
 
