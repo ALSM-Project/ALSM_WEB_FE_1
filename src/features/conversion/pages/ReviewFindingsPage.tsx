@@ -42,6 +42,7 @@ import {
   findResultFileForLocation,
   selectLatestValidationRun,
 } from './reviewFindingsState';
+import { isDisplayableCodeFile } from '../utils/screenGenerator';
 
 const CONVERSION_STATUS_MESSAGES = {
   QUEUED: 'Conversion is still in progress. AI validation will be available after it completes.',
@@ -149,7 +150,9 @@ export const ReviewFindingsPage: React.FC = () => {
   const reviewError = reviewErrorMessage(reviewFinding.error);
   const selectedFinding =
     findings.find((finding) => finding.id === selectedFindingId) ?? findings[0];
-  const generatedFiles = conversionResultQuery.data?.files ?? [];
+  const generatedFiles = (conversionResultQuery.data?.files ?? []).filter((f) =>
+    isDisplayableCodeFile(f.relativePath),
+  );
   const locationGeneratedFile = findResultFileForLocation(
     generatedFiles,
     selectedFinding?.targetLocation,

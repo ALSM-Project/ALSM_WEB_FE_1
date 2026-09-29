@@ -13,7 +13,7 @@ import { CodeViewer } from '../components/CodeViewer';
 import { Button } from '@/shared/ui/Button';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
-import { generateScreenBundle } from '../utils/screenGenerator';
+import { generateScreenBundle, isDisplayableCodeFile } from '../utils/screenGenerator';
 
 const JOB_STATUS_LABELS: Record<ConversionJob['status'], string> = {
   QUEUED: 'Queued',
@@ -65,7 +65,9 @@ export const ResultInspectionPage: React.FC = () => {
   const screenName = screen?.name ?? screenId;
   const screenBundle = useMemo(() => generateScreenBundle(screenName), [screenName]);
   const files = useMemo(() => {
-    if (resultBundle?.files && resultBundle.files.length > 0) return resultBundle.files;
+    if (resultBundle?.files && resultBundle.files.length > 0) {
+      return resultBundle.files.filter((f) => isDisplayableCodeFile(f.relativePath));
+    }
     return screenBundle.files;
   }, [resultBundle, screenBundle]);
   const selectedFile = files[selectedFileIndex] ?? files[0] ?? null;

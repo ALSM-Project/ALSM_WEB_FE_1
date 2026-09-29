@@ -7,6 +7,7 @@ import { ROUTES } from '@/shared/constants/routes';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
+import { isDisplayableCodeFile } from '../utils/screenGenerator';
 
 export const FieldMappingPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -35,7 +36,9 @@ export const FieldMappingPage: React.FC = () => {
       if (cancelled || !job) return;
       conversionService.getConversionResult(job.id).then((result) => {
         if (cancelled) return;
-        const tsxFile = result.files.find((f) => f.relativePath.endsWith('.tsx'));
+        const tsxFile = result.files.find(
+          (f) => f.relativePath.endsWith('.tsx') && isDisplayableCodeFile(f.relativePath),
+        );
         if (tsxFile) setTsxCode(tsxFile.content);
         const jsonFile = result.files.find((f) => f.relativePath.endsWith('.metadata.json'));
         if (jsonFile?.content) {
