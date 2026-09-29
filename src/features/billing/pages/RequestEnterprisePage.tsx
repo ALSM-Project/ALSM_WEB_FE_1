@@ -270,6 +270,57 @@ export const RequestEnterprisePage: React.FC = () => {
     );
   }
 
+  // ─── Existing request: CLOSED / APPROVED ─────────────────────
+  if (existingRequest && existingRequest.status === 'CLOSED') {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
+        <div className="bg-white border border-emerald-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
+          <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center text-emerald-600 mb-2">
+            <CheckCircle2 className="w-7 h-7" />
+          </div>
+          <div>
+            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
+              Enterprise Plan Active
+            </span>
+            <h1 className="text-2xl font-bold text-slate-900">Enterprise Plan Approved!</h1>
+            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+              Your enterprise quote request has been approved. Your organization now enjoys <strong>unlimited screen conversions</strong>, <strong>unlimited projects</strong>, custom AI models, and dedicated SLA support.
+            </p>
+          </div>
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2 text-xs text-slate-700">
+            <div className="flex justify-between py-1 border-b border-slate-200/60">
+              <span className="text-slate-500 font-medium">Request ID:</span>
+              <span className="font-mono font-semibold text-slate-900">{existingRequest.id}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-200/60">
+              <span className="text-slate-500 font-medium">Company:</span>
+              <span className="font-semibold text-slate-900">{existingRequest.companyName}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-200/60">
+              <span className="text-slate-500 font-medium">Status:</span>
+              <span className="font-semibold text-emerald-700">APPROVED & ACTIVE</span>
+            </div>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={() => navigate(ROUTES.BILLING.USAGE)}
+              className="w-full sm:w-auto px-6 py-2.5 bg-[#0652CC] hover:bg-[#0448b3] text-white font-semibold rounded-xl text-sm"
+            >
+              View Service Usage
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.LIST)}
+              className="w-full sm:w-auto px-6 py-2.5 border border-slate-300 hover:bg-slate-50 font-semibold rounded-xl text-sm"
+            >
+              Go to Projects
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Page Header */}
