@@ -32,6 +32,23 @@ export function generateScreenBundle(screenName: string): GeneratedScreenBundle 
 }
 
 /**
+ * The real conversion tools (bms2react.py, tool2java, and the BMS/DSPF adapter's own
+ * fallback path) can write debug/support artifacts into the same flat result directory
+ * as the real generated screen code - e.g. a <MAP>.model.json (BMS field model, added
+ * alongside the .tsx for inspection) or a <MAP>.metadata.json (legacy fallback path),
+ * plus a shared bmsRoutes.tsx router file. None of these are a screen's own code, and
+ * the backend has no ordering guarantee for the file list it returns - selecting index 0
+ * as "the" file without filtering can land on one of these instead of the real component,
+ * which then fails to parse as a screen (blank/broken Preview, wrong Code tab default).
+ */
+export function isDisplayableCodeFile(relativePath: string): boolean {
+  const lower = relativePath.toLowerCase();
+  if (lower.endsWith('.json')) return false;
+  if (lower.endsWith('routes.tsx')) return false;
+  return true;
+}
+
+/**
  * Parses converted React TSX source code strictly to extract
  * form fields, inputs, labels, and selects directly from the generated React component.
  */
