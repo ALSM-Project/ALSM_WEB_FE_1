@@ -36,12 +36,31 @@ export interface LegacySubscription {
 }
 
 export interface UsageStatistics {
-  screensUsed: number;
-  screensLimit: number;
-  projectsUsed: number;
-  projectsLimit: number;
-  periodStart: string;
-  periodEnd: string;
+  plan: {
+    tier: string;  // 'STARTER' | 'PROFESSIONAL' | 'ENTERPRISE'
+    name: string;
+  };
+  screens: {
+    used: number;
+    max: number;   // -1 = unlimited
+  };
+  projects: {
+    used: number;
+    max: number;   // -1 = unlimited
+  };
+  storage: {
+    usedGb: number;
+    maxGb: number; // -1 = unlimited
+  };
+  monthlyConversions: Array<{ month: string; count: number }>;
+
+  // Backward compatibility fields
+  screensUsed?: number;
+  screensLimit?: number;
+  projectsUsed?: number;
+  projectsLimit?: number;
+  periodStart?: string;
+  periodEnd?: string;
 }
 
 export interface Invoice {

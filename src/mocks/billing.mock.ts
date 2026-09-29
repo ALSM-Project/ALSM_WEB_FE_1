@@ -70,6 +70,27 @@ export const mockCurrentSubscription: Subscription = {
 };
 
 export const mockUsageStats: UsageStatistics = {
+  plan: {
+    tier: 'PROFESSIONAL',
+    name: 'Professional',
+  },
+  screens: {
+    used: 45,
+    max: 500,
+  },
+  projects: {
+    used: 3,
+    max: 20,
+  },
+  storage: {
+    usedGb: 1.2,
+    maxGb: 50,
+  },
+  monthlyConversions: [
+    { month: '2026-07', count: 20 },
+    { month: '2026-08', count: 35 },
+    { month: '2026-09', count: 45 },
+  ],
   screensUsed: 45,
   screensLimit: 500,
   projectsUsed: 3,
