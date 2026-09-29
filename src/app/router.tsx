@@ -33,7 +33,7 @@ import {
 import { WorkspaceContactPage } from '@/features/contact';
 import { DiagnosticsPage } from '@/features/diagnostics';
 import { Web1WorkspacePreview } from '@/features/preview/Web1WorkspacePreview';
-import { RequestEnterprisePage, TrialActivationPage } from '@/features/billing';
+import { RequestEnterprisePage, TrialActivationPage, UsageStatsPage } from '@/features/billing';
 
 export const router = createBrowserRouter([
   // Public Routes (Header & Layout for all visitors)
@@ -92,9 +92,9 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/screens/:screenId/convert', element: <ConvertScreenPage /> },
           { path: '/projects/:projectId/screens/bulk-convert', element: <BulkConvertPage /> },
           { path: '/projects/:projectId/screens/:screenId/result', element: <ResultInspectionPage /> },
-          // UC-31: Review Initial Conversion Quality — restricted to MEMBER, ADMIN, OWNER
+          // UC-31: Review Initial Conversion Quality — allowed for standard users (USER, MEMBER, ENGINEER, ADMIN, OWNER, etc.)
           {
-            element: <RoleGuard allowedRoles={['MEMBER', 'ADMIN', 'OWNER', 'ENTERPRISE_CUSTOMER', 'ENTERPRISE_ADMIN']} />,
+            element: <RoleGuard allowedRoles={['USER', 'MEMBER', 'ENGINEER', 'ADMIN', 'OWNER', 'ENTERPRISE_CUSTOMER', 'ENTERPRISE_ADMIN']} />,
             children: [
               { path: '/projects/:projectId/screens/:screenId/quality-review', element: <InitialQualityReviewPage /> },
             ],
@@ -108,7 +108,8 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },
           { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
 
-          // Billing & Enterprise Upgrade Routes (UC-32)
+          // Billing & Enterprise Upgrade Routes (UC-32 & UC-35)
+          { path: '/billing/usage', element: <UsageStatsPage /> },
           { path: '/billing/upgrade', element: <RequestEnterprisePage /> },
           { path: '/billing/trial', element: <TrialActivationPage /> },
         ],
