@@ -62,8 +62,8 @@ export const RegisterPage: React.FC = () => {
 
     if (!fullName.trim()) return setError('Full Name is required');
     if (!email.includes('@')) return setError('A valid email is required');
-    if (password.length < MIN_PASSWORD_LENGTH)
-      return setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters`);
+    if (rulesPassedCount < 4)
+      return setError('Please ensure all password strength requirements are satisfied');
     if (password !== confirmPassword) return setError('Passwords do not match');
     if (!agreeTerms) return setError('You must agree to the Terms of Service');
 
