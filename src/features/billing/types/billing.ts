@@ -22,7 +22,9 @@ export interface Subscription {
   planId: string;
   planName: string;
   tier: PlanTier;
-  status: 'active' | 'trialing' | 'past_due' | 'canceled';
+  planTier?: string;
+  status: 'active' | 'trialing' | 'past_due' | 'canceled' | 'ACTIVE' | 'TRIAL' | 'SUSPENDED' | 'CANCELLED' | 'EXPIRED' | 'PENDING_PAYMENT';
+  suspensionReason?: string;
   billingCycle: BillingCycle;
   currentPeriodStart: string;
   currentPeriodEnd: string;
@@ -110,7 +112,13 @@ export interface EnterpriseQuoteRequest {
 
 export interface QuoteRequestResponse {
   id: string;
-  status: 'PENDING' | 'CONTACTED' | 'CLOSED';
+  status: 'PENDING' | 'CONTACTED' | 'APPROVED' | 'SUSPENDED' | 'REJECTED' | 'CLOSED';
+  statusReason?: string;
+  appealMessage?: string;
+  appealStatus?: 'PENDING' | 'APPROVED' | 'DECLINED';
+  appealResponse?: string;
+  appealedAt?: string;
+  appealResolvedAt?: string;
   fullName: string;
   companyName: string;
   email: string;

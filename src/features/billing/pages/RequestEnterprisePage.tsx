@@ -43,21 +43,32 @@ export const RequestEnterprisePage: React.FC = () => {
   // ─── Existing request detection ──────────────────────────
   const [checkingExisting, setCheckingExisting] = useState(true);
   const [existingRequest, setExistingRequest] = useState<QuoteRequestResponse | null>(null);
+  const [existingRequestError, setExistingRequestError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         const existing = await billingService.getMyQuoteRequest();
-        if (!cancelled) setExistingRequest(existing);
+        if (!cancelled) {
+          setExistingRequest(existing);
+          setExistingRequestError(null);
+        }
       } catch {
-        // Silently ignore — show form as fallback
+        if (!cancelled) setExistingRequestError('We could not check your current Enterprise request. Refresh the page and try again before submitting another request.');
       } finally {
         if (!cancelled) setCheckingExisting(false);
       }
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // ─── Legacy CLOSED requests may already have an Enterprise subscription ──
+  useEffect(() => {
+    if (existingRequest?.status === 'CLOSED') {
+      navigate(ROUTES.BILLING.USAGE, { replace: true });
+    }
+  }, [existingRequest, navigate]);
 
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
@@ -129,7 +140,7 @@ export const RequestEnterprisePage: React.FC = () => {
       const errorObj = err as { response?: { data?: { code?: string; message?: string | string[] } }; message?: string };
       const resData = errorObj?.response?.data;
       if (resData?.code === 'QUOTE_REQUEST_EXISTS') {
-        setGeneralError('You already have a pending Enterprise quote request. Our sales team is processing it.');
+        setGeneralError('You already have an open Enterprise quote request. Our team is processing it.');
       } else if (Array.isArray(resData?.message)) {
         setGeneralError(resData.message.join(', '));
       } else if (typeof resData?.message === 'string') {
@@ -176,6 +187,19 @@ export const RequestEnterprisePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-5 h-80 bg-slate-200 rounded-2xl" />
           <div className="lg:col-span-7 h-80 bg-slate-100 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (existingRequestError) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center space-y-4">
+          <AlertCircle className="w-10 h-10 text-amber-600 mx-auto" />
+          <h1 className="text-xl font-bold text-slate-900">Unable to check request status</h1>
+          <p className="text-sm text-slate-700">{existingRequestError}</p>
+          <Button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-brand-600 text-white rounded-xl">Refresh page</Button>
         </div>
       </div>
     );
@@ -270,8 +294,91 @@ export const RequestEnterprisePage: React.FC = () => {
     );
   }
 
-  // ─── Existing request: CLOSED / APPROVED ─────────────────────
-  if (existingRequest && existingRequest.status === 'CLOSED') {
+  if (existingRequest && existingRequest.status === 'REJECTED') {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
+        <div className="bg-white border border-rose-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
+          <div className="w-14 h-14 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center text-rose-600 mb-2">
+            <AlertCircle className="w-7 h-7" />
+          </div>
+          <div>
+            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 mb-2">
+              Request declined
+            </span>
+            <h1 className="text-2xl font-bold text-slate-900">Your Enterprise request was not approved</h1>
+            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+              Request {existingRequest.id} for {existingRequest.companyName} was declined. You can submit a new request if your requirements change.
+            </p>
+          </div>
+          <Button
+            onClick={() => setExistingRequest(null)}
+            className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+          >
+            Submit a New Request
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (existingRequest && existingRequest.status === 'SUSPENDED') {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
+        <div className="bg-white border border-rose-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
+          <div className="w-14 h-14 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center text-rose-600 mb-2">
+            <AlertCircle className="w-7 h-7" />
+          </div>
+          <div>
+            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 mb-2">
+              Enterprise access suspended
+            </span>
+            <h1 className="text-2xl font-bold text-slate-900">Enterprise access is temporarily unavailable</h1>
+            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+              An administrator suspended this organization’s Enterprise access. Contact the admin team using the existing Contact & Upgrade page to discuss the issue or submit an appeal.
+            </p>
+          </div>
+          {existingRequest.statusReason && (
+            <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 text-sm text-rose-900">
+              <strong>Reason:</strong> {existingRequest.statusReason}
+            </div>
+          )}
+          {existingRequest.appealStatus === 'PENDING' ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-2">
+              <strong>Your appeal is awaiting admin review.</strong>
+              <p>For a follow-up, use Contact & Upgrade and provide request ID {existingRequest.id}.</p>
+              {existingRequest.appealMessage && <p>Your appeal: {existingRequest.appealMessage}</p>}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+              {existingRequest.appealStatus === 'DECLINED' && (
+                <div className="text-sm text-rose-800 space-y-1">
+                  <strong>Your appeal was declined; Enterprise access remains suspended.</strong>
+                  <p>Please contact the ALSM administrator to discuss the decision and next steps.</p>
+                  {existingRequest.appealResponse && <p>Admin response: {existingRequest.appealResponse}</p>}
+                </div>
+              )}
+              <p className="text-sm text-slate-700">Continue in the existing Contact & Upgrade form. It will include this request ID and suspension reason so the admin team can review your appeal.</p>
+              <Button
+                onClick={() => navigate('/workspace/contact', { state: { appeal: { id: existingRequest.id, companyName: existingRequest.companyName, reason: existingRequest.statusReason, previousAppeal: existingRequest.appealMessage } } })}
+                className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm disabled:opacity-50"
+              >
+                {existingRequest.appealStatus === 'DECLINED' ? 'Appeal Again in Contact & Upgrade' : 'Contact Admin / Appeal'}
+              </Button>
+            </div>
+          )}
+          <div className="text-xs text-slate-500">Request ID: <span className="font-mono">{existingRequest.id}</span></div>
+          <Button
+            onClick={() => navigate(ROUTES.DASHBOARD)}
+            className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+          >
+            Return to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (existingRequest && existingRequest.status === 'APPROVED') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
         <div className="bg-white border border-emerald-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
@@ -282,9 +389,9 @@ export const RequestEnterprisePage: React.FC = () => {
             <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
               Enterprise Plan Active
             </span>
-            <h1 className="text-2xl font-bold text-slate-900">Enterprise Plan Approved!</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Your Enterprise upgrade is approved</h1>
             <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-              Your enterprise quote request has been approved. Your organization now enjoys <strong>unlimited screen conversions</strong>, <strong>unlimited projects</strong>, custom AI models, and dedicated SLA support.
+              Enterprise access is active for {existingRequest.companyName}. Your request has been approved and your organization can use the Enterprise quotas.
             </p>
           </div>
           <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2 text-xs text-slate-700">
@@ -292,11 +399,7 @@ export const RequestEnterprisePage: React.FC = () => {
               <span className="text-slate-500 font-medium">Request ID:</span>
               <span className="font-mono font-semibold text-slate-900">{existingRequest.id}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-slate-200/60">
-              <span className="text-slate-500 font-medium">Company:</span>
-              <span className="font-semibold text-slate-900">{existingRequest.companyName}</span>
-            </div>
-            <div className="flex justify-between py-1 border-b border-slate-200/60">
+            <div className="flex justify-between py-1">
               <span className="text-slate-500 font-medium">Status:</span>
               <span className="font-semibold text-emerald-700">APPROVED & ACTIVE</span>
             </div>
@@ -319,6 +422,10 @@ export const RequestEnterprisePage: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  if (existingRequest && existingRequest.status === 'CLOSED') {
+    return null;
   }
 
   return (
