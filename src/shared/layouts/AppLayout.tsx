@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Bell, Settings, ChevronDown, User, CreditCard, LogOut } from 'lucide-react';
+import { Bell, Settings, ChevronDown, User, CreditCard, LogOut, BarChart3 } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
 import { Web1ThemeProvider, useWeb1Theme } from '@/context/Web1ThemeContext';
 import { ROUTES } from '@/shared/constants/routes';
+import { billingService } from '@/features/billing/services/billing.service';
 
 const getInitials = (name?: string) => {
   if (!name) return 'U';
@@ -22,6 +23,48 @@ export const AppLayoutContent: React.FC = () => {
   const { theme } = useWeb1Theme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // ─── Enterprise status detection ──────────────────────────
+  const [isEnterprise, setIsEnterprise] = useState(false);
+  const [isEnterpriseSuspended, setIsEnterpriseSuspended] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Check quote request status
+        const quote = await billingService.getMyQuoteRequest();
+        if (!cancelled && quote?.status === 'SUSPENDED') {
+          setIsEnterprise(false);
+          setIsEnterpriseSuspended(true);
+          return;
+        }
+        if (!cancelled && (quote?.status === 'APPROVED' || quote?.status === 'CLOSED')) {
+          setIsEnterprise(true);
+          setIsEnterpriseSuspended(false);
+          return;
+        }
+        // Also check current subscription tier
+        const sub = await billingService.getCurrentSubscription();
+        if (!cancelled && sub) {
+          const tier = 'planTier' in sub && sub.planTier
+            ? sub.planTier
+            : 'tier' in sub
+              ? sub.tier
+              : 'plan' in sub
+                ? sub.plan
+                : '';
+          if (typeof tier === 'string' && tier.toLowerCase().includes('enterprise')) {
+            setIsEnterprise(true);
+            setIsEnterpriseSuspended(false);
+          }
+        }
+      } catch {
+        // Silently ignore — default to showing Upgrade
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [location.pathname]);
 
   React.useEffect(() => {
     const match = location.pathname.match(/^\/projects\/([^/]+)/);
@@ -117,16 +160,40 @@ export const AppLayoutContent: React.FC = () => {
                     <p className="font-semibold text-[#091E42] truncate">{user?.fullName || 'User Account'}</p>
                     <p className="text-[10px] text-[#6B778C] truncate">{user?.email || 'poc@alsm.io'}</p>
                   </div>
-                  <button
-                    onClick={() => {
-                      setProfileOpen(false);
-                      navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE);
-                    }}
-                    className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
-                  >
-                    <CreditCard className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Contact & Upgrade</span>
-                  </button>
+                  {isEnterprise ? (
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        navigate(ROUTES.BILLING.USAGE);
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
+                    >
+                      <BarChart3 className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>Service Usage</span>
+                    </button>
+                  ) : isEnterpriseSuspended ? (
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE);
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-rose-700 hover:bg-rose-50 font-medium transition-colors flex items-center space-x-2"
+                    >
+                      <CreditCard className="w-3.5 h-3.5 text-rose-500" />
+                      <span>Enterprise Access Suspended</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setProfileOpen(false);
+                        navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE);
+                      }}
+                      className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
+                    >
+                      <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Contact & Upgrade</span>
+                    </button>
+                  )}
                   <Link
                     to={ROUTES.ACCOUNT.PASSWORD}
                     onClick={() => setProfileOpen(false)}
@@ -154,14 +221,16 @@ export const AppLayoutContent: React.FC = () => {
               )}
             </div>
 
-            {/* Simple text Upgrade Button */}
-            <button
-              type="button"
-              onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}
-              className="px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer"
-            >
-              Upgrade
-            </button>
+            {/* Upgrade Button — hidden when user is Enterprise */}
+            {!isEnterprise && !isEnterpriseSuspended && (
+              <button
+                type="button"
+                onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}
+                className="px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+              >
+                Upgrade
+              </button>
+            )}
           </div>
         </header>
 

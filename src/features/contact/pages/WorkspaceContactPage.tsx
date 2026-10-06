@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sparkles,
   Layers,
@@ -14,19 +14,37 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { Button } from '@/shared/ui/Button';
+import { billingService } from '@/features/billing/services/billing.service';
+
+interface AppealContext {
+  id: string;
+  companyName: string;
+  reason?: string;
+  previousAppeal?: string;
+}
 
 export const WorkspaceContactPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
+  const appeal = (location.state as { appeal?: AppealContext } | null)?.appeal;
   const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [formData, setFormData] = useState(() => ({
     name: user?.fullName || '',
     email: user?.email || '',
-    company: 'Acme Corp',
-    requestType: 'LIMIT_UPGRADE',
+    company: appeal?.companyName || 'Acme Corp',
+    requestType: appeal ? 'SUSPENSION_APPEAL' : 'LIMIT_UPGRADE',
     targetLimit: '100+ Screens / Programs',
-    message: '',
-  });
+    message: appeal ? [
+        `Enterprise suspension appeal for request ${appeal.id}`,
+        appeal.reason ? `Suspension reason: ${appeal.reason}` : '',
+        appeal.previousAppeal ? `Previous appeal: ${appeal.previousAppeal}` : '',
+        '',
+        'Please explain your appeal and any corrective actions taken:',
+      ].filter(Boolean).join('\n') : '',
+  }));
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -37,9 +55,20 @@ export const WorkspaceContactPage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      if (appeal) {
+        await billingService.submitEnterpriseAppeal(formData.message.trim());
+      }
+      setSubmitted(true);
+    } catch (error: any) {
+      setSubmitError(error?.response?.data?.message || 'Could not send your appeal. Please contact enterprise@alsm.io and include the request ID.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -103,25 +132,25 @@ export const WorkspaceContactPage: React.FC = () => {
               <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-[#091E42]">Upgrade Request Submitted!</h2>
+              <h2 className="text-xl font-bold text-[#091E42]">{appeal ? 'Appeal Sent to Admin!' : 'Upgrade Request Submitted!'}</h2>
               <p className="text-xs text-[#6B778C] max-w-md mx-auto leading-relaxed">
-                Thank you, <strong className="text-[#091E42]">{formData.name}</strong>. Our modernization engineering team has received your request and will reach out to <strong className="text-[#0652CC]">{formData.email}</strong> within 24 business hours.
+                {appeal ? <>Your appeal for request <strong className="text-[#091E42]">{appeal.id}</strong> is now in the admin review queue. For follow-up, contact <strong className="text-[#0652CC]">enterprise@alsm.io</strong> and include the request ID.</> : <>Thank you, <strong className="text-[#091E42]">{formData.name}</strong>. Our modernization engineering team has received your request and will reach out to <strong className="text-[#0652CC]">{formData.email}</strong> within 24 business hours.</>}
               </p>
               <div className="pt-4">
                 <Button
-                  onClick={() => setSubmitted(false)}
+                  onClick={() => appeal ? navigate('/billing/upgrade') : setSubmitted(false)}
                   className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs px-6 py-2.5 rounded-xl font-semibold shadow-xs"
                 >
-                  Submit Another Request
+                  {appeal ? 'Back to Enterprise Status' : 'Submit Another Request'}
                 </Button>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <h2 className="text-lg font-bold text-[#091E42]">Send Upgrade & Technical Request</h2>
+                  <h2 className="text-lg font-bold text-[#091E42]">{appeal ? 'Contact Admin & Appeal Suspension' : 'Send Upgrade & Technical Request'}</h2>
                 <p className="text-xs text-[#6B778C] mt-1">
-                  Fill out the form below to contact our team or request additional system capacity.
+                  {appeal ? `Request ${appeal.id} and the suspension details are attached to this appeal for admin review.` : 'Fill out the form below to contact our team or request additional system capacity.'}
                 </p>
               </div>
 
@@ -186,6 +215,7 @@ export const WorkspaceContactPage: React.FC = () => {
                     <option value="CUSTOM_PARSER">Custom BMS / COBOL Parser</option>
                     <option value="ENTERPRISE_DEPLOY">Enterprise Air-Gapped Deployment</option>
                     <option value="TECHNICAL_SUPPORT">Technical & Architectural Support</option>
+                    {appeal && <option value="SUSPENSION_APPEAL">Enterprise Suspension Appeal</option>}
                   </select>
                 </div>
               </div>
@@ -216,18 +246,23 @@ export const WorkspaceContactPage: React.FC = () => {
                   rows={4}
                   value={formData.message}
                   onChange={handleChange}
+                  required={Boolean(appeal)}
+                  minLength={appeal ? 10 : undefined}
+                  maxLength={2000}
                   placeholder="Describe your legacy codebase (BMS mapsets, COBOL programs, target React/Java requirements)..."
                   className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20 outline-none transition-all"
                 />
               </div>
 
               <div className="pt-2">
+                {submitError && <p className="mb-3 text-xs text-rose-700">{submitError}</p>}
                 <Button
                   type="submit"
+                  disabled={submitting}
                   className="w-full sm:w-auto px-8 py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-xs transition-colors shadow-sm flex items-center justify-center space-x-2"
                 >
                   <Send className="w-4 h-4" />
-                  <span>Send Upgrade Request</span>
+                  <span>{submitting ? 'Sending…' : appeal ? 'Submit Appeal to Admin' : 'Send Upgrade Request'}</span>
                 </Button>
               </div>
             </form>
