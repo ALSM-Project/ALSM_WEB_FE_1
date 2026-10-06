@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Sparkles,
@@ -31,30 +31,20 @@ export const WorkspaceContactPage: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(() => ({
     name: user?.fullName || '',
     email: user?.email || '',
-    company: 'Acme Corp',
-    requestType: 'LIMIT_UPGRADE',
+    company: appeal?.companyName || 'Acme Corp',
+    requestType: appeal ? 'SUSPENSION_APPEAL' : 'LIMIT_UPGRADE',
     targetLimit: '100+ Screens / Programs',
-    message: '',
-  });
-
-  useEffect(() => {
-    if (!appeal) return;
-    setFormData((prev) => ({
-      ...prev,
-      company: appeal.companyName || prev.company,
-      requestType: 'SUSPENSION_APPEAL',
-      message: [
+    message: appeal ? [
         `Enterprise suspension appeal for request ${appeal.id}`,
         appeal.reason ? `Suspension reason: ${appeal.reason}` : '',
         appeal.previousAppeal ? `Previous appeal: ${appeal.previousAppeal}` : '',
         '',
         'Please explain your appeal and any corrective actions taken:',
-      ].filter(Boolean).join('\n'),
-    }));
-  }, [appeal]);
+      ].filter(Boolean).join('\n') : '',
+  }));
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
