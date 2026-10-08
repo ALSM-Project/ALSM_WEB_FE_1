@@ -93,12 +93,11 @@ export class BillingService {
   }
 
   async getMyQuoteRequest(): Promise<QuoteRequestResponse | null> {
-    try {
-      return await apiClient.get<QuoteRequestResponse | null>('/billing/enterprise/my-quote-request');
-    } catch (err) {
-      console.warn('[BillingService] GET /billing/enterprise/my-quote-request failed:', err);
-      return null;
-    }
+    return apiClient.get<QuoteRequestResponse | null>('/billing/enterprise/my-quote-request');
+  }
+
+  async submitEnterpriseAppeal(message: string): Promise<QuoteRequestResponse> {
+    return apiClient.post<QuoteRequestResponse>('/billing/enterprise/my-quote-request/appeal', { message });
   }
 
   // ─── Cancel ──────────────────────────────────────────────

@@ -134,7 +134,7 @@ describe('RequestEnterprisePage', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText('You already have a pending Enterprise quote request. Our sales team is processing it.')
+        screen.getByText('You already have an open Enterprise quote request. Our team is processing it.')
       ).toBeInTheDocument();
     });
   });
