@@ -20,25 +20,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 import { NavigationProvider } from '@/context/NavigationContext';
 
 /**
- * Check if a user is a platform admin.
+ * Check if a user is an internal staff, sales, or platform admin.
  */
-function isUserAdmin(u: User | null | undefined): boolean {
+function isUserStaffOrAdmin(u: User | null | undefined): boolean {
   if (!u) return false;
-  return Boolean(u.isPlatformAdmin || u.role === 'ADMIN' || u.roles?.includes('ADMIN'));
+  const roles = u.roles || [];
+  return Boolean(
+    u.isPlatformAdmin ||
+      u.role === 'ADMIN' ||
+      roles.includes('ADMIN') ||
+      roles.includes('SYSTEM_ADMIN') ||
+      roles.includes('TEAM_LEAD') ||
+      roles.includes('SALES_REP'),
+  );
 }
 
 /**
- * Redirect admin user from FE1 to FE2 Staff Portal with tokens in URL.
+ * Redirect internal staff/sales/admin user from FE1 to FE2 Staff Portal with tokens in URL.
  * Clears FE1 tokens so that on any back-navigation FE1 won't loop.
  */
 function redirectAdminToStaffPortal(): void {
-  // NOTE: FE2 Staff Portal is not running locally.
-  // Admin users will use FE1 directly in development.
-  // Uncomment below when FE2 is running at localhost:3002.
-  //
   const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
   const accessToken = tokenStore.getAccessToken() || '';
   const refreshToken = tokenStore.getRefreshToken() || '';
+  if (!accessToken) return;
   tokenStore.clear();
   window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
 }
@@ -68,9 +73,10 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           tokenStore.setRefreshToken(tokens.refreshToken);
           const me = await authService.getCurrentUser();
 
-          // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-          if (isUserAdmin(me)) {
+          // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
+          if (isUserStaffOrAdmin(me)) {
             redirectAdminToStaffPortal();
+            return;
           }
 
           if (!cancelled) setUser(me);
@@ -88,15 +94,12 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLogin = useCallback(async (credentials: LoginCredentials): Promise<User | null> => {
-    // Do not toggle the global isLoading here: GuestRoute renders a full-screen
-    // loader when it is true, which unmounts the login form (and its error
-    // state) before the request resolves. The page's own `loading` state drives
-    // the button spinner instead.
     const loggedInUser = await authService.login(credentials);
 
-    // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-    if (isUserAdmin(loggedInUser)) {
+    // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
+    if (isUserStaffOrAdmin(loggedInUser)) {
       redirectAdminToStaffPortal();
+      return loggedInUser;
     }
 
     setUser(loggedInUser);
@@ -104,15 +107,14 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleRegister = useCallback(async (data: RegisterData): Promise<RegisterResponse> => {
-    // See handleLogin: keep the global isLoading untouched so GuestRoute does
-    // not unmount the register form before its error state can render.
     return authService.register(data);
   }, []);
 
   const handleVerifyEmail = useCallback(async (email: string, code: string): Promise<User | null> => {
     const verifiedUser = await authService.verifyEmail(email, code);
-    if (isUserAdmin(verifiedUser)) {
+    if (isUserStaffOrAdmin(verifiedUser)) {
       redirectAdminToStaffPortal();
+      return verifiedUser;
     }
     setUser(verifiedUser);
     return verifiedUser;
@@ -125,9 +127,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<User | null> => {
     const loggedInUser = await authService.loginWithGoogle(idToken);
 
-    // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-    if (isUserAdmin(loggedInUser)) {
+    if (isUserStaffOrAdmin(loggedInUser)) {
       redirectAdminToStaffPortal();
+      return loggedInUser;
     }
 
     setUser(loggedInUser);
