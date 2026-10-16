@@ -1,0 +1,1 @@
+export function calculateTotalWithVAT(subtotal: number, vatRate = 0.1): { vat: number; total: number } { const vat = subtotal * vatRate; return { vat, total: subtotal + vat }; }
