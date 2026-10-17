@@ -26,3 +26,10 @@ export interface CreateProjectPayload {
   description?: string;
   conversionType: ConversionType;
 }
+
+/** Conversion type is deliberately not editable here - it's fixed at creation since
+ * screens/jobs already uploaded for a project assume one specific conversion engine. */
+export interface UpdateProjectPayload {
+  name?: string;
+  description?: string;
+}

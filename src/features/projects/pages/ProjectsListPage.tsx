@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Layers, ArrowRight, FolderKanban, Trash2 } from 'lucide-react';
+import { Plus, Search, Filter, Layers, ArrowRight, FolderKanban, Trash2, Pencil } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { StatusBadge, Button, PageHeader } from '@/shared/ui';
 import { CreateProjectModal } from '../components/CreateProjectModal';
+import { EditProjectModal } from '../components/EditProjectModal';
 import { projectService } from '../services/project.service';
 import type { Project } from '../types/project';
 
@@ -21,6 +22,7 @@ export const ProjectsListPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('ALL');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -165,6 +167,17 @@ export const ProjectsListPage: React.FC = () => {
                   variant="secondary"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setEditingProject(p);
+                  }}
+                  className="p-2 border border-[#D9E2EC] text-slate-500 hover:text-[#0652CC] hover:bg-[#E8F1FF] hover:border-[#0652CC] transition-colors rounded-xl"
+                  title="Edit Project"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={(e) => {
+                    e.stopPropagation();
                     navigate(ROUTES.PROJECTS.DELETE(p.id));
                   }}
                   className="p-2 border border-[#D9E2EC] text-slate-500 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200 transition-colors rounded-xl"
@@ -208,6 +221,13 @@ export const ProjectsListPage: React.FC = () => {
         }}
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      <EditProjectModal
+        isOpen={editingProject !== null}
+        project={editingProject}
+        onClose={() => setEditingProject(null)}
+        onProjectUpdated={() => loadProjects()}
       />
     </div>
   );
