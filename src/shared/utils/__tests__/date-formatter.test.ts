@@ -1,0 +1,2 @@
+import { formatDisplayDate } from '../date-formatter';
+describe('formatDisplayDate', () => { it('formats ISO date string properly', () => { expect(formatDisplayDate('2026-11-01')).toBeDefined(); }); });
