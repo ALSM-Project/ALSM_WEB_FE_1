@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { AxiosError, AxiosInstance, AxiosProgressEvent, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 import { env } from '@/shared/constants/env';
 import { ApiError } from './apiError';
-import { tokenStore } from './tokenStore';
+import { tokenStore, type AuthTokens } from './tokenStore';
 
 // Shared API client (FE guideline 04 §2-5). Single place that owns:
 // - base URL + /api/v1 prefix (from env, not duplicated in services);
@@ -25,11 +25,6 @@ interface RequestOptions {
   responseType?: 'json' | 'blob';
 }
 
-interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-}
-
 const REFRESH_ENDPOINT = '/auth/refresh';
 
 // Axios copies custom config fields through the pipeline, so we stash the
@@ -38,12 +33,13 @@ const REFRESH_ENDPOINT = '/auth/refresh';
 interface AuthedRequestConfig extends InternalAxiosRequestConfig {
   _skipAuth?: boolean;
   _retry?: boolean;
+  _authEpoch?: string;
+  _accessToken?: string | null;
 }
 
 export class ApiClient {
   private readonly axios: AxiosInstance;
   private readonly baseUrl: string;
-  private refreshPromise: Promise<string | null> | null = null;
   private authFailureHandler: (() => void) | null = null;
 
   constructor() {
@@ -57,6 +53,8 @@ export class ApiClient {
     this.axios.interceptors.request.use((config) => {
       const cfg = config as AuthedRequestConfig;
       if (!cfg._skipAuth) {
+        cfg._authEpoch = tokenStore.epoch();
+        cfg._accessToken = tokenStore.getAccessToken();
         const token = tokenStore.getAccessToken();
         if (token) {
           cfg.headers.Authorization = `Bearer ${token}`;
@@ -72,16 +70,26 @@ export class ApiClient {
         const cfg = error.config as AuthedRequestConfig | undefined;
         const isRefreshEndpoint = cfg?.url === REFRESH_ENDPOINT;
         const canRetry =
-          error.response?.status === 401 && !cfg?._skipAuth && !cfg?._retry && !isRefreshEndpoint;
+          error.response?.status === 401 && !cfg?._skipAuth && !cfg?._retry && !isRefreshEndpoint && !tokenStore.requiresPasswordChange() &&
+          !['/auth/change-password', '/auth/set-password'].includes(cfg?.url || '');
 
         if (canRetry && cfg) {
+          if (cfg._authEpoch !== tokenStore.epoch()) return Promise.reject(this.toApiError(error));
           cfg._retry = true;
-          const newToken = await this.refreshAccessToken();
-          if (newToken) {
+          let newToken: string | null;
+          try {
+            const current = tokenStore.getAccessToken();
+            newToken = current && current !== cfg._accessToken ? current : (await this.refreshSession())?.accessToken || null;
+          } catch (refreshError) {
+            if (!tokenStore.getRefreshToken() && !tokenStore.isLogoutPending() && cfg._authEpoch !== tokenStore.epoch()) this.authFailureHandler?.();
+            return Promise.reject(refreshError);
+          }
+          if (cfg._authEpoch !== tokenStore.epoch()) return Promise.reject(this.toApiError(error));
+          if (newToken && !tokenStore.requiresPasswordChange()) {
             cfg.headers.Authorization = `Bearer ${newToken}`;
             return this.axios(cfg);
           }
-          this.authFailureHandler?.();
+          if (!tokenStore.isLogoutPending() && !tokenStore.requiresPasswordChange()) this.authFailureHandler?.();
         }
 
         return Promise.reject(this.toApiError(error));
@@ -138,37 +146,12 @@ export class ApiClient {
     return response.data;
   }
 
-  /** Single-flight refresh: concurrent 401s share one refresh request. */
-  private refreshAccessToken(): Promise<string | null> {
-    if (!this.refreshPromise) {
-      this.refreshPromise = this.doRefresh().finally(() => {
-        this.refreshPromise = null;
-      });
-    }
-    return this.refreshPromise;
-  }
-
-  private async doRefresh(): Promise<string | null> {
-    const refreshToken = tokenStore.getRefreshToken();
-    if (!refreshToken) {
-      tokenStore.clear();
-      return null;
-    }
-
-    try {
-      const response = await axios.post<TokenPair>(
-        `${this.baseUrl}${REFRESH_ENDPOINT}`,
-        { refreshToken },
-        { headers: { 'Content-Type': 'application/json' } },
-      );
-
-      tokenStore.setAccessToken(response.data.accessToken);
-      tokenStore.setRefreshToken(response.data.refreshToken);
-      return response.data.accessToken;
-    } catch {
-      tokenStore.clear();
-      return null;
-    }
+  /** Shared by restoration and interceptors, including StrictMode remounts. */
+  public refreshSession(): Promise<AuthTokens | null> {
+    return tokenStore.refresh(async (refreshToken) => {
+      const response = await axios.post<AuthTokens>(`${this.baseUrl}${REFRESH_ENDPOINT}`, { refreshToken }, { timeout: 30000 });
+      return response.data;
+    });
   }
 
   private toApiError(error: AxiosError): ApiError {

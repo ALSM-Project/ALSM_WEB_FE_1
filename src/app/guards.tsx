@@ -1,6 +1,9 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/app/providers';
+import { tokenStore } from '@/services/api/tokenStore';
+import { ChangePasswordPage } from '@/features/account/pages/ChangePasswordPage';
+import { useEffect, useRef } from 'react';
 import { ROUTES } from '@/shared/constants/routes';
 
 // Route guards (FE guideline 03 §5). The frontend guard is a UX concern only —
@@ -8,7 +11,7 @@ import { ROUTES } from '@/shared/constants/routes';
 
 /** Wraps authenticated routes; redirects to /login and remembers returnTo. */
 export const ProtectedRoute: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
   // Don't redirect before bootstrap resolves (FE guideline 03 §8).
@@ -21,12 +24,16 @@ export const ProtectedRoute: React.FC = () => {
     return <Navigate to={ROUTES.PUBLIC.LOGIN} state={{ returnTo }} replace />;
   }
 
+  if (user?.mustChangePassword) {
+    if (location.pathname !== '/account/security/password') return <Navigate to="/account/security/password" replace />;
+    return <ChangePasswordPage />;
+  }
   return <Outlet />;
 };
 
 /** Wraps guest-only routes (login/register); redirects authenticated users away. */
 export const GuestRoute: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -34,6 +41,7 @@ export const GuestRoute: React.FC = () => {
   }
 
   if (isAuthenticated) {
+    if (user?.mustChangePassword) return <Navigate to="/account/security/password" replace />;
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
     return <Navigate to={returnTo || ROUTES.DASHBOARD} replace />;
   }
@@ -82,4 +90,22 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ allowedRoles }) => {
   }
 
   return <Outlet />;
+};
+
+/** Remediation handoff from the staff portal. Credentials never enter a query log. */
+export const PasswordCallbackPage = () => {
+  const handled = useRef(false);
+  useEffect(() => {
+    if (handled.current) return;
+    handled.current = true;
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const accessToken = params.get('access_token'), refreshToken = params.get('refresh_token');
+    window.history.replaceState(null, '', '/auth/password-callback');
+    if (accessToken && refreshToken) {
+      void tokenStore.acceptTokens({ accessToken, refreshToken, mustChangePassword: true, hasPassword: params.get('has_password') !== 'false' })
+        .then(() => window.location.replace('/account/security/password'))
+        .catch(() => window.location.replace('/login'));
+    } else window.location.replace('/login');
+  }, []);
+  return <RouteLoading />;
 };

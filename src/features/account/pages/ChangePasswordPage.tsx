@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Lock, AlertTriangle, Info, CheckCircle2, Check, X } from 'lucide-react';
+import { tokenStore } from '@/services/api/tokenStore';
 import { accountService } from '../services/account.service';
 import { PasswordInput } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
@@ -72,8 +73,10 @@ export const ChangePasswordPage: React.FC = () => {
       } else {
         await accountService.setPassword(newPassword);
         setSuccessMsg('Your ALSM password has been set successfully!');
-        await refreshUser();
+
       }
+      await tokenStore.completePasswordChange();
+      await refreshUser();
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');

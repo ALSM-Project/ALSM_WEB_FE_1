@@ -14,12 +14,12 @@ interface AuthTokensWithUser extends AuthTokens {
 
 export class AuthService {
   async login(credentials: LoginCredentials): Promise<User | null> {
-    const response = await apiClient.post<AuthTokensWithUser>('/auth/login', credentials, { auth: false });
-    this.applyTokens(response);
+    const response = await tokenStore.authenticate(() => apiClient.post<AuthTokensWithUser>('/auth/login', credentials, { auth: false }));
+    if (response.mustChangePassword) return this.getCurrentUser();
     if (response.user) {
       return response.user;
     }
-    return apiClient.get<User>('/auth/me');
+    return this.getCurrentUser();
   }
 
   async register(data: RegisterData): Promise<RegisterResponse> {
@@ -27,8 +27,8 @@ export class AuthService {
   }
 
   async verifyEmail(email: string, code: string): Promise<User | null> {
-    const response = await apiClient.post<AuthTokensWithUser>('/auth/verify-email', { email, code }, { auth: false });
-    this.applyTokens(response);
+    const response = await tokenStore.authenticate(() => apiClient.post<AuthTokensWithUser>('/auth/verify-email', { email, code }, { auth: false }));
+    if (response.mustChangePassword) return this.getCurrentUser();
     if (response.user) {
       return response.user;
     }
@@ -40,8 +40,8 @@ export class AuthService {
   }
 
   async loginWithGoogle(idToken: string): Promise<User | null> {
-    const response = await apiClient.post<AuthTokensWithUser>('/auth/google', { idToken }, { auth: false });
-    this.applyTokens(response);
+    const response = await tokenStore.authenticate(() => apiClient.post<AuthTokensWithUser>('/auth/google', { idToken }, { auth: false }));
+    if (response.mustChangePassword) return this.getCurrentUser();
     if (response.user) {
       return response.user;
     }
@@ -49,22 +49,26 @@ export class AuthService {
   }
 
   async getCurrentUser(): Promise<User | null> {
+    if (tokenStore.requiresPasswordChange()) {
+      const payload = JSON.parse(atob((tokenStore.getAccessToken() || '').split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return { id: payload.sub, email: payload.email, fullName: payload.email,
+        mustChangePassword: true, hasPassword: tokenStore.hasPassword(), roles: [], isPlatformAdmin: false };
+    }
+    const epoch = tokenStore.epoch();
     try {
-      return await apiClient.get<User>('/auth/me');
-    } catch {
-      return null;
+      const user = await apiClient.get<User>('/auth/me');
+      if (epoch !== tokenStore.epoch() || !tokenStore.getAccessToken()) throw new Error('Authentication was superseded');
+      return user;
+    } catch (error) {
+      if ((error as { status?: number }).status === 401) return null;
+      throw error;
     }
   }
 
   async logout(): Promise<void> {
-    const refreshToken = tokenStore.getRefreshToken();
-    try {
-      if (refreshToken) {
-        await apiClient.post<void>('/auth/logout', { refreshToken }, { auth: false });
-      }
-    } finally {
-      tokenStore.clear();
-    }
+    await tokenStore.logout(async (refreshToken) => {
+      await apiClient.post<void>('/auth/logout', { refreshToken }, { auth: false });
+    });
   }
 
   async sendPasswordRecoveryLink(email: string): Promise<void> {
@@ -75,10 +79,6 @@ export class AuthService {
     await apiClient.post<void>('/auth/reset-password', { token, newPassword }, { auth: false });
   }
 
-  private applyTokens(tokens: AuthTokens): void {
-    tokenStore.setAccessToken(tokens.accessToken);
-    tokenStore.setRefreshToken(tokens.refreshToken);
-  }
 }
 
 export const authService = new AuthService();

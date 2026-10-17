@@ -41,11 +41,9 @@ function isUserStaffOrAdmin(u: User | null | undefined): boolean {
  */
 function redirectAdminToStaffPortal(): void {
   const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
-  const accessToken = tokenStore.getAccessToken() || '';
-  const refreshToken = tokenStore.getRefreshToken() || '';
-  if (!accessToken) return;
-  tokenStore.clear();
-  window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+  void tokenStore.handoff(({ accessToken, refreshToken }) => {
+    window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+  });
 }
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -60,18 +58,28 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
     });
 
+    const epoch = tokenStore.epoch();
+    const unsubscribe = tokenStore.subscribe(() => {
+      if (!tokenStore.getRefreshToken() && !tokenStore.isLogoutPending()) setUser(null);
+      if (tokenStore.requiresPasswordChange()) {
+        const currentEpoch = tokenStore.epoch();
+        void authService.getCurrentUser().then((restricted) => {
+          if (!cancelled && currentEpoch === tokenStore.epoch() && tokenStore.requiresPasswordChange()) {
+            setUser(restricted);
+            setIsLoading(false);
+          }
+        }).catch(() => {});
+      }
+    });
+
     (async () => {
       const refreshToken = tokenStore.getRefreshToken();
       if (refreshToken) {
         try {
-          const tokens = await apiClient.post<{ accessToken: string; refreshToken: string }>(
-            '/auth/refresh',
-            { refreshToken },
-            { auth: false },
-          );
-          tokenStore.setAccessToken(tokens.accessToken);
-          tokenStore.setRefreshToken(tokens.refreshToken);
+          const tokens = await apiClient.refreshSession();
+          if (!tokens || cancelled || epoch !== tokenStore.epoch() || !tokenStore.getRefreshToken()) return;
           const me = await authService.getCurrentUser();
+          if (cancelled || epoch !== tokenStore.epoch() || !tokenStore.getRefreshToken()) return;
 
           // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
           if (isUserStaffOrAdmin(me)) {
@@ -81,15 +89,16 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (!cancelled) setUser(me);
         } catch {
-          tokenStore.clear();
-          if (!cancelled) setUser(null);
+          if (!cancelled && epoch === tokenStore.epoch()) setUser(null);
         }
       }
+    })().finally(() => {
       if (!cancelled) setIsLoading(false);
-    })();
+    });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
 
@@ -137,14 +146,20 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLogout = useCallback(async () => {
-    await authService.logout();
-    setUser(null);
+    try {
+      await authService.logout();
+      setUser(null);
+    } catch (error) {
+      window.alert('Sign out could not be confirmed. Please try Sign Out again.');
+      throw error;
+    }
   }, []);
 
   const handleRefreshUser = useCallback(async (): Promise<User | null> => {
     try {
       const me = await authService.getCurrentUser();
       setUser(me);
+      if (isUserStaffOrAdmin(me)) redirectAdminToStaffPortal();
       return me;
     } catch {
       return null;
@@ -168,7 +183,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
 
-      <NavigationProvider>{children}</NavigationProvider>
+      {user?.mustChangePassword ? children : <NavigationProvider>{children}</NavigationProvider>}
     </AuthContext.Provider>
   );
 };
