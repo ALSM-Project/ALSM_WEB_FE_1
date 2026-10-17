@@ -1,0 +1,2 @@
+export function saveChatDraft(text: string): void { try { localStorage.setItem('alsm_chat_draft', text); } catch (_) {} }
+export function getChatDraft(): string { return localStorage.getItem('alsm_chat_draft') || ''; }
