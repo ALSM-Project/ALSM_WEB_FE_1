@@ -1,0 +1,1 @@
+export function sanitizeTsxCode(rawCode: string): string { return rawCode.replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi, ''); }
