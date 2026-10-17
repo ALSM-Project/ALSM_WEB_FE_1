@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '@/shared/layouts/AppLayout';
 import PublicLayout from '@/shared/layouts/PublicLayout';
 import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
-import { GuestRoute, ProtectedRoute, RoleGuard } from './guards';
+import { GuestRoute, ProtectedRoute, RoleGuard, PasswordCallbackPage } from './guards';
 
 // Feature Modules
 import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage, VerifyEmailPage } from '@/features/auth';
@@ -36,6 +36,7 @@ import { Web1WorkspacePreview } from '@/features/preview/Web1WorkspacePreview';
 import { RequestEnterprisePage, TrialActivationPage, UsageStatsPage } from '@/features/billing';
 
 export const router = createBrowserRouter([
+  { path: '/auth/password-callback', element: <PasswordCallbackPage /> },
   // Public Routes (Header & Layout for all visitors)
   {
     element: <PublicLayout />,

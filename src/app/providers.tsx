@@ -20,27 +20,30 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 import { NavigationProvider } from '@/context/NavigationContext';
 
 /**
- * Check if a user is a platform admin.
+ * Check if a user is an internal staff, sales, or platform admin.
  */
-function isUserAdmin(u: User | null | undefined): boolean {
+function isUserStaffOrAdmin(u: User | null | undefined): boolean {
   if (!u) return false;
-  return Boolean(u.isPlatformAdmin || u.role === 'ADMIN' || u.roles?.includes('ADMIN'));
+  const roles = u.roles || [];
+  return Boolean(
+    u.isPlatformAdmin ||
+      u.role === 'ADMIN' ||
+      roles.includes('ADMIN') ||
+      roles.includes('SYSTEM_ADMIN') ||
+      roles.includes('TEAM_LEAD') ||
+      roles.includes('SALES_REP'),
+  );
 }
 
 /**
- * Redirect admin user from FE1 to FE2 Staff Portal with tokens in URL.
+ * Redirect internal staff/sales/admin user from FE1 to FE2 Staff Portal with tokens in URL.
  * Clears FE1 tokens so that on any back-navigation FE1 won't loop.
  */
 function redirectAdminToStaffPortal(): void {
-  // NOTE: FE2 Staff Portal is not running locally.
-  // Admin users will use FE1 directly in development.
-  // Uncomment below when FE2 is running at localhost:3002.
-  //
   const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
-  const accessToken = tokenStore.getAccessToken() || '';
-  const refreshToken = tokenStore.getRefreshToken() || '';
-  tokenStore.clear();
-  window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+  void tokenStore.handoff(({ accessToken, refreshToken }) => {
+    window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+  });
 }
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,48 +58,57 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
     });
 
+    const epoch = tokenStore.epoch();
+    const unsubscribe = tokenStore.subscribe(() => {
+      if (!tokenStore.getRefreshToken() && !tokenStore.isLogoutPending()) setUser(null);
+      if (tokenStore.requiresPasswordChange()) {
+        const currentEpoch = tokenStore.epoch();
+        void authService.getCurrentUser().then((restricted) => {
+          if (!cancelled && currentEpoch === tokenStore.epoch() && tokenStore.requiresPasswordChange()) {
+            setUser(restricted);
+            setIsLoading(false);
+          }
+        }).catch(() => {});
+      }
+    });
+
     (async () => {
       const refreshToken = tokenStore.getRefreshToken();
       if (refreshToken) {
         try {
-          const tokens = await apiClient.post<{ accessToken: string; refreshToken: string }>(
-            '/auth/refresh',
-            { refreshToken },
-            { auth: false },
-          );
-          tokenStore.setAccessToken(tokens.accessToken);
-          tokenStore.setRefreshToken(tokens.refreshToken);
+          const tokens = await apiClient.refreshSession();
+          if (!tokens || cancelled || epoch !== tokenStore.epoch() || !tokenStore.getRefreshToken()) return;
           const me = await authService.getCurrentUser();
+          if (cancelled || epoch !== tokenStore.epoch() || !tokenStore.getRefreshToken()) return;
 
-          // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-          if (isUserAdmin(me)) {
+          // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
+          if (isUserStaffOrAdmin(me)) {
             redirectAdminToStaffPortal();
+            return;
           }
 
           if (!cancelled) setUser(me);
         } catch {
-          tokenStore.clear();
-          if (!cancelled) setUser(null);
+          if (!cancelled && epoch === tokenStore.epoch()) setUser(null);
         }
       }
+    })().finally(() => {
       if (!cancelled) setIsLoading(false);
-    })();
+    });
 
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
 
   const handleLogin = useCallback(async (credentials: LoginCredentials): Promise<User | null> => {
-    // Do not toggle the global isLoading here: GuestRoute renders a full-screen
-    // loader when it is true, which unmounts the login form (and its error
-    // state) before the request resolves. The page's own `loading` state drives
-    // the button spinner instead.
     const loggedInUser = await authService.login(credentials);
 
-    // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-    if (isUserAdmin(loggedInUser)) {
+    // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
+    if (isUserStaffOrAdmin(loggedInUser)) {
       redirectAdminToStaffPortal();
+      return loggedInUser;
     }
 
     setUser(loggedInUser);
@@ -104,15 +116,14 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleRegister = useCallback(async (data: RegisterData): Promise<RegisterResponse> => {
-    // See handleLogin: keep the global isLoading untouched so GuestRoute does
-    // not unmount the register form before its error state can render.
     return authService.register(data);
   }, []);
 
   const handleVerifyEmail = useCallback(async (email: string, code: string): Promise<User | null> => {
     const verifiedUser = await authService.verifyEmail(email, code);
-    if (isUserAdmin(verifiedUser)) {
+    if (isUserStaffOrAdmin(verifiedUser)) {
       redirectAdminToStaffPortal();
+      return verifiedUser;
     }
     setUser(verifiedUser);
     return verifiedUser;
@@ -125,9 +136,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<User | null> => {
     const loggedInUser = await authService.loginWithGoogle(idToken);
 
-    // Admin users: in production, redirect to FE2. In dev (FE2 not running), stay on FE1.
-    if (isUserAdmin(loggedInUser)) {
+    if (isUserStaffOrAdmin(loggedInUser)) {
       redirectAdminToStaffPortal();
+      return loggedInUser;
     }
 
     setUser(loggedInUser);
@@ -135,14 +146,20 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLogout = useCallback(async () => {
-    await authService.logout();
-    setUser(null);
+    try {
+      await authService.logout();
+      setUser(null);
+    } catch (error) {
+      window.alert('Sign out could not be confirmed. Please try Sign Out again.');
+      throw error;
+    }
   }, []);
 
   const handleRefreshUser = useCallback(async (): Promise<User | null> => {
     try {
       const me = await authService.getCurrentUser();
       setUser(me);
+      if (isUserStaffOrAdmin(me)) redirectAdminToStaffPortal();
       return me;
     } catch {
       return null;
@@ -166,7 +183,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
       }}
     >
 
-      <NavigationProvider>{children}</NavigationProvider>
+      {user?.mustChangePassword ? children : <NavigationProvider>{children}</NavigationProvider>}
     </AuthContext.Provider>
   );
 };
