@@ -1,6 +1,6 @@
 import { apiClient } from '@/services/api/apiClient';
 import { mockQuota } from '@/mocks/projects.mock';
-import type { CreateProjectPayload, Project, WorkspaceQuota } from '../types/project';
+import type { CreateProjectPayload, Project, UpdateProjectPayload, WorkspaceQuota } from '../types/project';
 import { cacheProjectName } from '@/shared/utils/projectCache';
 
 /** Real, backend-backed project CRUD. No mock fallback on failure — a failed request
@@ -43,6 +43,14 @@ export class ProjectService {
       cacheProjectName(created.id, created.name);
     }
     return created;
+  }
+
+  async updateProject(id: string, payload: UpdateProjectPayload): Promise<Project> {
+    const updated = await apiClient.patch<Project>(`/projects/${id}`, payload);
+    if (updated && updated.id && updated.name) {
+      cacheProjectName(updated.id, updated.name);
+    }
+    return updated;
   }
 
   async deleteProject(id: string): Promise<boolean> {
