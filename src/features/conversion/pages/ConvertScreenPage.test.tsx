@@ -178,6 +178,47 @@ describe('ConvertScreenPage - conversion start errors', () => {
   });
 });
 
+// Regression: the real conversion tools can write debug/support artifacts (a
+// <MAP>.model.json field model, a shared bmsRoutes.tsx) into the same flat result
+// directory as the real generated screen code, and the backend gives no ordering
+// guarantee for the files array - picking index 0 without filtering could land on
+// one of these instead of the real component (blank/broken Preview, wrong Code tab).
+describe('ConvertScreenPage - ignores debug/support files mixed into the result bundle', () => {
+  const renderPage = () =>
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/projects/proj-acme/screens/scr-1/convert']}>
+          <Routes>
+            <Route path="/projects/:projectId/screens/:screenId/convert" element={<ConvertScreenPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+  it('shows the real screen code, not a .model.json or bmsRoutes.tsx that sorts before it', async () => {
+    mocks.getScreenById.mockResolvedValue(screen1);
+    mocks.getLatestConversion.mockResolvedValue(completedJob);
+    mocks.getFieldMappings.mockResolvedValue([]);
+    mocks.getConversionResult.mockResolvedValue({
+      conversionJobId: 'job-1',
+      files: [
+        { relativePath: 'LoginScreen.model.json', content: '{"mapName":"LoginScreen"}' },
+        { relativePath: 'bmsRoutes.tsx', content: 'export default [];' },
+        { relativePath: 'LoginScreen.tsx', content: realTsx },
+      ],
+    });
+
+    renderPage();
+    const codeTab = await screen.findByText('Code');
+    fireEvent.click(codeTab);
+
+    expect(await screen.findByText('LoginScreen.tsx')).toBeInTheDocument();
+    expect(screen.getByText(/export function LoginScreen/)).toBeInTheDocument();
+    expect(screen.queryByText('LoginScreen.model.json')).not.toBeInTheDocument();
+    expect(screen.queryByText('bmsRoutes.tsx')).not.toBeInTheDocument();
+  });
+});
+
 // UC-28: a COBOL screen must never show the BMS field-mapping UI (which has no
 // relationship to, and no effect on, COBOL->Java output) - it must route to Method Mapping
 // instead, and must never call the BMS field-mapping endpoint at all.

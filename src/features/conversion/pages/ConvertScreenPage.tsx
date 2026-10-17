@@ -13,7 +13,7 @@ import { CodeViewer } from '../components/CodeViewer';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
-import { generateScreenBundle, parseConvertedTsx } from '../utils/screenGenerator';
+import { generateScreenBundle, parseConvertedTsx, isDisplayableCodeFile } from '../utils/screenGenerator';
 import type { FieldMapping } from '../types/conversion';
 
 export const ConvertScreenPage: React.FC = () => {
@@ -94,7 +94,7 @@ export const ConvertScreenPage: React.FC = () => {
 
   const files = useMemo(() => {
     if (resultBundle?.files && resultBundle.files.length > 0) {
-      return resultBundle.files;
+      return resultBundle.files.filter((f) => isDisplayableCodeFile(f.relativePath));
     }
     if (isCompleted) {
       return fallbackBundle.files;

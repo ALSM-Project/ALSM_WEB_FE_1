@@ -10,6 +10,7 @@ import { Button } from '@/shared/ui/Button';
 import { useConversionJob } from '../queries/useConversionJob';
 import { useConversionResult } from '../queries/useConversionResult';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
+import { isDisplayableCodeFile } from '../utils/screenGenerator';
 
 export const PreviewStudioPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
@@ -35,6 +36,11 @@ export const PreviewStudioPage: React.FC = () => {
   const screenName = screen?.name ?? screenId;
 
   const previewTitle = screenName.replace(/\.(bms|dspf)$/i, '.tsx');
+
+  // The result bundle can also contain debug/support artifacts (e.g. a BMS field
+  // model JSON, a shared router file) alongside the real screen component - never
+  // assume index 0 is the real code, the backend gives no ordering guarantee.
+  const previewFile = resultBundle?.files?.find((f) => isDisplayableCodeFile(f.relativePath));
 
   const containerWidths = {
     desktop: 'w-full max-w-5xl',
@@ -80,7 +86,7 @@ export const PreviewStudioPage: React.FC = () => {
           <div className="p-6 sm:p-12 bg-slate-50 flex flex-col items-center justify-center min-h-[420px]">
             <div className="w-full max-w-3xl">
               <LiveTsxRenderer
-                tsxCode={resultBundle?.files?.[0]?.content ?? ''}
+                tsxCode={previewFile?.content ?? ''}
                 screenName={screenName}
                 onEditMapping={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
               />
