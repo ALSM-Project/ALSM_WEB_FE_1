@@ -3,6 +3,8 @@
 // - GET /auth/me returns { id, email, fullName, isPlatformAdmin, isActive, createdAt, updatedAt }
 
 export interface AuthTokens {
+  mustChangePassword?: boolean;
+  hasPassword?: boolean;
   accessToken: string;
   refreshToken: string;
 }
@@ -14,6 +16,7 @@ export interface RegisterResponse {
 }
 
 export interface User {
+  mustChangePassword?: boolean;
   id: string;
   email: string;
   fullName: string;

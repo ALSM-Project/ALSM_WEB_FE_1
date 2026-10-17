@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { User } from '@/features/auth/types/auth';
 import { AppProviders, useAuth } from './providers';
@@ -15,6 +15,8 @@ const mocks = vi.hoisted(() => ({
   setAccessToken: vi.fn(),
   setRefreshToken: vi.fn(),
   clearTokens: vi.fn(),
+  requiresPasswordChange: vi.fn(),
+  onStoreChange: (() => {}) as () => void,
 
   refreshSession: vi.fn(),
   setAuthFailureHandler: vi.fn(),
@@ -32,6 +34,10 @@ vi.mock('@/features/auth/services/auth.service', () => ({
 
 vi.mock('@/services/api/tokenStore', () => ({
   tokenStore: {
+    epoch: () => 'epoch',
+    subscribe: (listener: () => void) => { mocks.onStoreChange = listener; return () => {}; },
+    requiresPasswordChange: mocks.requiresPasswordChange,
+    isLogoutPending: () => false,
     getRefreshToken: mocks.getRefreshToken,
     getAccessToken: mocks.getAccessToken,
     setAccessToken: mocks.setAccessToken,
@@ -42,7 +48,7 @@ vi.mock('@/services/api/tokenStore', () => ({
 
 vi.mock('@/services/api/apiClient', () => ({
   apiClient: {
-    post: mocks.refreshSession,
+    refreshSession: mocks.refreshSession,
     setAuthFailureHandler: mocks.setAuthFailureHandler,
   },
 }));
@@ -56,7 +62,7 @@ function AuthStatus() {
 
   return (
     <p>
-      {isAuthenticated
+      {user?.mustChangePassword ? `Restricted password change for ${user.email}` : isAuthenticated
         ? `Authenticated as ${user?.email}`
         : 'Unauthenticated'}
     </p>
@@ -94,6 +100,7 @@ describe('AppProviders authentication bootstrap', () => {
 
     mocks.getRefreshToken.mockReturnValue(null);
     mocks.getAccessToken.mockReturnValue(null);
+    mocks.requiresPasswordChange.mockReturnValue(false);
   });
 
   it('shows loading state while an existing session is being restored', () => {
@@ -128,15 +135,7 @@ describe('AppProviders authentication bootstrap', () => {
       await screen.findByText('Authenticated as alex@example.com'),
     ).toBeInTheDocument();
 
-    expect(mocks.refreshSession).toHaveBeenCalledWith(
-      '/auth/refresh',
-      {
-        refreshToken: 'existing-refresh-token',
-      },
-      {
-        auth: false,
-      },
-    );
+    expect(mocks.refreshSession).toHaveBeenCalledWith();
 
     expect(mocks.getCurrentUser).toHaveBeenCalled();
   });
@@ -152,5 +151,18 @@ describe('AppProviders authentication bootstrap', () => {
 
     expect(mocks.refreshSession).not.toHaveBeenCalled();
     expect(mocks.getCurrentUser).not.toHaveBeenCalled();
+  });
+
+  it('restricts an already-restored identity when refresh requires a password change', async () => {
+    mocks.getRefreshToken.mockReturnValue('existing-refresh-token');
+    mocks.refreshSession.mockResolvedValue({ accessToken: 'access', refreshToken: 'refresh' });
+    mocks.getCurrentUser.mockResolvedValue(authenticatedUser);
+    renderWithProviders();
+    await screen.findByText('Authenticated as alex@example.com');
+    mocks.requiresPasswordChange.mockReturnValue(true);
+    mocks.getCurrentUser.mockResolvedValue({ ...authenticatedUser, mustChangePassword: true, roles: [] });
+    act(() => mocks.onStoreChange());
+    expect(await screen.findByText('Restricted password change for alex@example.com')).toBeInTheDocument();
+    expect(mocks.clearTokens).not.toHaveBeenCalled();
   });
 });
