@@ -68,6 +68,29 @@ describe('DependencyDiagnosticsModal', () => {
     expect(values).toEqual(expect.arrayContaining(['1', '1', '1', '3']));
   });
 
+  it('shows IBM system copybooks as system-provided and treats a legacy BLOCKED-only-by-them program as ready', async () => {
+    const analysis: ProgramAnalysis = {
+      program: 'COSGN00C.cbl',
+      status: 'BLOCKED',
+      dependencies: [
+        { copyName: 'COCOM01Y', resolvedFile: 'COCOM01Y.cpy', status: 'RESOLVED' },
+        {
+          copyName: 'DFHAID',
+          status: 'SYSTEM_PROVIDED',
+          message: "COPYBOOK 'DFHAID' referenced by 'COSGN00C.cbl' is an IBM system copybook (CICS/MQ) supplied by the runtime; it is not expected in the upload.",
+        },
+        { copyName: 'DFHBMSCA', status: 'MISSING' },
+      ],
+    };
+    mocks.getCopybookDependencies.mockResolvedValue(analysis);
+
+    render(<DependencyDiagnosticsModal isOpen onClose={vi.fn()} screenId="scr-1" />);
+
+    expect(await screen.findByText(/Ready for conversion/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/^SYSTEM_PROVIDED/)).toHaveLength(2);
+    expect(screen.getByText(/IBM system copybook/i)).toBeInTheDocument();
+  });
+
   it('shows an error message when the request fails', async () => {
     mocks.getCopybookDependencies.mockRejectedValue(new Error('network down'));
 
