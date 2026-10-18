@@ -1,4 +1,4 @@
-export type DependencyStatus = 'RESOLVED' | 'MISSING' | 'AMBIGUOUS' | 'CIRCULAR_DEPENDENCY' | 'PARSE_ERROR';
+export type DependencyStatus = 'RESOLVED' | 'MISSING' | 'AMBIGUOUS' | 'CIRCULAR_DEPENDENCY' | 'PARSE_ERROR' | 'SYSTEM_PROVIDED';
 export type ProgramDependencyStatus = 'READY_FOR_CONVERSION' | 'BLOCKED' | 'NOT_ANALYZED';
 
 export interface DependencyEntry {

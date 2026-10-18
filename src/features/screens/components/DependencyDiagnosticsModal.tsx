@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, HelpCircle, X } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, HelpCircle, Server, X } from 'lucide-react';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { DependencyEntry, ProgramAnalysis } from '../types/copybookDependency';
@@ -14,16 +14,46 @@ interface Counts {
   resolved: number;
   missing: number;
   ambiguous: number;
+  system: number;
   other: number;
   total: number;
 }
 
+/** Mirrors the backend's IBM system copybook rule (CICS DFH*, MQ CMQ*). */
+const SYSTEM_COPYBOOK_RE = /^(DFH|CMQ)[A-Z0-9-]*$/i;
+
+/** Analyses stored before the backend learned about system copybooks list DFHAID etc. as
+ * MISSING and the program as BLOCKED; the backend no longer blocks on those, so show them
+ * the way a fresh analysis would. */
+function normalizeAnalysis(analysis: ProgramAnalysis): ProgramAnalysis {
+  const fix = (list: DependencyEntry[]): DependencyEntry[] =>
+    list.map((entry) => ({
+      ...entry,
+      status:
+        entry.status === 'MISSING' && SYSTEM_COPYBOOK_RE.test(entry.copyName)
+          ? 'SYSTEM_PROVIDED'
+          : entry.status,
+      ...(entry.dependencies ? { dependencies: fix(entry.dependencies) } : {}),
+    }));
+  const dependencies = fix(analysis.dependencies);
+  const blocked = (list: DependencyEntry[]): boolean =>
+    list.some(
+      (e) =>
+        (e.status !== 'RESOLVED' && e.status !== 'SYSTEM_PROVIDED') ||
+        (!!e.dependencies && blocked(e.dependencies)),
+    );
+  const status =
+    analysis.status === 'BLOCKED' && !blocked(dependencies) ? 'READY_FOR_CONVERSION' : analysis.status;
+  return { ...analysis, status, dependencies };
+}
+
 function countDependencies(entries: DependencyEntry[]): Counts {
-  const counts: Counts = { resolved: 0, missing: 0, ambiguous: 0, other: 0, total: 0 };
+  const counts: Counts = { resolved: 0, missing: 0, ambiguous: 0, system: 0, other: 0, total: 0 };
   const walk = (list: DependencyEntry[]) => {
     for (const entry of list) {
       counts.total += 1;
       if (entry.status === 'RESOLVED') counts.resolved += 1;
+      else if (entry.status === 'SYSTEM_PROVIDED') counts.system += 1;
       else if (entry.status === 'MISSING') counts.missing += 1;
       else if (entry.status === 'AMBIGUOUS') counts.ambiguous += 1;
       else counts.other += 1;
@@ -49,6 +79,7 @@ const ENTRY_ICON: Record<DependencyEntry['status'], React.ReactNode> = {
   AMBIGUOUS: <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />,
   CIRCULAR_DEPENDENCY: <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />,
   PARSE_ERROR: <HelpCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />,
+  SYSTEM_PROVIDED: <Server className="w-4 h-4 text-sky-600 flex-shrink-0" />,
 };
 
 const DependencyRow: React.FC<{ entry: DependencyEntry; depth: number }> = ({ entry, depth }) => (
@@ -97,7 +128,7 @@ export const DependencyDiagnosticsModal: React.FC<DependencyDiagnosticsModalProp
     conversionService
       .getCopybookDependencies(screenId)
       .then((result) => {
-        if (!cancelled) setAnalysis(result);
+        if (!cancelled) setAnalysis(normalizeAnalysis(result));
       })
       .catch((err) => {
         console.error('Failed to load copybook dependency diagnostics', err);
@@ -150,11 +181,12 @@ export const DependencyDiagnosticsModal: React.FC<DependencyDiagnosticsModalProp
               <StatusBadge status={overallStatusLabel(analysis.status)} />
             </div>
 
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-5 gap-3">
               {[
                 { label: 'Resolved', value: counts.resolved },
                 { label: 'Missing', value: counts.missing },
                 { label: 'Ambiguous', value: counts.ambiguous },
+                { label: 'System', value: counts.system },
                 { label: 'Total', value: counts.total },
               ].map((stat) => (
                 <div key={stat.label} className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl p-3 text-center">
