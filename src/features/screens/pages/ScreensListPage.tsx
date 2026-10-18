@@ -12,6 +12,11 @@ import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { DependencyDiagnosticsModal } from '../components/DependencyDiagnosticsModal';
 
 const PROGRAM_SOURCE_TYPES = new Set(['COBOL', 'RPG']);
+const IN_FLIGHT_STATUSES = new Set<string>(['Queued', 'Processing', 'Pending Parse']);
+const POLL_ACTIVE_MS = 3000;
+// Queued files still show as "Ready" until the worker picks them up, so a slow idle poll
+// keeps catching the next one instead of stopping between two files of a batch.
+const POLL_IDLE_MS = 10000;
 
 export const ScreensListPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
@@ -26,11 +31,37 @@ export const ScreensListPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const loadScreens = useCallback(() => {
-    conversionService.getScreens(projectId).then((data) => setAllAssets(data));
+    return conversionService
+      .getScreens(projectId)
+      .then((data) => setAllAssets(data))
+      // A failed background refresh keeps showing the last good list instead of blanking it.
+      .catch((error) => console.error('Failed to refresh screens', error));
   }, [projectId]);
 
   useEffect(() => {
     loadScreens();
+  }, [loadScreens]);
+
+  // Live progress: re-fetch every few seconds (faster while something is converting) so the
+  // counters/statuses update without a manual F5. Paused while the tab is hidden.
+  const hasInFlight = allAssets.some((a) => IN_FLIGHT_STATUSES.has(a.status));
+  useEffect(() => {
+    const timer = window.setInterval(
+      () => {
+        if (!document.hidden) void loadScreens();
+      },
+      hasInFlight ? POLL_ACTIVE_MS : POLL_IDLE_MS,
+    );
+    return () => window.clearInterval(timer);
+  }, [hasInFlight, loadScreens]);
+
+  // Coming back to the tab (e.g. after starting a conversion elsewhere) refreshes at once.
+  useEffect(() => {
+    const onVisible = () => {
+      if (!document.hidden) void loadScreens();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [loadScreens]);
 
   const handleDeleteScreen = async () => {
