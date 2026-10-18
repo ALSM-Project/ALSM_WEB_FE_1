@@ -21,6 +21,8 @@ export interface ExportProgressModalProps {
   bundleFilename: string;
   bundleSizeKb: number;
   screensCount: number;
+  /** 'java' for COBOL->Java projects (default 'react'): changes the step wording only. */
+  variant?: 'react' | 'java';
   onDownloadAgain: () => void;
   onClose: () => void;
   onRetry: () => void;
@@ -35,14 +37,19 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
   bundleFilename,
   bundleSizeKb,
   screensCount,
+  variant = 'react',
   onDownloadAgain,
   onClose,
   onRetry,
 }) => {
   const steps = [
     { label: 'Verify export eligibility & dependencies', threshold: 10 },
-    { label: 'Synthesize React components & TypeScript types', threshold: 35 },
-    { label: 'Package build configuration and tooling', threshold: 65 },
+    variant === 'java'
+      ? { label: 'Collect generated Java classes per COBOL program', threshold: 35 }
+      : { label: 'Synthesize React components & TypeScript types', threshold: 35 },
+    variant === 'java'
+      ? { label: 'Organize package folders and documentation', threshold: 65 }
+      : { label: 'Package build configuration and tooling', threshold: 65 },
     { label: 'Compress ZIP bundle and optimize assets', threshold: 90 },
   ];
 
@@ -88,7 +95,9 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                   {currentStepLabel}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Packaging {screensCount} screens into standalone project bundle...
+                  {variant === 'java'
+                    ? `Packaging ${screensCount} programs into a Java source bundle...`
+                    : `Packaging ${screensCount} screens into standalone project bundle...`}
                 </p>
               </div>
             </div>

@@ -9,6 +9,8 @@ export interface ExportScreenSelectorProps {
   onToggleScreen: (screenId: string) => void;
   onSelectAllConverted: () => void;
   onDeselectAll: () => void;
+  /** COBOL->Java projects export programs, BMS/DSPF->React projects export screens. */
+  itemNoun?: 'screen' | 'program';
 }
 
 export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
@@ -17,7 +19,9 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
   onToggleScreen,
   onSelectAllConverted,
   onDeselectAll,
+  itemNoun = 'screen',
 }) => {
+  const isProgram = itemNoun === 'program';
   const convertedScreens = screens.filter((s) => s.status === 'Completed');
   const hasUnreadySelected = screens.some(
     (s) => selectedScreenIds.includes(s.id) && s.status !== 'Completed'
@@ -28,10 +32,12 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            SCREEN SELECTION ({selectedScreenIds.length}/{screens.length})
+            {isProgram ? 'PROGRAM' : 'SCREEN'} SELECTION ({selectedScreenIds.length}/{screens.length})
           </label>
           <p className="text-xs text-slate-500">
-            Choose modernized legacy screens to bundle into this package.
+            {isProgram
+              ? 'Choose converted COBOL programs to bundle into this package.'
+              : 'Choose modernized legacy screens to bundle into this package.'}
           </p>
         </div>
 
@@ -59,7 +65,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-2.5 text-xs text-amber-800">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold">Notice:</span> One or more selected screens are still in review or processing. They will be included using the latest conversion candidate.
+            <span className="font-semibold">Notice:</span> One or more selected {isProgram ? 'programs are' : 'screens are'} still in review or processing. They will be included using the latest conversion candidate.
           </div>
         </div>
       )}
@@ -81,7 +87,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
               <div className="flex items-center space-x-3 min-w-0">
                 <button
                   type="button"
-                  aria-label={`Toggle screen ${screen.name}`}
+                  aria-label={`Toggle ${itemNoun} ${screen.name}`}
                   className="text-brand-600 shrink-0 focus:outline-none"
                 >
                   {isSelected ? (
@@ -118,7 +124,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
       {selectedScreenIds.length === 0 && (
         <p className="text-xs text-rose-600 flex items-center space-x-1.5 font-medium">
           <AlertCircle className="w-3.5 h-3.5" />
-          <span>Please select at least one screen to export.</span>
+          <span>Please select at least one {itemNoun} to export.</span>
         </p>
       )}
     </div>

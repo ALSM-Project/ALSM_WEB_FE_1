@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ExportCodePage } from './ExportCodePage';
@@ -37,14 +37,33 @@ const mocks = vi.hoisted(() => {
       lastUpdated: '1 day ago',
     },
   ];
-  return { getScreens: vi.fn().mockResolvedValue(mockScreens) };
+  return {
+    getScreens: vi.fn().mockResolvedValue(mockScreens),
+    getProjectById: vi.fn().mockResolvedValue(null),
+  };
 });
 
 vi.mock('../services/conversion.service', () => ({
   conversionService: { getScreens: mocks.getScreens },
 }));
 
+vi.mock('@/features/projects/services/project.service', () => ({
+  projectService: { getProjectById: mocks.getProjectById },
+}));
+
+const baseProject = {
+  id: 'proj-acme',
+  name: 'Acme',
+  status: 'ACTIVE',
+  createdAt: '',
+  updatedAt: '',
+};
+
 describe('ExportCodePage', () => {
+  beforeEach(() => {
+    mocks.getProjectById.mockResolvedValue(null);
+  });
+
   const renderWithRouter = (initialRoute = '/projects/proj-acme/export') => {
     return render(
       <MemoryRouter initialEntries={[initialRoute]}>
@@ -108,6 +127,49 @@ describe('ExportCodePage', () => {
     fireEvent.click(selectReadyBtn);
 
     expect(screen.getByText(/SCREEN SELECTION \(2\/3\)/i)).toBeInTheDocument();
+  });
+
+  describe('per conversion type', () => {
+    it('shows React options and wording for a BMS/DSPF project', async () => {
+      mocks.getProjectById.mockResolvedValue({ ...baseProject, conversionType: 'BMS_DSPF_TO_FRONTEND' });
+      renderWithRouter();
+
+      expect(await screen.findByText(/Full Project Scaffold/i)).toBeInTheDocument();
+      expect(screen.getByText(/Target Framework Version/i)).toBeInTheDocument();
+      expect(screen.getByText(/Vitest & RTL/i)).toBeInTheDocument();
+      expect(screen.getByText(/SCREEN SELECTION/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/React 19/).length).toBeGreaterThan(0);
+      expect(screen.queryByText(/Java Source Package/i)).not.toBeInTheDocument();
+    });
+
+    it('shows a Java-only page for a COBOL -> Java project: no React/Tailwind/Vitest/Storybook options', async () => {
+      mocks.getProjectById.mockResolvedValue({ ...baseProject, conversionType: 'COBOL_TO_JAVA' });
+      renderWithRouter();
+
+      expect(await screen.findByText(/Java Source Package/i)).toBeInTheDocument();
+      expect(screen.getByDisplayValue(/Spring Batch \(tool2java output\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/PROGRAM SELECTION/i)).toBeInTheDocument();
+      expect(screen.getByText(/Java \/ Spring Batch/i)).toBeInTheDocument();
+
+      expect(screen.queryByText(/Full Project Scaffold/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Standalone Component Files/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Storybook Design System/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Target Framework Version/i)).not.toBeInTheDocument();
+      expect(screen.queryByDisplayValue(/Tailwind/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Tailwind/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Vitest/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/React 1[89]/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    });
+
+    it('uses program wording when clearing the selection of a COBOL project', async () => {
+      mocks.getProjectById.mockResolvedValue({ ...baseProject, conversionType: 'COBOL_TO_JAVA' });
+      renderWithRouter();
+
+      await screen.findByText(/Java Source Package/i);
+      fireEvent.click(screen.getByRole('button', { name: /Clear/i }));
+      expect(screen.getByText(/Please select at least one program to export/i)).toBeInTheDocument();
+    });
   });
 
   it('allows selecting ready screens', async () => {
