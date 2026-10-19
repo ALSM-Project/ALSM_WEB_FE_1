@@ -1,0 +1,1 @@
+export interface CompanyProfilePayload { legalName: string; taxId: string; address: string; representativeName: string; representativeRole: string; }
