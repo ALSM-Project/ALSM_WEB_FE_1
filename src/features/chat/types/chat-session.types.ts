@@ -1,0 +1,1 @@
+export interface ChatSession { sessionId: string; customerId: string; messages: Array<{ sender: string; text: string; timestamp: string }>; }
