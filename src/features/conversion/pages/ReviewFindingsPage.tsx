@@ -11,6 +11,7 @@ import {
   FileCode,
   LoaderCircle,
   Play,
+  RotateCcw,
   Sliders,
 } from 'lucide-react';
 import { ApiError } from '@/services/api/apiError';
@@ -181,19 +182,24 @@ export const ReviewFindingsPage: React.FC = () => {
     );
   };
 
-  const runValidationButton = (label: string) => (
-    <Button
-      type="button"
-      variant="ai"
-      onClick={() => triggerValidation.mutate()}
-      isLoading={triggerValidation.isPending}
-      disabled={!conversionCompleted || validationActive}
-      className="space-x-2"
-    >
-      <Play className="h-4 w-4" />
-      <span>{label}</span>
-    </Button>
-  );
+  const runValidationButton = (label: string) => {
+    const isRunning = triggerValidation.isPending || validationActive;
+    return (
+      <Button
+        type="button"
+        onClick={() => triggerValidation.mutate()}
+        disabled={!conversionCompleted || isRunning}
+        className="space-x-1.5 text-xs font-medium rounded-full bg-white border border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] hover:border-[#B8D0EB] active:bg-[#E5EFFF] shadow-none disabled:bg-slate-50 disabled:border-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all"
+      >
+        {isRunning ? (
+          <LoaderCircle className="h-3.5 w-3.5 animate-spin text-[#0B2B5B]" />
+        ) : (
+          <RotateCcw className="h-3.5 w-3.5 text-[#0B2B5B]" />
+        )}
+        <span>{isRunning ? 'Re-running AI…' : label}</span>
+      </Button>
+    );
+  };
 
   const renderState = () => {
     if (runsQuery.isError || runQuery.isError || findingsQuery.isError) {
@@ -283,12 +289,20 @@ export const ReviewFindingsPage: React.FC = () => {
         );
       case 'VALIDATION_COMPLETED_EMPTY':
         return (
-          <StatePanel icon={<CheckCircle2 className="h-5 w-5" />} title="AI validation completed">
+          <StatePanel
+            icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
+            title="AI validation completed"
+            action={runValidationButton('Re-run AI Validation')}
+          >
             <p>No semantic findings were detected in this validation run.</p>
             <p className="mt-2 font-medium text-slate-700">
-              AI validation does not guarantee semantic equivalence. Human review is still
-              recommended.
+              AI validation does not guarantee semantic equivalence. If you modified the screen code, click Re-run AI Validation to analyze your changes.
             </p>
+            {triggerError && (
+              <p className="mt-3 font-semibold text-rose-700" role="alert">
+                {triggerError}
+              </p>
+            )}
           </StatePanel>
         );
       case 'VALIDATION_FAILED':
@@ -401,9 +415,13 @@ export const ReviewFindingsPage: React.FC = () => {
                     </p>
                   ) : selectedGeneratedFile ? (
                     <CodeViewer
-                      code={selectedGeneratedFile.content}
+                      code={
+                        (selectedGeneratedFile.relativePath.toLowerCase().endsWith('.tsx') &&
+                         localStorage.getItem(`alsm_custom_code_${projectId}_${screenId}`)) ||
+                        selectedGeneratedFile.content
+                      }
                       filename={selectedGeneratedFile.relativePath}
-                      language="java"
+                      language={selectedGeneratedFile.relativePath.toLowerCase().endsWith('.tsx') ? 'tsx' : 'java'}
                       highlightStartLine={
                         locationMatchesSelectedFile
                           ? selectedFinding?.targetLocation?.startLine
@@ -448,24 +466,41 @@ export const ReviewFindingsPage: React.FC = () => {
               <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                 Validation &amp; Human Review
               </h1>
-              <span className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                Human Review Required
-              </span>
             </div>
             <p className="mt-2 text-sm text-slate-600">
               AI-generated findings are advisory. Final review decisions are made by human
               reviewers.
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
-            className="space-x-1.5 text-xs"
-          >
-            <Sliders className="h-4 w-4 text-brand-600" />
-            <span>Edit Mapping &amp; Re-convert</span>
-          </Button>
+          <div className="flex items-center space-x-2">
+            {conversionCompleted && currentRun && (
+              <Button
+                type="button"
+                onClick={() => triggerValidation.mutate()}
+                disabled={validationActive || triggerValidation.isPending}
+                className="space-x-1.5 text-xs font-medium rounded-full bg-white border border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] hover:border-[#B8D0EB] active:bg-[#E5EFFF] shadow-none disabled:bg-slate-50 disabled:border-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all"
+              >
+                {validationActive || triggerValidation.isPending ? (
+                  <LoaderCircle className="h-3.5 w-3.5 animate-spin text-[#0B2B5B]" />
+                ) : (
+                  <RotateCcw className="h-3.5 w-3.5 text-[#0B2B5B]" />
+                )}
+                <span>
+                  {validationActive || triggerValidation.isPending
+                    ? 'Re-running AI…'
+                    : 'Re-run AI Validation'}
+                </span>
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+              className="space-x-1.5 text-xs font-medium rounded-full border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] shadow-none"
+            >
+              <Sliders className="h-3.5 w-3.5 text-brand-600" />
+              <span>Edit Mapping &amp; Code</span>
+            </Button>
+          </div>
         </div>
       </header>
 

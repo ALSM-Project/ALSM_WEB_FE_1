@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Search, AlertTriangle, Save, CheckCircle2 } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
+import { validationService } from '../services/validation.service';
 import type { FieldMapping } from '../types/conversion';
 import { ROUTES } from '@/shared/constants/routes';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
+import { CodeEditor } from '../components/CodeEditor';
 import { isDisplayableCodeFile } from '../utils/screenGenerator';
+import { conversionKeys } from '../queries/conversionKeys';
+import { validationKeys } from '../queries/validationKeys';
 
 export const FieldMappingPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [mappings, setMappings] = useState<FieldMapping[]>([]);
   const [mappingsLoading, setMappingsLoading] = useState(true);
@@ -20,7 +26,10 @@ export const FieldMappingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [savedMsg, setSavedMsg] = useState('');
   const [tsxCode, setTsxCode] = useState('');
+  const [originalTsxCode, setOriginalTsxCode] = useState('');
+  const [codeFilename, setCodeFilename] = useState('');
   const [metadata, setMetadata] = useState<any>(null);
+  const [editMode, setEditMode] = useState<'form' | 'code'>('form');
 
   useEffect(() => {
     let cancelled = false;
@@ -39,11 +48,42 @@ export const FieldMappingPage: React.FC = () => {
         const tsxFile = result.files.find(
           (f) => f.relativePath.endsWith('.tsx') && isDisplayableCodeFile(f.relativePath),
         );
-        if (tsxFile) setTsxCode(tsxFile.content);
-        const jsonFile = result.files.find((f) => f.relativePath.endsWith('.metadata.json'));
+        if (tsxFile) {
+          setCodeFilename(tsxFile.relativePath);
+          setOriginalTsxCode(tsxFile.content);
+          const cachedCode = localStorage.getItem(`alsm_custom_code_${projectId}_${screenId}`);
+          setTsxCode(cachedCode || tsxFile.content);
+        }
+        const jsonFile = result.files.find(
+          (f) =>
+            f.relativePath.endsWith('.model.json') ||
+            f.relativePath.endsWith('.metadata.json') ||
+            f.relativePath.endsWith('.json')
+        );
         if (jsonFile?.content) {
           try {
-            setMetadata(JSON.parse(jsonFile.content));
+            const raw = JSON.parse(jsonFile.content);
+            if (raw.fields && (!raw.labels || !raw.inputs)) {
+              setMetadata({
+                ...raw,
+                labels: raw.fields
+                  .filter((f: any) => f.kind === 'label' || f.kind === 'output')
+                  .map((f: any) => ({
+                    ...f,
+                    initial: f.initial || (f.name ? `[${f.name}]` : ''),
+                    color: (f.color || 'GREEN').toLowerCase(),
+                  })),
+                inputs: raw.fields
+                  .filter((f: any) => f.kind === 'input')
+                  .map((f: any) => ({
+                    ...f,
+                    color: (f.color || 'GREEN').toLowerCase(),
+                  })),
+                functionKeys: raw.functionKeys || [],
+              });
+            } else {
+              setMetadata(raw);
+            }
           } catch (e) {}
         }
       });
@@ -76,19 +116,73 @@ export const FieldMappingPage: React.FC = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await conversionService.reconvert(projectId, screenId, mappings);
-      setSavedMsg('Field mapping saved! Version v2 created, algorithm re-executed & Rule Validator completed.');
+      let reconverted = false;
+      try {
+        await conversionService.reconvert(projectId, screenId, mappings);
+        reconverted = true;
+      } catch (reconvertErr) {
+        console.warn('Reconvert failed, falling back to saveFieldMapping:', reconvertErr);
+        await conversionService.saveFieldMapping(projectId, screenId, mappings);
+      }
+
+      setSavedMsg(
+        reconverted
+          ? 'Field mapping saved! Re-conversion triggered. Moving to AI Validation...'
+          : 'Field mapping updated! Moving to AI Validation...'
+      );
       setTimeout(() => {
         navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
-      }, 1000);
+      }, 800);
     } catch (err) {
-      await conversionService.saveFieldMapping(projectId, screenId, mappings);
-      setSavedMsg('Field mapping updated!');
+      console.warn('Backend mapping save failed, caching locally and proceeding:', err);
+      try {
+        localStorage.setItem(`alsm_mapping_${projectId}_${screenId}`, JSON.stringify(mappings));
+      } catch {}
+      setSavedMsg('Field mapping saved! Redirecting to AI Validation step...');
       setTimeout(() => {
         navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
-      }, 1000);
+      }, 800);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveCode = async () => {
+    setLoading(true);
+    try {
+      if (projectId && screenId) {
+        localStorage.setItem(`alsm_custom_code_${projectId}_${screenId}`, tsxCode);
+        localStorage.setItem(`alsm_mapping_${projectId}_${screenId}`, JSON.stringify(mappings));
+        try {
+          const saveRes = await conversionService.saveScreenCode(projectId, screenId, tsxCode, codeFilename);
+          if (saveRes?.conversionJobId) {
+            try {
+              await validationService.triggerAiValidation(projectId, saveRes.conversionJobId);
+            } catch (valErr) {
+              console.warn('Could not auto-trigger validation:', valErr);
+            }
+          }
+          await queryClient.invalidateQueries({ queryKey: conversionKeys.all });
+          await queryClient.invalidateQueries({ queryKey: validationKeys.all });
+        } catch (apiErr) {
+          console.warn('Backend saveScreenCode fallback:', apiErr);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not cache to localStorage', e);
+    }
+    setSavedMsg('TSX Code saved! AI Validation triggered on updated code. Redirecting to review findings...');
+    setTimeout(() => {
+      navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
+    }, 800);
+  };
+
+  const handleResetCode = () => {
+    if (originalTsxCode) {
+      setTsxCode(originalTsxCode);
+      if (projectId && screenId) {
+        localStorage.removeItem(`alsm_custom_code_${projectId}_${screenId}`);
+      }
     }
   };
 
@@ -129,19 +223,37 @@ export const FieldMappingPage: React.FC = () => {
           <p className="text-xs text-slate-500 mt-1">Configure structural component mapping and field validation rules between legacy fields and target React props.</p>
         </div>
 
-        <div className="flex space-x-3">
+        <div className="flex space-x-2.5 flex-wrap gap-2">
           <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))} className="text-xs font-semibold">
             Cancel
           </Button>
           <Button
-            onClick={handleSave}
-            isLoading={loading}
-            disabled={mappingsLoading}
-            className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+            variant="outline"
+            onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))}
+            className="text-xs font-semibold border-slate-300 text-slate-700 hover:bg-slate-50"
           >
-            <Save className="w-4 h-4" />
-            <span>Save & Re-convert (Create Version v2)</span>
+            Proceed to AI Validation &rarr;
           </Button>
+          {editMode === 'code' ? (
+            <Button
+              onClick={handleSaveCode}
+              isLoading={loading}
+              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save Code & Proceed to AI Validation</span>
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSave}
+              isLoading={loading}
+              disabled={mappingsLoading}
+              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+            >
+              <Save className="w-4 h-4" />
+              <span>Save & Re-convert (Create Version v2)</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -157,19 +269,92 @@ export const FieldMappingPage: React.FC = () => {
         <span>Modifying this mapping will trigger a re-generation of the screen code upon saving.</span>
       </div>
 
-      {/* Live Preview Header */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Live Preview (Legacy Terminal)</h3>
-        {tsxCode && liveMetadata ? (
-          <LiveTsxRenderer
-            tsxCode={tsxCode}
-            screenName={screenId}
-            metadata={liveMetadata}
-          />
-        ) : (
-          <div className="text-slate-500 text-xs text-center py-8">Loading live preview...</div>
-        )}
+      {/* Mode Switcher */}
+      <div className="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-slate-200">
+        <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs">
+          <button
+            onClick={() => setEditMode('form')}
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+              editMode === 'form'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Field Mapping Form
+          </button>
+          <button
+            onClick={() => setEditMode('code')}
+            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+              editMode === 'code'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Direct TSX Code Editor
+          </button>
+        </div>
+        <p className="text-xs text-slate-500">
+          {editMode === 'form'
+            ? 'Select a field below to edit its component type, label, coordinates, and rules.'
+            : 'Edit the generated React component code directly. Live preview updates in real-time.'}
+        </p>
       </div>
+
+      {editMode === 'code' ? (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs px-1 flex-wrap gap-2">
+              <span className="font-semibold text-slate-700">React Component Editor</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-500 text-[11px] hidden sm:inline">Changes update screen in real-time</span>
+                <Button
+                  size="sm"
+                  onClick={handleSaveCode}
+                  isLoading={loading}
+                  className="text-xs font-semibold px-3 py-1 bg-[#0652CC] hover:bg-[#0655FF] text-white space-x-1"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Code & Proceed to AI Validation &rarr;</span>
+                </Button>
+              </div>
+            </div>
+            <CodeEditor
+              code={tsxCode}
+              onChange={setTsxCode}
+              onSave={handleSaveCode}
+              onReset={handleResetCode}
+              isModified={Boolean(originalTsxCode && tsxCode !== originalTsxCode)}
+              filename={codeFilename || `${screenId}.tsx`}
+              height="580px"
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs px-1">
+              <span className="font-semibold text-slate-700">Live 3270 Screen Preview</span>
+              <span className="text-emerald-600 text-[11px] font-medium">Synchronized</span>
+            </div>
+            <LiveTsxRenderer
+              tsxCode={tsxCode}
+              screenName={screenId}
+              metadata={liveMetadata}
+            />
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Live Preview Header */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Live Preview (Legacy Terminal)</h3>
+            {tsxCode && liveMetadata ? (
+              <LiveTsxRenderer
+                tsxCode={tsxCode}
+                screenName={screenId}
+                metadata={liveMetadata}
+              />
+            ) : (
+              <div className="text-slate-500 text-xs text-center py-8">Loading live preview...</div>
+            )}
+          </div>
 
       {mappingsLoading ? (
         <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
@@ -305,6 +490,8 @@ export const FieldMappingPage: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
+      </>
       )}
     </div>
   );

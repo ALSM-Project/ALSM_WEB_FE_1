@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { RefreshCcw } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
@@ -42,6 +42,43 @@ export const PreviewStudioPage: React.FC = () => {
   // assume index 0 is the real code, the backend gives no ordering guarantee.
   const previewFile = resultBundle?.files?.find((f) => isDisplayableCodeFile(f.relativePath));
 
+  const metadata = useMemo(() => {
+    const jsonFile = resultBundle?.files?.find(
+      (f) =>
+        f.relativePath.endsWith('.model.json') ||
+        f.relativePath.endsWith('.metadata.json') ||
+        f.relativePath.endsWith('.json')
+    );
+    if (jsonFile?.content) {
+      try {
+        const raw = JSON.parse(jsonFile.content);
+        if (raw.fields && (!raw.labels || !raw.inputs)) {
+          return {
+            ...raw,
+            labels: raw.fields
+              .filter((f: any) => f.kind === 'label' || f.kind === 'output')
+              .map((f: any) => ({
+                ...f,
+                initial: f.initial || (f.name ? `[${f.name}]` : ''),
+                color: (f.color || 'GREEN').toLowerCase(),
+              })),
+            inputs: raw.fields
+              .filter((f: any) => f.kind === 'input')
+              .map((f: any) => ({
+                ...f,
+                color: (f.color || 'GREEN').toLowerCase(),
+              })),
+            functionKeys: raw.functionKeys || [],
+          };
+        }
+        return raw;
+      } catch (e) {
+        console.error('Failed to parse metadata', e);
+      }
+    }
+    return null;
+  }, [resultBundle]);
+
   const containerWidths = {
     desktop: 'w-full max-w-5xl',
     tablet: 'w-[768px]',
@@ -83,11 +120,12 @@ export const PreviewStudioPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="p-6 sm:p-12 bg-slate-50 flex flex-col items-center justify-center min-h-[420px]">
-            <div className="w-full max-w-3xl">
+          <div className="p-4 sm:p-8 bg-slate-50 flex flex-col items-center justify-center min-h-[420px]">
+            <div className="w-full max-w-6xl">
               <LiveTsxRenderer
                 tsxCode={previewFile?.content ?? ''}
                 screenName={screenName}
+                metadata={metadata}
                 onEditMapping={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
               />
             </div>
