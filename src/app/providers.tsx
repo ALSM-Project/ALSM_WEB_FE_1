@@ -24,14 +24,24 @@ import { NavigationProvider } from '@/context/NavigationContext';
  */
 function isUserStaffOrAdmin(u: User | null | undefined): boolean {
   if (!u) return false;
-  const roles = u.roles || [];
+  const roles = (u.roles || []).map((r) => String(r).toUpperCase());
+  const role = (u.role || '').toUpperCase();
+  const internalRoles = [
+    'ADMIN',
+    'SYSTEM_ADMIN',
+    'TEAM_LEAD',
+    'CONVERSION_STAFF',
+    'SALES_MANAGER',
+    'INTERNAL_SALES',
+    'INTERNAL_SUPPORT',
+    'SALES_REP',
+    'PARTNER',
+  ];
+
   return Boolean(
     u.isPlatformAdmin ||
-      u.role === 'ADMIN' ||
-      roles.includes('ADMIN') ||
-      roles.includes('SYSTEM_ADMIN') ||
-      roles.includes('TEAM_LEAD') ||
-      roles.includes('SALES_REP'),
+      internalRoles.includes(role) ||
+      roles.some((r) => internalRoles.includes(r)),
   );
 }
 
