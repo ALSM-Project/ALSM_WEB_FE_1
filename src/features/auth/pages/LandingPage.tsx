@@ -1,22 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  ArrowRight,
   Cpu,
   Zap,
-  CheckCircle2,
   Terminal,
   Code2,
   Layers,
   ShieldCheck,
   FileCode,
   GitBranch,
-  Play,
   Check,
   ChevronDown,
   Star,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
+import { CinematicHero } from '../components/CinematicHero';
 import './LandingPage.css';
 
 interface ReviewItem {
@@ -269,153 +267,10 @@ public class AccountBalanceService {
       {/* ================================================== */}
       {/* 01. HERO SECTION                                   */}
       {/* ================================================== */}
-      <section
-        id="hero"
-        className="w-full min-h-[calc(100vh-80px)] mx-auto flex flex-col justify-center items-center relative overflow-hidden pt-16 pb-20 bg-[#F7F9FC] text-[#091E42]"
-      >
-        {/* Soft Blue Ambient Glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[750px] h-[400px] bg-[#0652CC]/8 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute top-1/3 right-1/4 w-[350px] h-[250px] bg-[#22D3EE]/10 rounded-full blur-[120px] pointer-events-none" />
-
-        <div className="w-full max-w-7xl mx-auto px-4 flex flex-col items-center z-10 text-center">
-          {/* Eyebrow Tag */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8F1FF] border border-[#0652CC]/20 text-[#0652CC] text-xs font-bold uppercase tracking-wider mb-6 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-[#0655FF] animate-pulse" />
-            <span>LEGACY MODERNIZATION PLATFORM</span>
-          </div>
-
-          {/* Main Heading */}
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#091E42] leading-[1.08] max-w-4xl">
-            <span>CONVERT IBM i LEGACY </span>
-            <br className="hidden sm:inline" />
-            <span className="bg-gradient-to-r from-[#0652CC] to-[#0655FF] bg-clip-text text-transparent">
-              SYSTEMS TO MODERN WEB APPS
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-[#42526E] font-medium max-w-3xl text-base sm:text-lg text-center mt-6 px-4 leading-relaxed">
-            Automate BMS/DSPF-to-React and COBOL-to-Java modernization using structured conversion algorithms, rule-based validation, and optional AI-assisted validation.
-          </p>
-
-          {/* Hero 3D Interactive Card Deck */}
-          <div className="relative w-full max-w-[1100px] h-[320px] sm:h-[400px] my-10 flex justify-center items-center overflow-visible">
-            {/* Card 1: AS400 / IBM i */}
-            <div
-              className="fan-card absolute w-[170px] sm:w-[230px] h-[220px] sm:h-[300px] rounded-[24px] p-5 border-[1.5px] border-[#D9E2EC] z-10 bg-white flex flex-col justify-between text-left"
-              style={{
-                ['--tx' as any]: '-340px',
-                ['--ty' as any]: '35px',
-                transform: 'translate(-160px, 25px) rotate(-12deg)',
-              }}
-            >
-              <div>
-                <span className="text-[10px] font-mono font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-200 uppercase">AS400 / IBM i</span>
-                <h4 className="text-sm font-bold text-[#091E42] mt-3">Mainframe System</h4>
-                <p className="text-xs text-[#42526E] mt-1 font-mono">DB2PhysicalFile.PF</p>
-              </div>
-              <div className="text-[11px] font-mono text-gray-500 bg-gray-50 p-2 rounded border border-gray-200">
-                CRTPF FILE(FIN/CUST)
-              </div>
-            </div>
-
-            {/* Card 2: BMS Screen */}
-            <div
-              className="fan-card absolute w-[170px] sm:w-[230px] h-[220px] sm:h-[300px] rounded-[24px] p-5 border-[1.5px] border-[#0652CC]/30 z-20 bg-white flex flex-col justify-between text-left"
-              style={{
-                ['--tx' as any]: '-170px',
-                ['--ty' as any]: '15px',
-                transform: 'translate(-80px, 10px) rotate(-6deg)',
-              }}
-            >
-              <div>
-                <span className="text-[10px] font-mono font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 uppercase">BMS Mapfield</span>
-                <h4 className="text-sm font-bold text-[#091E42] mt-3">3270 Terminal Screen</h4>
-                <p className="text-xs text-[#42526E] mt-1 font-mono">CICS_MAP01.bms</p>
-              </div>
-              <div className="text-[11px] font-mono text-amber-700 bg-amber-50/50 p-2 rounded border border-amber-200">
-                DFHMDF POS=(03,15)
-              </div>
-            </div>
-
-            {/* Card 3: Center ALSM AST Engine */}
-            <div
-              className="fan-card absolute w-[180px] sm:w-[240px] h-[230px] sm:h-[310px] rounded-[24px] p-6 border-[2px] border-[#0652CC] z-30 bg-[#091E42] text-white flex flex-col justify-between text-left shadow-2xl"
-              style={{
-                ['--tx' as any]: '0px',
-                ['--ty' as any]: '0px',
-                transform: 'translate(0px, 0px) rotate(0deg)',
-              }}
-            >
-              <div>
-                <span className="text-[10px] font-mono font-bold text-[#22D3EE] bg-[#0652CC]/30 px-2 py-0.5 rounded border border-[#22D3EE]/30 uppercase">ALSM AST Engine</span>
-                <h4 className="text-base font-bold text-white mt-3">Conversion Algorithm</h4>
-                <p className="text-xs text-[#22D3EE] mt-1 font-mono">AST Deterministic Pipeline</p>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-950/60 p-2 rounded border border-emerald-500/30">
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                <span>Deterministic Rules</span>
-              </div>
-            </div>
-
-            {/* Card 4: React Output */}
-            <div
-              className="fan-card absolute w-[170px] sm:w-[230px] h-[220px] sm:h-[300px] rounded-[24px] p-5 border-[1.5px] border-[#0652CC]/30 z-20 bg-white flex flex-col justify-between text-left"
-              style={{
-                ['--tx' as any]: '170px',
-                ['--ty' as any]: '15px',
-                transform: 'translate(80px, 10px) rotate(6deg)',
-              }}
-            >
-              <div>
-                <span className="text-[10px] font-mono font-bold text-[#0652CC] bg-[#E8F1FF] px-2 py-0.5 rounded border border-[#0652CC]/20 uppercase">React 19 Output</span>
-                <h4 className="text-sm font-bold text-[#091E42] mt-3">Modern Web Component</h4>
-                <p className="text-xs text-[#42526E] mt-1 font-mono">CustomerScreen.tsx</p>
-              </div>
-              <div className="text-[11px] font-mono text-[#0652CC] bg-[#E8F1FF] p-2 rounded border border-[#0652CC]/20">
-                &lt;Input name="custID" /&gt;
-              </div>
-            </div>
-
-            {/* Card 5: Java Service */}
-            <div
-              className="fan-card absolute w-[170px] sm:w-[230px] h-[220px] sm:h-[300px] rounded-[24px] p-5 border-[1.5px] border-[#D9E2EC] z-10 bg-white flex flex-col justify-between text-left"
-              style={{
-                ['--tx' as any]: '340px',
-                ['--ty' as any]: '35px',
-                transform: 'translate(160px, 25px) rotate(12deg)',
-              }}
-            >
-              <div>
-                <span className="text-[10px] font-mono font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded border border-violet-200 uppercase">Spring Boot Java</span>
-                <h4 className="text-sm font-bold text-[#091E42] mt-3">Microservice API</h4>
-                <p className="text-xs text-[#42526E] mt-1 font-mono">AccountService.java</p>
-              </div>
-              <div className="text-[11px] font-mono text-violet-700 bg-violet-50 p-2 rounded border border-violet-200">
-                @Service class Service
-              </div>
-            </div>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6 w-full max-w-md px-4">
-            <Link
-              to={ROUTES.DASHBOARD}
-              className="w-full sm:w-auto text-center bg-[#0652CC] text-white px-8 py-4 rounded-full text-base font-bold hover:bg-[#0655FF] transition-all shadow-[0_10px_25px_rgba(6,82,204,0.25)] hover:shadow-[0_12px_30px_rgba(6,85,255,0.35)] cursor-pointer flex items-center justify-center gap-2"
-            >
-              <span>Explore PoC Workspace</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <a
-              href="#platform"
-              className="w-full sm:w-auto text-center text-[#0652CC] bg-[#E8F1FF] px-8 py-4 rounded-full text-base font-semibold hover:bg-[#0652CC]/15 transition-colors border border-[#0652CC]/25 cursor-pointer flex items-center justify-center gap-2"
-            >
-              <Play className="w-4 h-4 text-[#0652CC]" />
-              <span>Explore Pipeline</span>
-            </a>
-          </div>
-        </div>
-      </section>
+      {/* ================================================== */}
+      {/* 01. HERO SECTION (Cinematic ChợPhim Style)         */}
+      {/* ================================================== */}
+      <CinematicHero />
 
       {/* ================================================== */}
       {/* 04. LEGACY MODERNIZATION PROBLEM (Split Editorial) */}
