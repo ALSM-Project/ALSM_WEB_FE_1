@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Plus } from 'lucide-react';
 import { projectService } from '../services/project.service';
 import type { ConversionType } from '../types/project';
+import { ApiError } from '@/services/api/apiError';
 import { ROUTES } from '@/shared/constants/routes';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
@@ -58,6 +59,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return setError('Please enter a project name');
+    if (name.trim().length < 2) return setError('Project name must be longer than or equal to 2 characters');
 
     setLoading(true);
     try {
@@ -72,8 +74,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       } else {
         navigate(ROUTES.PROJECTS.UPLOAD(proj.id));
       }
-    } catch {
-      setError('Failed to create project. Please try again.');
+    } catch (err: unknown) {
+      setError(extractApiErrorMessage(err, 'Failed to create project. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -220,5 +222,49 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     document.body
   );
 };
+
+function extractApiErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    if (Array.isArray(err.details) && err.details.length > 0) {
+      return err.details.filter(Boolean).join('. ');
+    }
+    if (typeof err.details === 'string' && err.details.trim()) {
+      return err.details;
+    }
+    if (err.message && err.message !== 'Request failed' && err.message !== 'Request validation failed') {
+      return err.message;
+    }
+    if (Array.isArray(err.details)) {
+      return err.details.join('. ');
+    }
+  }
+
+  if (err && typeof err === 'object') {
+    const errorObj = err as any;
+    const responseData = errorObj.response?.data;
+    if (Array.isArray(responseData?.details) && responseData.details.length > 0) {
+      return responseData.details.filter(Boolean).join('. ');
+    }
+    if (typeof responseData?.details === 'string' && responseData.details.trim()) {
+      return responseData.details;
+    }
+    if (
+      responseData?.message &&
+      responseData.message !== 'Request failed' &&
+      responseData.message !== 'Request validation failed'
+    ) {
+      return responseData.message;
+    }
+    if (errorObj.message) {
+      return errorObj.message;
+    }
+  }
+
+  if (typeof err === 'string' && err.trim()) {
+    return err;
+  }
+
+  return fallback;
+}
 
 export default CreateProjectModal;
