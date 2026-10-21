@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { UploadSourcePage } from './UploadSourcePage';
 
@@ -11,6 +11,7 @@ import { UploadSourcePage } from './UploadSourcePage';
 const mocks = vi.hoisted(() => ({
   getScreens: vi.fn(),
   uploadSource: vi.fn(),
+  getProjectById: vi.fn().mockResolvedValue(null),
 }));
 
 vi.mock('@/features/conversion/services/conversion.service', () => ({
@@ -20,7 +21,18 @@ vi.mock('@/features/conversion/services/conversion.service', () => ({
   },
 }));
 
+vi.mock('@/features/projects/services/project.service', () => ({
+  projectService: {
+    getProjectById: mocks.getProjectById,
+  },
+}));
+
 describe('UploadSourcePage - real upload error surfacing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getProjectById.mockResolvedValue(null);
+  });
+
   const renderPage = () =>
     render(
       <MemoryRouter initialEntries={['/projects/proj-acme/upload']}>
@@ -76,5 +88,35 @@ describe('UploadSourcePage - real upload error surfacing', () => {
     await waitFor(() => {
       expect(screen.queryByText('Duplicate file name conflict.')).not.toBeInTheDocument();
     });
+  });
+
+  it('shows an informative banner and prevents upload when tab does not match project conversion type', async () => {
+    mocks.getScreens.mockResolvedValue([]);
+    mocks.getProjectById.mockResolvedValue({
+      id: 'proj-acme',
+      name: 'ACME',
+      conversionType: 'BMS_DSPF_TO_FRONTEND',
+    });
+
+    renderPage();
+
+    const tab = await screen.findByText('Programs (COBOL / RPG)');
+    fireEvent.click(tab);
+
+    expect(
+      await screen.findByText('Project is configured for BMS / DSPF → React'),
+    ).toBeInTheDocument();
+
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    fireEvent.change(fileInput, {
+      target: { files: [new File(['cobol content'], 'PROGRAM.cbl', { type: 'text/plain' })] },
+    });
+
+    expect(
+      await screen.findByText(
+        'Cannot upload COBOL/RPG programs to a BMS/DSPF → React project. Please create a "COBOL → Java" project to convert COBOL files.',
+      ),
+    ).toBeInTheDocument();
+    expect(mocks.uploadSource).not.toHaveBeenCalled();
   });
 });

@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Code2, Play, Eye, AlertCircle } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
+import { projectService } from '@/features/projects/services/project.service';
+import type { Project } from '@/features/projects/types/project';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Tabs } from '@/shared/ui/Tabs';
@@ -15,18 +17,34 @@ export const UploadSourcePage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
 
+  const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState('screens');
   const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
   const [programFiles, setProgramFiles] = useState<SourceFile[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
-  // Load existing uploaded source screens for this project from backend
+  // Load project details and existing uploaded source screens for this project
   React.useEffect(() => {
     let cancelled = false;
-    conversionService.getScreens(projectId).then((screens) => {
-      if (cancelled) return;
-      const loadedFiles: SourceFile[] = screens.map((s) => ({
+
+    Promise.resolve(projectService.getProjectById(projectId))
+      ?.then((p) => {
+        if (!cancelled && p) {
+          setProject(p);
+          if (p.conversionType === 'COBOL_TO_JAVA') {
+            setActiveTab('programs');
+          } else if (p.conversionType === 'BMS_DSPF_TO_FRONTEND') {
+            setActiveTab('screens');
+          }
+        }
+      })
+      ?.catch(() => {});
+
+    Promise.resolve(conversionService.getScreens(projectId))
+      ?.then((screens) => {
+        if (cancelled || !Array.isArray(screens)) return;
+        const loadedFiles: SourceFile[] = screens.map((s) => ({
         id: s.id,
         fileName: s.name,
         sizeKb: s.sizeKb ?? 10,
@@ -94,7 +112,19 @@ export const UploadSourcePage: React.FC = () => {
     status: 'Failed to parse',
   });
 
+  const isMismatchedTab =
+    (project?.conversionType === 'BMS_DSPF_TO_FRONTEND' && activeTab === 'programs') ||
+    (project?.conversionType === 'COBOL_TO_JAVA' && activeTab === 'screens');
+
   const handleFiles = (files: File[]) => {
+    if (isMismatchedTab) {
+      setUploadError(
+        activeTab === 'programs'
+          ? 'Cannot upload COBOL/RPG programs to a BMS/DSPF → React project. Please create a "COBOL → Java" project to convert COBOL files.'
+          : 'Cannot upload BMS/DSPF screens to a COBOL → Java project. Please create a "BMS / DSPF → React" project to convert screen files.',
+      );
+      return;
+    }
     if (activeTab === 'screens') {
       // Each screen file is an independent conversion unit — upload one at a time so
       // every file gets its own real inputReference/Screen instead of accidentally
@@ -229,8 +259,38 @@ export const UploadSourcePage: React.FC = () => {
         onChange={(tab) => {
           setActiveTab(tab);
           setCurrentPage(1);
+          setUploadError(null);
         }}
       />
+
+      {isMismatchedTab && (
+        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-amber-900 text-xs flex items-start justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600 mt-0.5" />
+            <div>
+              <p className="font-bold text-sm text-amber-900">
+                {activeTab === 'programs'
+                  ? 'Project is configured for BMS / DSPF → React'
+                  : 'Project is configured for COBOL → Java'}
+              </p>
+              <p className="mt-1 text-amber-800 leading-relaxed">
+                {activeTab === 'programs'
+                  ? 'This project only accepts legacy screen map files (.bms, .dspf) for UI modernization. To convert COBOL programs or copybooks (.cob, .cbl, .cpy) to Java, please create a project with conversion type "COBOL → Java".'
+                  : 'This project only accepts COBOL source files (.cob, .cbl, .cpy) for backend modernization. To convert BMS/DSPF screens (.bms, .dspf) to React, please create a project with conversion type "BMS / DSPF → React".'}
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => navigate(ROUTES.PROJECTS.NEW)}
+            className="flex-shrink-0 text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100"
+          >
+            Create New Project
+          </Button>
+        </div>
+      )}
 
       <div
         onDragOver={(e) => e.preventDefault()}
