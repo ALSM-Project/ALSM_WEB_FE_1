@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   setAccessToken: vi.fn(),
   setRefreshToken: vi.fn(),
   clearTokens: vi.fn(),
+  handoff: vi.fn(),
   requiresPasswordChange: vi.fn(),
   onStoreChange: (() => {}) as () => void,
 
@@ -43,6 +44,7 @@ vi.mock('@/services/api/tokenStore', () => ({
     setAccessToken: mocks.setAccessToken,
     setRefreshToken: mocks.setRefreshToken,
     clear: mocks.clearTokens,
+    handoff: mocks.handoff,
   },
 }));
 
@@ -164,5 +166,23 @@ describe('AppProviders authentication bootstrap', () => {
     act(() => mocks.onStoreChange());
     expect(await screen.findByText('Restricted password change for alex@example.com')).toBeInTheDocument();
     expect(mocks.clearTokens).not.toHaveBeenCalled();
+  });
+
+  it('redirects conversion staff to staff portal when session restores', async () => {
+    mocks.getRefreshToken.mockReturnValue('existing-refresh-token');
+    mocks.refreshSession.mockResolvedValue({
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+    });
+    mocks.getCurrentUser.mockResolvedValue({
+      ...authenticatedUser,
+      roles: ['CONVERSION_STAFF'],
+    });
+
+    renderWithProviders();
+
+    await vi.waitFor(() => {
+      expect(mocks.handoff).toHaveBeenCalled();
+    });
   });
 });

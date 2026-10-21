@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { CreateProjectModal } from './CreateProjectModal';
 
@@ -17,6 +17,10 @@ vi.mock('../services/project.service', () => ({
 }));
 
 describe('CreateProjectModal - conversion type selection', () => {
+  beforeEach(() => {
+    mocks.createProject.mockReset();
+  });
+
   const renderModal = (onProjectCreated = vi.fn()) =>
     render(
       <MemoryRouter>
@@ -57,5 +61,32 @@ describe('CreateProjectModal - conversion type selection', () => {
         expect.objectContaining({ conversionType: 'COBOL_TO_JAVA' }),
       );
     });
+  });
+
+  it('surfaces client-side validation error when project name is shorter than 2 characters', async () => {
+    renderModal();
+
+    fireEvent.change(screen.getByPlaceholderText(/Core Banking Modernization/i), {
+      target: { value: 'a' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Create Project/i }));
+
+    expect(await screen.findByText(/name must be longer than or equal to 2 characters/i)).toBeInTheDocument();
+    expect(mocks.createProject).not.toHaveBeenCalled();
+  });
+
+  it('surfaces detailed backend validation errors from ApiError', async () => {
+    const { ApiError } = await import('@/services/api/apiError');
+    mocks.createProject.mockRejectedValue(
+      new ApiError('Request validation failed', 400, ['name must be longer than or equal to 2 characters'], 'VALIDATION_ERROR')
+    );
+    renderModal();
+
+    fireEvent.change(screen.getByPlaceholderText(/Core Banking Modernization/i), {
+      target: { value: 'ab' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Create Project/i }));
+
+    expect(await screen.findByText('name must be longer than or equal to 2 characters')).toBeInTheDocument();
   });
 });

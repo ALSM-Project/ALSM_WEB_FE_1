@@ -262,6 +262,18 @@ export class ConversionService {
     );
   }
 
+  async saveScreenCode(
+    projectId: string,
+    screenId: string,
+    code: string,
+    filename?: string,
+  ): Promise<{ success: boolean; conversionJobId: string }> {
+    return apiClient.put<{ success: boolean; conversionJobId: string }>(
+      `/projects/${projectId}/screens/${screenId}/code`,
+      { code, filename },
+    );
+  }
+
   async getDiagnosticsLogs(_projectId: string): Promise<DiagnosticLog[]> {
     return mockDiagnosticsLogs;
   }
