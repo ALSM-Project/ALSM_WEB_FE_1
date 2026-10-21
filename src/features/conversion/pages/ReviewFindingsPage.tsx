@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
-  AlertTriangle,
   ArrowRight,
   Bot,
   CheckCircle2,
@@ -10,7 +9,6 @@ import {
   Download,
   FileCode,
   LoaderCircle,
-  Play,
   RotateCcw,
   Sliders,
 } from 'lucide-react';

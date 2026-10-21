@@ -25,13 +25,13 @@ import {
   useReviewValidationFinding,
 } from '../queries/useValidation';
 import { selectLatestValidationRun } from './reviewFindingsState';
-import { ValidationRunStatus, ValidationFindingStatus } from '../types/validation';
+import { ValidationRunStatus, ValidationFindingStatus, type ValidationFinding } from '../types/validation';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Tabs } from '@/shared/ui/Tabs';
 import { Button } from '@/shared/ui/Button';
 import { CodeEditor } from '../components/CodeEditor';
-import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
+import { ModernizationWorkflow, type WorkflowStepId } from '@/shared/ui/ModernizationWorkflow';
 
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
 import { generateScreenBundle, parseConvertedTsx, isDisplayableCodeFile } from '../utils/screenGenerator';
@@ -146,11 +146,11 @@ export const ConvertScreenPage: React.FC = () => {
   );
   const allResolved = isValidationCompleted && findings.length > 0 && pendingFindings.length === 0;
 
-  const completedWorkflowSteps = useMemo(() => {
-    const steps = ['upload'];
-    if (isCompleted) steps.push('conversion');
+  const completedWorkflowSteps = useMemo<WorkflowStepId[]>(() => {
+    const steps: WorkflowStepId[] = ['upload'];
+    if (isCompleted) steps.push('convert');
     if (allResolved || (isValidationCompleted && findings.length === 0)) {
-      steps.push('validation');
+      steps.push('validate');
     }
     return steps;
   }, [isCompleted, allResolved, isValidationCompleted, findings.length]);
