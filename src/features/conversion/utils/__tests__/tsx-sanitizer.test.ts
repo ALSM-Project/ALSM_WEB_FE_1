@@ -1,0 +1,2 @@
+import { sanitizeTsxCode } from '../tsx-sanitizer';
+describe('tsx-sanitizer', () => { it('removes script tags', () => { expect(sanitizeTsxCode('<div><script>alert(1)</script>hello</div>')).toBe('<div>hello</div>'); }); });
