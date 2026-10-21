@@ -10,6 +10,7 @@ export { ReviewFindingsPage } from './pages/ReviewFindingsPage';
 export { InitialQualityReviewPage } from './pages/InitialQualityReviewPage';
 
 export { CodeViewer } from './components/CodeViewer';
+export { CodeEditor } from './components/CodeEditor';
 export { QualityScoreSelector } from './components/QualityScoreSelector';
 export { DeviceSwitcher } from './components/DeviceSwitcher';
 export { ExportFileTree } from './components/ExportFileTree';
