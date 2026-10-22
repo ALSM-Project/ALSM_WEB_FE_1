@@ -1,7 +1,7 @@
 import { Lock } from 'lucide-react';
 import React from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/app/providers';
+import { useAuth, getTargetHandoffUrl, redirectUserToPortal } from '@/app/providers';
 import { tokenStore } from '@/services/api/tokenStore';
 import { ChangePasswordPage } from '@/features/account/pages/ChangePasswordPage';
 import { useEffect, useRef } from 'react';
@@ -29,6 +29,13 @@ export const ProtectedRoute: React.FC = () => {
     if (location.pathname !== '/account/security/password') return <Navigate to="/account/security/password" replace />;
     return <ChangePasswordPage />;
   }
+
+  const targetHandoff = getTargetHandoffUrl(user);
+  if (targetHandoff) {
+    redirectUserToPortal(targetHandoff);
+    return <RouteLoading />;
+  }
+
   return <Outlet />;
 };
 
@@ -43,6 +50,11 @@ export const GuestRoute: React.FC = () => {
 
   if (isAuthenticated) {
     if (user?.mustChangePassword) return <Navigate to="/account/security/password" replace />;
+    const targetHandoff = getTargetHandoffUrl(user);
+    if (targetHandoff) {
+      redirectUserToPortal(targetHandoff);
+      return <RouteLoading />;
+    }
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
     return <Navigate to={returnTo || ROUTES.DASHBOARD} replace />;
   }
