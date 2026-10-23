@@ -83,12 +83,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/50 backdrop-blur-[2px] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
       style={{ zIndex: 999999 }}
       onClick={onClose}
     >
       <div
-        className="relative bg-white border border-[#D9E2EC] rounded-2xl shadow-2xl w-full max-w-xl p-6 sm:p-8 space-y-5 my-auto overflow-hidden animate-scaleUp"
+        className="relative bg-white border border-[#D9E2EC] rounded-xl shadow-xl w-full max-w-xl p-6 sm:p-8 space-y-5 my-auto overflow-hidden animate-scaleUp"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -104,7 +104,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#6B778C] hover:text-[#091E42] hover:bg-[#F7F9FC] transition-colors"
+            className="p-1.5 rounded-md text-[#6B778C] hover:text-[#091E42] hover:bg-[#F7F9FC] transition-colors"
             title="Close modal"
           >
             <X className="w-5 h-5" />
@@ -112,7 +112,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         </div>
 
         {error && (
-          <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-2.5 rounded-xl text-xs font-medium">
+          <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-2.5 rounded-md text-xs font-medium">
             {error}
           </div>
         )}
@@ -134,10 +134,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div
                 onClick={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
-                className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                className={`p-3.5 rounded-lg border cursor-pointer transition-colors ${
                   conversionType === 'BMS_DSPF_TO_FRONTEND'
-                    ? 'bg-blue-50/60 border-[#0652CC] ring-2 ring-[#0652CC]/20'
-                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/40'
+                    ? 'bg-blue-50/60 border-[#0652CC] ring-1 ring-[#0652CC]/30'
+                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/50'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -159,10 +159,10 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
               <div
                 onClick={() => setConversionType('COBOL_TO_JAVA')}
-                className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                className={`p-3.5 rounded-lg border cursor-pointer transition-colors ${
                   conversionType === 'COBOL_TO_JAVA'
-                    ? 'bg-blue-50/60 border-[#0652CC] ring-2 ring-[#0652CC]/20'
-                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/40'
+                    ? 'bg-blue-50/60 border-[#0652CC] ring-1 ring-[#0652CC]/30'
+                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/50'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -193,7 +193,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               placeholder="Briefly describe the scope of this modernization effort..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] rounded-xl p-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]/20 focus:border-[#0652CC] transition-all placeholder:text-[#6B778C]"
+              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] rounded-md p-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]/20 focus:border-[#0652CC] transition-colors placeholder:text-[#6B778C]"
             />
           </div>
 
@@ -203,14 +203,14 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               type="button"
               variant="secondary"
               onClick={onClose}
-              className="text-xs px-4 py-2 font-medium"
+              className="text-xs px-4 py-2 font-medium rounded-md"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               isLoading={loading}
-              className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs px-5 py-2 font-bold shadow-xs space-x-1.5"
+              className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs px-5 py-2 font-bold shadow-xs space-x-1.5 rounded-md"
             >
               <Plus className="w-4 h-4" />
               <span>Create Project</span>

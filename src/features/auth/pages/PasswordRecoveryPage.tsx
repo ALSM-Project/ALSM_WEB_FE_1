@@ -102,7 +102,7 @@ export const PasswordRecoveryPage: React.FC = () => {
             </div>
 
             {error && (
-              <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-3 rounded-xl text-sm font-medium">
+              <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-lg text-xs font-medium">
                 {error}
               </div>
             )}
@@ -117,7 +117,7 @@ export const PasswordRecoveryPage: React.FC = () => {
               />
               <Button 
                 type="submit" 
-                className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm" 
+                className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs sm:text-sm shadow-2xs" 
                 isLoading={loading}
               >
                 Send Reset Link

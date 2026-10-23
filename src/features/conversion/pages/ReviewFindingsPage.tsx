@@ -493,9 +493,9 @@ export const ReviewFindingsPage: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
-              className="space-x-1.5 text-xs font-medium rounded-full border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] shadow-none"
+              className="space-x-1.5 text-xs font-medium rounded-md border-[#D9E2EC] text-[#091E42] hover:bg-[#F8FAFC] shadow-2xs"
             >
-              <Sliders className="h-3.5 w-3.5 text-brand-600" />
+              <Sliders className="h-3.5 w-3.5 text-[#0652CC]" />
               <span>Edit Mapping &amp; Code</span>
             </Button>
           </div>

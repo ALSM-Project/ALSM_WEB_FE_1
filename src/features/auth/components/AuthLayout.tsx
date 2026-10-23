@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Layers, Code2, Sparkles, FileCode2 } from 'lucide-react';
-import logo from "@/assets/logo.png";
+import { CheckCircle2, ShieldCheck, Terminal, Cpu } from 'lucide-react';
+import logo from '@/assets/logo.png';
 import './AuthLayout.css';
 
 interface AuthLayoutProps {
@@ -15,137 +15,138 @@ interface AuthLayoutProps {
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
   variant = 'login',
-  eyebrow = 'LEGACY MODERNIZATION PLATFORM',
-  headline = 'Convert IBM Legacy Systems to Modern Web Apps',
-  description = 'Modernize legacy BMS/DSPF screens and COBOL business logic into modern web technologies with structured analysis, generation and validation.',
+  eyebrow = 'AUTOMATING LEGACY SYSTEM MODERNIZATION',
+  headline = 'Enterprise Legacy Modernization Platform',
+  description = 'Deterministic analysis, AST-based mapping, code generation, and automated validation for IBM BMS, DSPF, and COBOL systems.',
 }) => {
   const isRegister = variant === 'register';
 
-  // Shared contained marketing panel
-  const marketingPanelNode = (
-    <div className="auth-marketing-card">
-      <div className="auth-card-glow-1" />
-      <div className="auth-card-glow-2" />
-      <div className="auth-card-grid" />
-
-      <div className="relative z-10 space-y-6">
-        {/* ALSM Brand Identity */}
+  // Professional enterprise technical summary panel
+  const infoPanelNode = (
+    <div className="auth-info-panel hidden lg:flex flex-col justify-between p-8 bg-[#091E42] text-white rounded-xl border border-slate-800">
+      <div className="space-y-6">
+        {/* Brand Header */}
         <Link to="/" className="inline-flex items-center space-x-3 group">
-            <img
-              src={logo}
-              alt="ALSM"
-              className="h-12 w-auto object-contain"
-            />
+          <img
+            src={logo}
+            alt="ALSM"
+            className="h-10 w-auto object-contain"
+          />
           <div className="flex flex-col">
-            <span className="text-xl font-extrabold tracking-tight text-white leading-none">ALSM</span>
-            <span className="text-[11px] font-medium text-blue-200/70 tracking-wide mt-0.5">Legacy Modernization</span>
+            <span className="text-xl font-bold tracking-tight text-white leading-none">ALSM</span>
+            <span className="text-[11px] font-medium text-slate-400 tracking-wide mt-1">
+              Enterprise Engineering
+            </span>
           </div>
         </Link>
 
-        {/* Marketing Copy */}
-        <div className="space-y-3">
-          <div className="inline-flex items-center space-x-2 bg-blue-500/10 border border-blue-400/20 px-3 py-1 rounded-full text-xs font-semibold text-[#22D3EE]">
-            <Sparkles className="w-3.5 h-3.5" />
+        {/* Technical Value Proposition */}
+        <div className="space-y-3 pt-2">
+          <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded bg-blue-900/40 border border-blue-700/50 text-[11px] font-mono font-medium text-blue-300">
+            <Terminal className="w-3.5 h-3.5" />
             <span>{eyebrow}</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+          <h2 className="text-2xl font-bold text-white tracking-tight leading-snug">
             {headline}
-          </h1>
+          </h2>
 
           <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
             {description}
           </p>
         </div>
 
-        {/* Compact Flow Graphic */}
-        <div className="modernization-flow-box">
-          <div className="flex items-center justify-between text-xs text-slate-400 font-semibold mb-3">
-            <span className="uppercase tracking-wider text-[11px]">MODERNIZATION FLOW</span>
-            <span className="text-[#22D3EE] font-mono flex items-center gap-1 text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] animate-pulse"></span>
-              Active Engine
-            </span>
+        {/* Core Capabilities Checklist */}
+        <div className="space-y-3 pt-4 border-t border-slate-800/80">
+          <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            Key Architecture Capabilities
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-center">
-            {/* Legacy Block */}
-            <div className="flow-node-item">
-              <div className="flex items-center space-x-1.5 text-rose-400 text-xs font-bold mb-1">
-                <FileCode2 className="w-3.5 h-3.5 shrink-0" />
-                <span>LEGACY SYSTEM</span>
-              </div>
-              <div className="text-[11px] font-mono text-slate-300 space-y-0.5">
-                <div>BMS / DSPF</div>
-                <div>COBOL Logic</div>
-              </div>
-            </div>
-
-            {/* Transform Arrow */}
-            <div className="flex flex-col items-center justify-center py-1 sm:py-0">
-              <div className="w-7 h-7 rounded-full bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-[#22D3EE]">
-                <ArrowRight className="w-3.5 h-3.5 rotate-90 sm:rotate-0" />
-              </div>
-              <span className="text-[9px] font-bold text-slate-300 tracking-wider uppercase mt-1">
-                ANALYZE & MAP
+          <div className="space-y-2.5 text-xs text-slate-300">
+            <div className="flex items-start space-x-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <span>
+                <strong className="text-white font-medium">BMS & DSPF Ingestion:</strong> Automated screen parser and field attribute extraction.
               </span>
             </div>
 
-            {/* Modern Output Block */}
-            <div className="flow-node-item border-blue-500/30 bg-blue-950/20">
-              <div className="flex items-center space-x-1.5 text-[#22D3EE] text-xs font-bold mb-1">
-                <Code2 className="w-3.5 h-3.5 shrink-0" />
-                <span>MODERN OUTPUT</span>
-              </div>
-              <div className="text-[11px] font-mono text-slate-300 space-y-0.5">
-                <div className="flex items-center justify-between">
-                  <span>React TS</span>
-                  <span className="text-[9px] text-emerald-400 font-sans">Web UI</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Java Spring</span>
-                  <span className="text-[9px] text-emerald-400 font-sans">Backend</span>
-                </div>
-              </div>
+            <div className="flex items-start space-x-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <span>
+                <strong className="text-white font-medium">COBOL Program Analysis:</strong> Business rule decomposition and data division binding.
+              </span>
+            </div>
+
+            <div className="flex items-start space-x-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <span>
+                <strong className="text-white font-medium">Target Code Output:</strong> Type-safe React 19 / TypeScript UI and Spring Boot backend DTOs.
+              </span>
+            </div>
+
+            <div className="flex items-start space-x-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <span>
+                <strong className="text-white font-medium">Validation & Diagnostics:</strong> Automated rule-based inspection and quality checks.
+              </span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Panel Footer Subtext */}
-        <div className="pt-3 border-t border-white/10 text-xs text-slate-400 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Layers className="w-3.5 h-3.5 text-blue-400" />
-            <span>ALSM Modernization Platform</span>
-          </div>
-          <span className="text-slate-500 font-mono text-[11px]">Enterprise Portal</span>
+      {/* Trust & Enterprise Assurance */}
+      <div className="pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+        <div className="flex items-center space-x-2">
+          <ShieldCheck className="w-4 h-4 text-blue-400" />
+          <span>SOC2 & Enterprise Compliant Pipeline</span>
+        </div>
+        <div className="flex items-center space-x-1 font-mono text-[11px] text-slate-500">
+          <Cpu className="w-3.5 h-3.5" />
+          <span>v1.0-poc</span>
         </div>
       </div>
     </div>
   );
 
   const authCardNode = (
-    <div className="auth-card-wrapper">
-      <div className="auth-card-box">
+    <div className="auth-card-container w-full max-w-md mx-auto">
+      {/* Mobile-only compact logo header */}
+      <div className="lg:hidden flex items-center justify-center space-x-2.5 mb-6">
+        <img src={logo} alt="ALSM" className="h-9 w-auto object-contain" />
+        <span className="text-lg font-bold text-[#091E42]">ALSM Platform</span>
+      </div>
+
+      <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 sm:p-8 shadow-xs">
         {children}
+      </div>
+
+      <div className="text-center mt-6 text-[11px] text-[#6B778C]">
+        Automating Legacy System Modernization &copy; {new Date().getFullYear()} ALSM Project
       </div>
     </div>
   );
 
   return (
-    <div className="auth-page-main font-sans">
-      <div className={`auth-centered-container variant-${variant}`}>
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans">
+      <div className={`w-full max-w-5xl mx-auto ${
+        isRegister
+          ? 'grid grid-cols-1 lg:grid-cols-12 gap-8 items-center'
+          : 'grid grid-cols-1 lg:grid-cols-12 gap-8 items-center'
+      }`}>
         {isRegister ? (
           <>
-            {authCardNode}
-            {marketingPanelNode}
+            <div className="lg:col-span-7">{authCardNode}</div>
+            <div className="lg:col-span-5 h-full">{infoPanelNode}</div>
           </>
         ) : (
           <>
-            {marketingPanelNode}
-            {authCardNode}
+            <div className="lg:col-span-6 h-full">{infoPanelNode}</div>
+            <div className="lg:col-span-6">{authCardNode}</div>
           </>
         )}
       </div>
     </div>
   );
 };
+
+export default AuthLayout;

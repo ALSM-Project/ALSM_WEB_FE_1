@@ -133,23 +133,23 @@ export const ScreensListPage: React.FC = () => {
       />
 
       {/* Metric Cards - Interactive Filter & Quick Navigation */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {/* 1. Total Assets Card -> Filter ALL */}
         <button
           type="button"
           onClick={() => setStatusFilter('ALL')}
-          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-[#0652CC] ${
-            statusFilter === 'ALL' ? 'border-[#0652CC] ring-2 ring-blue-100 bg-blue-50/20' : 'border-[#D9E2EC]'
+          className={`text-left bg-white border p-3.5 rounded-lg flex items-center space-x-3.5 shadow-2xs cursor-pointer transition-all hover:border-[#0652CC] ${
+            statusFilter === 'ALL' ? 'border-[#0652CC] ring-1 ring-[#0652CC]/20 bg-blue-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to view all assets"
         >
-          <div className="p-3 bg-[#E8F1FF] text-[#0652CC] rounded-xl border border-blue-100 shrink-0">
-            <Layers className="w-5 h-5" />
+          <div className="p-2.5 bg-[#E8F1FF] text-[#0652CC] rounded-md shrink-0">
+            <Layers className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#42526E]">Total Assets</p>
-            <p className="text-2xl font-extrabold text-[#091E42] mt-0.5">
-              {metrics.total} {activeTab === 'screens' ? 'Screens' : 'Programs'}
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B778C]">Total Assets</p>
+            <p className="text-xl font-bold text-[#091E42] mt-0.5">
+              {metrics.total} <span className="text-xs font-normal text-[#6B778C]">{activeTab === 'screens' ? 'Screens' : 'Programs'}</span>
             </p>
           </div>
         </button>
@@ -158,17 +158,17 @@ export const ScreensListPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setStatusFilter('COMPLETED')}
-          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-emerald-500 ${
-            statusFilter === 'COMPLETED' ? 'border-emerald-500 ring-2 ring-emerald-100 bg-emerald-50/20' : 'border-[#D9E2EC]'
+          className={`text-left bg-white border p-3.5 rounded-lg flex items-center space-x-3.5 shadow-2xs cursor-pointer transition-all hover:border-emerald-500 ${
+            statusFilter === 'COMPLETED' ? 'border-emerald-500 ring-1 ring-emerald-500/20 bg-emerald-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to filter by Converted status"
         >
-          <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shrink-0">
-            <CheckCircle2 className="w-5 h-5" />
+          <div className="p-2.5 bg-emerald-50 text-emerald-700 rounded-md border border-emerald-100 shrink-0">
+            <CheckCircle2 className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#42526E]">Converted</p>
-            <p className="text-2xl font-extrabold text-emerald-800 mt-0.5">{metrics.converted}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B778C]">Converted</p>
+            <p className="text-xl font-bold text-emerald-800 mt-0.5">{metrics.converted}</p>
           </div>
         </button>
 
@@ -176,32 +176,32 @@ export const ScreensListPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setStatusFilter('REVIEW REQUIRED')}
-          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-amber-500 ${
-            statusFilter === 'REVIEW REQUIRED' ? 'border-amber-500 ring-2 ring-amber-100 bg-amber-50/20' : 'border-[#D9E2EC]'
+          className={`text-left bg-white border p-3.5 rounded-lg flex items-center space-x-3.5 shadow-2xs cursor-pointer transition-all hover:border-amber-500 ${
+            statusFilter === 'REVIEW REQUIRED' ? 'border-amber-500 ring-1 ring-amber-500/20 bg-amber-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to filter by Review Required status"
         >
-          <div className="p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 shrink-0">
-            <AlertTriangle className="w-5 h-5" />
+          <div className="p-2.5 bg-amber-50 text-amber-700 rounded-md border border-amber-100 shrink-0">
+            <AlertTriangle className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#42526E]">Review Required</p>
-            <p className="text-2xl font-extrabold text-amber-800 mt-0.5">{metrics.reviewRequired}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B778C]">Review Required</p>
+            <p className="text-xl font-bold text-amber-800 mt-0.5">{metrics.reviewRequired}</p>
           </div>
         </button>
 
         {/* 4. Failed Card -> Direct Link to Diagnostics */}
         <Link
           to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
-          className="bg-white border border-[#D9E2EC] p-4 rounded-2xl flex items-center space-x-4 shadow-2xs hover:border-rose-400 hover:shadow-xs transition-all cursor-pointer group"
+          className="bg-white border border-[#D9E2EC] p-3.5 rounded-lg flex items-center space-x-3.5 shadow-2xs hover:border-rose-400 hover:shadow-xs transition-all cursor-pointer group"
           title="Click to view Diagnostics & Error Logs"
         >
-          <div className="p-3 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 group-hover:scale-105 transition-transform shrink-0">
-            <XCircle className="w-5 h-5" />
+          <div className="p-2.5 bg-rose-50 text-rose-700 rounded-md border border-rose-100 shrink-0">
+            <XCircle className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-xs font-medium text-[#42526E]">Failed (Diagnostics)</p>
-            <p className="text-2xl font-extrabold text-rose-800 mt-0.5">{metrics.failed}</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#6B778C]">Diagnostics</p>
+            <p className="text-xl font-bold text-rose-800 mt-0.5">{metrics.failed} <span className="text-xs font-normal text-rose-600">Failed</span></p>
           </div>
         </Link>
       </div>
@@ -216,23 +216,23 @@ export const ScreensListPage: React.FC = () => {
       />
 
       {/* Filter Row */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between bg-white p-4 rounded-2xl border border-[#D9E2EC] shadow-2xs">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between bg-white p-3 rounded-lg border border-[#D9E2EC] shadow-2xs">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B778C]" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B778C]" />
           <input
             type="text"
             placeholder={`Search ${activeTab === 'screens' ? 'legacy screens' : 'COBOL programs'} by name...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0652CC] text-[#091E42] placeholder-[#6B778C]"
+            className="w-full pl-9 pr-3.5 py-1.5 bg-[#F8FAFC] border border-[#D9E2EC] rounded-md text-xs focus:outline-none focus:ring-2 focus:ring-[#0652CC]/15 focus:bg-white text-[#091E42] placeholder-[#6B778C]"
           />
         </div>
 
-        <div className="flex space-x-3">
+        <div className="flex space-x-2">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+            className="bg-[#F8FAFC] border border-[#D9E2EC] text-[#091E42] text-xs font-medium rounded-md px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#0652CC]/15 cursor-pointer"
           >
             <option value="ALL">Status: All</option>
             <option value="READY">Ready</option>
@@ -245,7 +245,7 @@ export const ScreensListPage: React.FC = () => {
       </div>
 
       {/* Enterprise Data Table with Exact 5 Columns & Width Proportions */}
-      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-[#D9E2EC] rounded-lg overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[950px] text-left text-xs table-fixed">
             <colgroup>
@@ -255,13 +255,13 @@ export const ScreensListPage: React.FC = () => {
               <col className="w-[18%]" />
               <col className="w-[28%]" />
             </colgroup>
-            <thead className="bg-[#F7F9FC] text-[#42526E] font-bold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
+            <thead className="bg-[#F8FAFC] text-[#42526E] font-semibold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
               <tr>
-                <th className="py-3.5 px-4">{activeTab === 'screens' ? 'SCREEN NAME' : 'PROGRAM NAME'}</th>
-                <th className="py-3.5 px-4">LEGACY SOURCE TYPE</th>
-                <th className="py-3.5 px-4">STATUS</th>
-                <th className="py-3.5 px-4">LAST UPDATED</th>
-                <th className="py-3.5 px-4 text-center">ACTIONS</th>
+                <th className="py-3 px-4">{activeTab === 'screens' ? 'SCREEN NAME' : 'PROGRAM NAME'}</th>
+                <th className="py-3 px-4">LEGACY SOURCE TYPE</th>
+                <th className="py-3 px-4">STATUS</th>
+                <th className="py-3 px-4">LAST UPDATED</th>
+                <th className="py-3 px-4 text-center">ACTIONS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5EAF0]">
@@ -277,10 +277,10 @@ export const ScreensListPage: React.FC = () => {
                 <tr
                   key={item.id}
                   onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, item.id))}
-                  className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
+                  className="hover:bg-[#F8FAFC] transition-colors cursor-pointer group"
                 >
                   {/* 1. SCREEN NAME (24%) */}
-                  <td className="py-3.5 px-4 font-mono text-xs font-bold text-[#091E42]">
+                  <td className="py-3 px-4 font-mono text-xs font-semibold text-[#091E42]">
                     <div className="flex items-center space-x-2.5 min-w-0">
                       <FileCode className="w-4 h-4 text-[#0652CC] flex-shrink-0" />
                       <span className="group-hover:text-[#0652CC] group-hover:underline truncate">
@@ -290,28 +290,28 @@ export const ScreensListPage: React.FC = () => {
                   </td>
 
                   {/* 2. LEGACY SOURCE TYPE (16%) */}
-                  <td className="py-3.5 px-4 text-xs font-semibold text-[#42526E] font-mono truncate">
+                  <td className="py-3 px-4 text-xs text-[#42526E] font-mono truncate">
                     {item.sourceType ?? (activeTab === 'screens' ? 'BMS/DSPF' : 'COBOL')}
                   </td>
 
                   {/* 3. STATUS (14%) */}
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-4">
                     <StatusBadge status={item.status} />
                   </td>
 
                   {/* 4. LAST UPDATED (18%) */}
-                  <td className="py-3.5 px-4 text-xs text-[#6B778C] truncate">
+                  <td className="py-3 px-4 text-xs text-[#6B778C] truncate">
                     {item.lastUpdated}
                   </td>
 
                   {/* 5. ACTIONS (28%) */}
-                  <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-center space-x-1.5 shrink-0 whitespace-nowrap">
                       {item.status === 'Failed' ? (
                         <>
                           <Link
                             to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
-                            className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-rose-700 font-medium bg-rose-50 px-2 py-1 rounded border border-rose-200 hover:bg-rose-100 transition-colors"
                           >
                             <Stethoscope className="w-3.5 h-3.5" />
                             <span>Diagnostics</span>
@@ -319,7 +319,7 @@ export const ScreensListPage: React.FC = () => {
                           {PROGRAM_SOURCE_TYPES.has(item.sourceType) && (
                             <button
                               onClick={() => setDependencyModalScreenId(item.id)}
-                              className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] hover:bg-slate-100 transition-colors"
+                              className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-medium bg-[#F8FAFC] px-2 py-1 rounded border border-[#D9E2EC] hover:bg-slate-100 transition-colors cursor-pointer"
                               title="View copybook dependency diagnostics"
                             >
                               <GitBranch className="w-3.5 h-3.5" />
@@ -331,7 +331,7 @@ export const ScreensListPage: React.FC = () => {
                         <>
                           <Link
                             to={ROUTES.PROJECTS.MAPPING(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-medium hover:text-[#0652CC] bg-[#F8FAFC] px-2 py-1 rounded border border-[#D9E2EC] transition-colors"
                             title="Inspect Field Mapping"
                           >
                             <Code2 className="w-3.5 h-3.5" />
@@ -340,7 +340,7 @@ export const ScreensListPage: React.FC = () => {
 
                           <Link
                             to={ROUTES.PROJECTS.CONVERT(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-[#0652CC] hover:text-white bg-[#E8F1FF] px-2.5 py-1 rounded border border-blue-200 transition-colors"
                             title="Algorithm Conversion Engine"
                           >
                             <Play className="w-3.5 h-3.5" />
@@ -349,7 +349,7 @@ export const ScreensListPage: React.FC = () => {
 
                           <Link
                             to={ROUTES.PROJECTS.RESULT(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-800 font-medium hover:bg-emerald-100 bg-emerald-50 px-2 py-1 rounded border border-emerald-200/80 transition-colors"
                             title="View Modernized Output"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -360,7 +360,7 @@ export const ScreensListPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget(item); }}
-                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition-colors"
+                        className="inline-flex items-center p-1 text-[#6B778C] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                         title="Delete this screen"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -374,7 +374,7 @@ export const ScreensListPage: React.FC = () => {
         </div>
 
         {/* Server-Side Style Pagination Footer */}
-        <div className="bg-[#F7F9FC] px-4 py-3 border-t border-[#D9E2EC] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6B778C] font-medium">
+        <div className="bg-[#F8FAFC] px-4 py-3 border-t border-[#D9E2EC] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6B778C] font-medium">
           <div className="flex items-center space-x-3">
             <span>
               Showing {totalCount === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, totalCount)} of {totalCount}{' '}
@@ -388,7 +388,7 @@ export const ScreensListPage: React.FC = () => {
                   setPageSize(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="bg-white border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-lg px-2 py-1 focus:outline-none"
+                className="bg-white border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded px-2 py-1 focus:outline-none"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -404,7 +404,7 @@ export const ScreensListPage: React.FC = () => {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-2.5 py-1 rounded-lg border border-[#D9E2EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors"
+                className="px-2.5 py-1 rounded border border-[#D9E2EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer"
               >
                 Previous
               </button>
@@ -414,7 +414,7 @@ export const ScreensListPage: React.FC = () => {
                   key={pageNum}
                   type="button"
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
+                  className={`px-2.5 py-1 rounded text-xs font-bold transition-colors cursor-pointer ${
                     currentPage === pageNum
                       ? 'bg-[#0652CC] text-white shadow-2xs'
                       : 'bg-white border border-[#D9E2EC] text-[#42526E] hover:bg-slate-50'
@@ -428,7 +428,7 @@ export const ScreensListPage: React.FC = () => {
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="px-2.5 py-1 rounded-lg border border-[#D9E2EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors"
+                className="px-2.5 py-1 rounded border border-[#D9E2EC] bg-white text-[#42526E] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 font-semibold text-xs transition-colors cursor-pointer"
               >
                 Next
               </button>
@@ -447,36 +447,36 @@ export const ScreensListPage: React.FC = () => {
       {deleteTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] transition-opacity"
+            className="fixed inset-0 bg-[#091E42]/50 backdrop-blur-[2px] transition-opacity"
             onClick={() => !isDeleting && setDeleteTarget(null)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-auto space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-xl shadow-xl border border-[#D9E2EC] p-5 sm:p-6 w-full max-w-md mx-auto space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center space-x-3">
-              <div className="p-2.5 bg-rose-50 rounded-xl border border-rose-200">
+              <div className="p-2 bg-rose-50 rounded-lg border border-rose-200">
                 <Trash2 className="w-5 h-5 text-rose-600" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Delete Screen</h3>
-                <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
+                <h3 className="text-base font-bold text-[#091E42]">Delete Screen</h3>
+                <p className="text-xs text-[#6B778C] mt-0.5">This action cannot be undone.</p>
               </div>
             </div>
-            <p className="text-sm text-slate-700">
+            <p className="text-xs text-[#42526E] leading-relaxed">
               Are you sure you want to delete <strong className="font-mono text-rose-700">{deleteTarget.name}</strong>?
               All associated conversion results and data will be permanently removed.
             </p>
-            <div className="flex justify-end space-x-3 pt-2">
+            <div className="flex justify-end space-x-2.5 pt-2">
               <Button
                 variant="outline"
                 onClick={() => setDeleteTarget(null)}
                 disabled={isDeleting}
-                className="text-xs font-semibold"
+                className="text-xs font-semibold px-3 py-1.5"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleDeleteScreen}
                 isLoading={isDeleting}
-                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold space-x-1.5"
+                className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold space-x-1.5 px-3 py-1.5"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete Screen</span>

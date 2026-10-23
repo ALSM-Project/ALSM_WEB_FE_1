@@ -230,7 +230,7 @@ export const ExportCodePage: React.FC = () => {
     <div className="space-y-6 pb-24">
 
       {/* Page Header (ALSM Design System) */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-[#D9E2EC] rounded-lg p-6 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-3">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
@@ -250,14 +250,14 @@ export const ExportCodePage: React.FC = () => {
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="text-xs font-semibold"
+            className="text-xs font-semibold rounded-md"
           >
             Cancel
           </Button>
           <Button
             onClick={handleStartExport}
             disabled={selectedScreenIds.length === 0}
-            className="space-x-1.5 text-xs font-semibold"
+            className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md"
           >
             <Download className="w-4 h-4" />
             <span>Generate & Download Bundle</span>
@@ -270,7 +270,7 @@ export const ExportCodePage: React.FC = () => {
         {/* Left Column (Configuration & Screen Selector) */}
         <div className="lg:col-span-7 space-y-6">
           {/* Output Option Cards */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-2xs">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 space-y-4 shadow-2xs">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                 1. SELECT OUTPUT FORMAT
@@ -284,18 +284,18 @@ export const ExportCodePage: React.FC = () => {
               {/* Option: Scaffold */}
               <div
                 onClick={() => setOutputOption('scaffold')}
-                className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                   outputOption === 'scaffold'
-                    ? 'bg-blue-50/60 border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                    ? 'bg-blue-50/60 border-[#0652CC] ring-1 ring-[#0652CC]/30 shadow-xs'
+                    : 'bg-white border-[#D9E2EC] hover:border-slate-300 hover:bg-slate-50/50'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3.5">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${
                         outputOption === 'scaffold'
-                          ? 'bg-blue-600 text-white shadow-xs'
+                          ? 'bg-[#0652CC] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600'
                       }`}
                     >
@@ -306,7 +306,7 @@ export const ExportCodePage: React.FC = () => {
                         <h3 className="text-sm font-bold text-slate-900">
                           Full Project Scaffold
                         </h3>
-                        <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-[#E8F1FF] text-[#0652CC] font-bold px-2 py-0.5 rounded border border-[#B3D4FF]">
                           Recommended
                         </span>
                       </div>
@@ -320,7 +320,7 @@ export const ExportCodePage: React.FC = () => {
                     name="outputFormat"
                     checked={outputOption === 'scaffold'}
                     onChange={() => setOutputOption('scaffold')}
-                    className="text-blue-600 mt-1 focus:ring-blue-500"
+                    className="text-[#0652CC] mt-1 focus:ring-[#0652CC]"
                   />
                 </div>
               </div>
@@ -328,18 +328,18 @@ export const ExportCodePage: React.FC = () => {
               {/* Option: Standalone Components */}
               <div
                 onClick={() => setOutputOption('standalone')}
-                className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                   outputOption === 'standalone'
-                    ? 'bg-blue-50/60 border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                    ? 'bg-blue-50/60 border-[#0652CC] ring-1 ring-[#0652CC]/30 shadow-xs'
+                    : 'bg-white border-[#D9E2EC] hover:border-slate-300 hover:bg-slate-50/50'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3.5">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${
                         outputOption === 'standalone'
-                          ? 'bg-blue-600 text-white shadow-xs'
+                          ? 'bg-[#0652CC] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600'
                       }`}
                     >
@@ -359,7 +359,7 @@ export const ExportCodePage: React.FC = () => {
                     name="outputFormat"
                     checked={outputOption === 'standalone'}
                     onChange={() => setOutputOption('standalone')}
-                    className="text-blue-600 mt-1 focus:ring-blue-500"
+                    className="text-[#0652CC] mt-1 focus:ring-[#0652CC]"
                   />
                 </div>
               </div>
@@ -367,18 +367,18 @@ export const ExportCodePage: React.FC = () => {
               {/* Option: Storybook Design System */}
               <div
                 onClick={() => setOutputOption('storybook')}
-                className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                className={`p-4 rounded-lg border cursor-pointer transition-colors ${
                   outputOption === 'storybook'
-                    ? 'bg-blue-50/60 border-blue-500 ring-2 ring-blue-500/20 shadow-xs'
-                    : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                    ? 'bg-blue-50/60 border-[#0652CC] ring-1 ring-[#0652CC]/30 shadow-xs'
+                    : 'bg-white border-[#D9E2EC] hover:border-slate-300 hover:bg-slate-50/50'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-3.5">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      className={`w-9 h-9 rounded-md flex items-center justify-center shrink-0 ${
                         outputOption === 'storybook'
-                          ? 'bg-blue-600 text-white shadow-xs'
+                          ? 'bg-[#0652CC] text-white shadow-xs'
                           : 'bg-slate-100 text-slate-600'
                       }`}
                     >
@@ -398,7 +398,7 @@ export const ExportCodePage: React.FC = () => {
                     name="outputFormat"
                     checked={outputOption === 'storybook'}
                     onChange={() => setOutputOption('storybook')}
-                    className="text-blue-600 mt-1 focus:ring-blue-500"
+                    className="text-[#0652CC] mt-1 focus:ring-[#0652CC]"
                   />
                 </div>
               </div>
@@ -406,7 +406,7 @@ export const ExportCodePage: React.FC = () => {
           </div>
 
           {/* Framework Target & Customization Options */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-2xs">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 space-y-4 shadow-2xs">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                 2. FRAMEWORK & TARGET SETTINGS
@@ -424,7 +424,7 @@ export const ExportCodePage: React.FC = () => {
                 <select
                   value={frameworkTarget}
                   onChange={(e) => setFrameworkTarget(e.target.value as FrameworkTarget)}
-                  className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full bg-white border border-slate-300 rounded-md p-2.5 text-xs text-slate-900 font-semibold focus:ring-2 focus:ring-[#0652CC] focus:outline-none"
                 >
                   <option value="react-19">React 19.x (Modern with Compiler)</option>
                   <option value="react-18">React 18.2.0 (Stable LTS)</option>
@@ -439,7 +439,7 @@ export const ExportCodePage: React.FC = () => {
                   type="text"
                   disabled
                   value="Tailwind CSS 3.4 (Pre-configured)"
-                  className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-600 font-medium cursor-not-allowed"
+                  className="w-full bg-slate-100 border border-slate-200 rounded-md p-2.5 text-xs text-slate-600 font-medium cursor-not-allowed"
                 />
               </div>
             </div>
@@ -451,7 +451,7 @@ export const ExportCodePage: React.FC = () => {
                   type="checkbox"
                   checked={includeTypeScriptStrict}
                   onChange={(e) => setIncludeTypeScriptStrict(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-[#0652CC] focus:ring-[#0652CC]"
                 />
                 <span className="text-slate-800 font-medium">
                   TypeScript strict type-checking (`tsconfig.json` strict mode)
@@ -463,7 +463,7 @@ export const ExportCodePage: React.FC = () => {
                   type="checkbox"
                   checked={includeUnitTests}
                   onChange={(e) => setIncludeUnitTests(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-[#0652CC] focus:ring-[#0652CC]"
                 />
                 <span className="text-slate-800 font-medium">
                   Include automated unit tests (`*.test.tsx` with Vitest & RTL)
@@ -475,7 +475,7 @@ export const ExportCodePage: React.FC = () => {
                   type="checkbox"
                   checked={includeDocumentation}
                   onChange={(e) => setIncludeDocumentation(e.target.checked)}
-                  className="rounded text-blue-600 focus:ring-blue-500"
+                  className="rounded text-[#0652CC] focus:ring-[#0652CC]"
                 />
                 <span className="text-slate-800 font-medium">
                   Include Quickstart documentation (`README.md`)
@@ -485,7 +485,7 @@ export const ExportCodePage: React.FC = () => {
           </div>
 
           {/* Included Screens Checklist */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 shadow-2xs">
             <ExportScreenSelector
               screens={screens}
               selectedScreenIds={selectedScreenIds}
@@ -499,7 +499,7 @@ export const ExportCodePage: React.FC = () => {
         {/* Right Column (Live File Tree Preview & Bundle Summary) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Bundle Metrics Card */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-4">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 shadow-2xs space-y-4">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                 PACKAGE OVERVIEW
@@ -511,7 +511,7 @@ export const ExportCodePage: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div className="bg-[#F7F9FC] p-3 rounded-lg border border-[#D9E2EC]">
                 <p className="text-[10px] uppercase font-bold text-slate-500">
                   Screens
                 </p>
@@ -520,16 +520,16 @@ export const ExportCodePage: React.FC = () => {
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div className="bg-[#F7F9FC] p-3 rounded-lg border border-[#D9E2EC]">
                 <p className="text-[10px] uppercase font-bold text-slate-500">
                   Generated LOC
                 </p>
-                <p className="text-lg font-extrabold text-blue-600 font-mono mt-0.5">
+                <p className="text-lg font-extrabold text-[#0652CC] font-mono mt-0.5">
                   {metrics.totalLoc}
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div className="bg-[#F7F9FC] p-3 rounded-lg border border-[#D9E2EC]">
                 <p className="text-[10px] uppercase font-bold text-slate-500">
                   Est. Size
                 </p>
@@ -564,7 +564,7 @@ export const ExportCodePage: React.FC = () => {
           </div>
 
           {/* Interactive File Tree */}
-          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 shadow-2xs">
             {isPreviewLoading ? (
               <p className="text-xs text-slate-500 py-4 text-center">Loading real conversion output…</p>
             ) : (
@@ -578,10 +578,10 @@ export const ExportCodePage: React.FC = () => {
       </div>
 
       {/* Sticky Bottom Action Bar (matching the design system shown in Image 2) */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 py-3.5 px-6 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-xs border-t border-[#D9E2EC] py-3.5 px-6 shadow-lg">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center space-x-2 text-xs text-slate-600">
-            <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+            <span className="w-2 h-2 rounded-full bg-[#0652CC]"></span>
             <span>
               <strong>{metrics.selectedScreensCount}</strong> screens selected •{' '}
               <strong>{metrics.totalFiles}</strong> files in bundle • Est. size:{' '}
@@ -597,14 +597,14 @@ export const ExportCodePage: React.FC = () => {
             <Button
               variant="outline"
               onClick={handleCancel}
-              className="text-xs font-semibold px-4"
+              className="text-xs font-semibold px-4 rounded-md"
             >
               Cancel
             </Button>
             <Button
               onClick={handleStartExport}
               disabled={selectedScreenIds.length === 0}
-              className="space-x-1.5 text-xs font-semibold px-5"
+              className="space-x-1.5 text-xs font-semibold px-5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md"
             >
               <Download className="w-4 h-4" />
               <span>Generate & Download Bundle</span>

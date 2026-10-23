@@ -90,7 +90,7 @@ export const MethodMappingPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white border border-[#D9E2EC] rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Edit Method Mapping</h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -98,14 +98,14 @@ export const MethodMappingPage: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))} className="text-xs font-semibold">
+          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))} className="text-xs font-semibold rounded-md">
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             isLoading={saving}
             disabled={loading || !hasGeneratedCode || invalidNames.length > 0}
-            className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+            className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md"
           >
             <Save className="w-4 h-4" />
             <span>Save Mapping</span>
@@ -114,47 +114,47 @@ export const MethodMappingPage: React.FC = () => {
       </div>
 
       {savedMsg && (
-        <div className="bg-[#ECFDF3] border border-[#ABEFC6] text-[#079455] p-4 rounded-xl text-sm font-medium flex items-center space-x-2">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-[#ECFDF3] border border-[#ABEFC6] text-[#079455] p-3.5 rounded-md text-xs font-medium flex items-center space-x-2">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>{savedMsg}</span>
         </div>
       )}
 
       {saveError && (
-        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
-          <XCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-rose-50 border border-rose-200 p-3.5 rounded-md text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <XCircle className="w-4 h-4 flex-shrink-0" />
           <span>{saveError}</span>
         </div>
       )}
 
       {invalidNames.length > 0 && (
-        <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs flex items-center space-x-3 font-medium">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-[#FFFAEB] border border-[#FEDF89] p-3.5 rounded-md text-[#DC6803] text-xs flex items-center space-x-2.5 font-medium">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
           <span>Every target name must be a valid Java identifier (letters, digits, _ or $, not starting with a digit).</span>
         </div>
       )}
 
       {loading ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-lg p-12 text-center text-sm text-slate-500 shadow-2xs">
           Loading method mapping…
         </div>
       ) : loadError ? (
-        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
-          <XCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-rose-50 border border-rose-200 p-4 rounded-md text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <XCircle className="w-4 h-4 flex-shrink-0" />
           <span>{loadError}</span>
         </div>
       ) : !hasGeneratedCode ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-lg p-12 text-center text-sm text-slate-500 shadow-2xs">
           Run the COBOL→Java conversion for this screen first — there is no generated code to map yet.
         </div>
       ) : entries.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-lg p-12 text-center text-sm text-slate-500 shadow-2xs">
           No class or method names could be detected in the generated code.
         </div>
       ) : (
         <div className="space-y-4">
           {grouped.map(([relativePath, fileEntries]) => (
-            <div key={relativePath} className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 shadow-sm">
+            <div key={relativePath} className="bg-white border border-[#D9E2EC] rounded-lg p-4 space-y-3 shadow-2xs">
               <h3 className="text-xs font-mono font-semibold text-slate-500">{relativePath}</h3>
               <div className="space-y-3">
                 {fileEntries.map((entry) => (
@@ -162,7 +162,7 @@ export const MethodMappingPage: React.FC = () => {
                     key={`${entry.kind}-${entry.originalName}`}
                     className="grid grid-cols-1 sm:grid-cols-[80px_1fr_1fr] gap-3 items-end"
                   >
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-brand-600 self-center">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#0652CC] self-center">
                       {entry.kind}
                     </span>
                     <Input

@@ -295,7 +295,7 @@ export const UploadSourcePage: React.FC = () => {
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleFileDrop}
-        className="bg-white border-2 border-dashed border-slate-300 hover:border-brand-600 rounded-2xl p-8 lg:p-12 text-center transition-all cursor-pointer group shadow-sm"
+        className="bg-white border-2 border-dashed border-[#CBD5E1] hover:border-[#0652CC] rounded-lg p-6 lg:p-8 text-center transition-all cursor-pointer group shadow-2xs"
       >
         <input
           type="file"
@@ -313,50 +313,50 @@ export const UploadSourcePage: React.FC = () => {
           className="hidden"
           {...{ webkitdirectory: 'true', directory: 'true', mozdirectory: 'true' }}
         />
-        <div className="w-16 h-16 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto text-brand-600 group-hover:scale-110 transition-transform">
-          <UploadCloud className="w-8 h-8" />
+        <div className="w-12 h-12 rounded-lg bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center mx-auto transition-transform">
+          <UploadCloud className="w-6 h-6" />
         </div>
-        <div className="mt-4">
-          <label htmlFor="file-upload" className="text-base font-bold text-slate-900 cursor-pointer block">
-            Drag and drop your files here
+        <div className="mt-3">
+          <label htmlFor="file-upload" className="text-sm font-semibold text-[#091E42] cursor-pointer block">
+            Drag and drop your source files here
           </label>
-          <p className="text-xs text-brand-600 font-semibold mt-1">
-            <label htmlFor="file-upload" className="underline hover:text-brand-800 cursor-pointer">
-              click to browse from device
+          <p className="text-xs text-[#0652CC] font-medium mt-1">
+            <label htmlFor="file-upload" className="underline hover:text-[#0655FF] cursor-pointer">
+              browse from computer
             </label>
             {' · '}
-            <label htmlFor="folder-upload" className="underline hover:text-brand-800 cursor-pointer">
-              select an entire folder
+            <label htmlFor="folder-upload" className="underline hover:text-[#0655FF] cursor-pointer">
+              select an entire project folder
             </label>
           </p>
         </div>
-        <p className="text-xs text-slate-500 mt-4">
+        <p className="text-[11px] text-[#6B778C] mt-2.5">
           {activeTab === 'screens'
-            ? 'Accepted: .bms, .dspf — select or drop multiple screens at once (max 50MB/file)'
-            : 'Accepted: .cob, .cbl, .cpy — select the program(s) together with their copybooks, or select the whole application folder at once (max 50MB/file)'}
+            ? 'Accepted screen map formats: .bms, .dspf (Max 50MB per file)'
+            : 'Accepted program formats: .cob, .cbl, .cpy with copybooks (Max 50MB per file)'}
         </p>
       </div>
 
       {uploadError && (
-        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-rose-50 border border-rose-200 p-3.5 rounded-lg text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <span>{uploadError}</span>
         </div>
       )}
 
       {isUploading && (
-        <div className="bg-white border border-slate-200 p-4 rounded-xl space-y-2 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] p-3.5 rounded-lg space-y-2 shadow-2xs">
           <div className="flex justify-between text-xs font-semibold">
-            <span className="text-brand-600">{uploadLabel || 'Uploading…'}</span>
-            <span className="text-slate-700">{uploadProgress}%</span>
+            <span className="text-[#0652CC]">{uploadLabel || 'Uploading…'}</span>
+            <span className="text-[#091E42]">{uploadProgress}%</span>
           </div>
           <ProgressBar progress={uploadProgress} color="indigo" />
         </div>
       )}
 
-      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
-        <div className="p-4 border-b border-[#D9E2EC] flex justify-between items-center bg-[#F7F9FC]">
-          <h3 className="text-sm font-bold text-[#091E42]">Uploaded Files ({files.length})</h3>
+      <div className="bg-white border border-[#D9E2EC] rounded-lg overflow-hidden shadow-2xs">
+        <div className="p-3.5 border-b border-[#E5EAF0] flex justify-between items-center bg-[#F8FAFC]">
+          <h3 className="text-xs font-bold text-[#091E42] uppercase tracking-wider">Uploaded Files ({files.length})</h3>
         </div>
 
         <div className="overflow-x-auto">
@@ -368,13 +368,13 @@ export const UploadSourcePage: React.FC = () => {
               <col className="w-[14%]" />
               <col className="w-[24%]" />
             </colgroup>
-            <thead className="bg-[#F7F9FC] text-[#42526E] font-bold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
+            <thead className="bg-[#F8FAFC] text-[#42526E] font-semibold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
               <tr>
-                <th className="py-3.5 px-4">FILE NAME</th>
-                <th className="py-3.5 px-4">SIZE</th>
-                <th className="py-3.5 px-4">UPLOADED</th>
-                <th className="py-3.5 px-4">STATUS</th>
-                <th className="py-3.5 px-4 text-center">ACTIONS</th>
+                <th className="py-3 px-4">FILE NAME</th>
+                <th className="py-3 px-4">SIZE</th>
+                <th className="py-3 px-4">UPLOADED</th>
+                <th className="py-3 px-4">STATUS</th>
+                <th className="py-3 px-4 text-center">ACTIONS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5EAF0]">
@@ -414,7 +414,7 @@ export const UploadSourcePage: React.FC = () => {
                         <>
                           <Link
                             to={ROUTES.PROJECTS.MAPPING(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-medium hover:text-[#0652CC] bg-[#F8FAFC] px-2 py-1 rounded border border-[#D9E2EC] transition-colors"
                             title="Inspect Field Mapping"
                           >
                             <Code2 className="w-3.5 h-3.5" />
@@ -423,7 +423,7 @@ export const UploadSourcePage: React.FC = () => {
 
                           <Link
                             to={ROUTES.PROJECTS.CONVERT(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-[#0652CC] hover:text-white bg-[#E8F1FF] px-2.5 py-1 rounded border border-blue-200 transition-colors"
                             title="Run Conversion Algorithm"
                           >
                             <Play className="w-3.5 h-3.5" />
@@ -432,7 +432,7 @@ export const UploadSourcePage: React.FC = () => {
 
                           <Link
                             to={ROUTES.PROJECTS.RESULT(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-800 font-medium hover:bg-emerald-100 bg-emerald-50 px-2 py-1 rounded border border-emerald-200/80 transition-colors"
                             title="View Modernized Output"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -442,7 +442,7 @@ export const UploadSourcePage: React.FC = () => {
                       )}
                       <button
                         onClick={() => handleRemove(file.id)}
-                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition-colors"
+                        className="inline-flex items-center p-1 text-[#6B778C] hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                         title="Remove file"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

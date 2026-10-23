@@ -12,30 +12,79 @@ export interface TabsProps {
   activeTab: string;
   onChange: (id: string) => void;
   className?: string;
+  variant?: 'segmented' | 'underline';
 }
 
-export const Tabs: React.FC<TabsProps> = ({ tabs, activeTab, onChange, className = '' }) => {
+export const Tabs: React.FC<TabsProps> = ({
+  tabs,
+  activeTab,
+  onChange,
+  className = '',
+  variant = 'segmented',
+}) => {
+  if (variant === 'underline') {
+    return (
+      <div className={`border-b border-[#D9E2EC] ${className}`}>
+        <nav className="-mb-px flex space-x-6">
+          {tabs.map((tab) => {
+            const isActive = tab.id === activeTab;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onChange(tab.id)}
+                className={`py-3 px-1 border-b-2 font-medium text-xs sm:text-sm flex items-center space-x-2 transition-colors cursor-pointer ${
+                  isActive
+                    ? 'border-[#0652CC] text-[#0652CC] font-bold'
+                    : 'border-transparent text-[#6B778C] hover:text-[#091E42] hover:border-[#CBD5E1]'
+                }`}
+              >
+                {tab.icon && <span className="w-4 h-4">{tab.icon}</span>}
+                <span>{tab.label}</span>
+                {tab.count !== undefined && (
+                  <span
+                    className={`ml-1.5 px-2 py-0.5 text-[11px] rounded font-semibold ${
+                      isActive
+                        ? 'bg-[#E8F1FF] text-[#0652CC]'
+                        : 'bg-[#F1F5F9] text-[#6B778C]'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+    );
+  }
+
+  // Segmented control (default)
   return (
-    <div className={`flex justify-center ${className}`}>
-      <div className="inline-flex p-1.5 bg-white rounded-full gap-1 border border-[#D9E2EC] shadow-sm">
+    <div className={`flex items-center ${className}`}>
+      <div className="inline-flex p-1 bg-[#F1F5F9] rounded-lg gap-1 border border-[#E2E8F0]">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => onChange(tab.id)}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center space-x-2 ${
+              className={`px-3.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center space-x-2 ${
                 isActive
-                  ? 'bg-[#0652CC] text-white shadow-[0_4px_15px_rgba(6,82,204,0.3)]'
-                  : 'text-[#42526E] hover:text-[#091E42] hover:bg-gray-100'
+                  ? 'bg-white text-[#091E42] shadow-2xs border border-[#CBD5E1]/60'
+                  : 'text-[#6B778C] hover:text-[#091E42] hover:bg-slate-200/50'
               }`}
             >
               {tab.icon && <span className="w-4 h-4">{tab.icon}</span>}
               <span>{tab.label}</span>
               {tab.count !== undefined && (
                 <span
-                  className={`ml-1.5 px-2 py-0.5 text-xs rounded-full ${
-                    isActive ? 'bg-white/20 text-white font-bold' : 'bg-gray-200 text-[#091E42]'
+                  className={`ml-1 px-1.5 py-0.5 text-[10px] rounded font-semibold ${
+                    isActive
+                      ? 'bg-[#E8F1FF] text-[#0652CC]'
+                      : 'bg-slate-200 text-[#42526E]'
                   }`}
                 >
                   {tab.count}

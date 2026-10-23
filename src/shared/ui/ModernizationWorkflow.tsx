@@ -92,7 +92,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
   const currentStepInfo = WORKFLOW_STEPS[currentIndex] ?? WORKFLOW_STEPS[0];
 
   return (
-    <div className={`bg-white border border-[#E5EAF0] rounded-xl overflow-hidden shadow-2xs ${className}`}>
+    <div className={`bg-white border border-[#D9E2EC] rounded-lg overflow-hidden shadow-2xs ${className}`}>
       {/* Header */}
       <div className="px-5 py-4 border-b border-[#E5EAF0] flex items-center justify-between">
         <div>

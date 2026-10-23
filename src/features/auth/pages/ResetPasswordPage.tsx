@@ -92,7 +92,7 @@ export const ResetPasswordPage: React.FC = () => {
         )}
 
         {error && (
-          <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-3 rounded-xl text-sm font-medium">
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-lg text-xs font-medium">
             {error}
           </div>
         )}
@@ -106,7 +106,7 @@ export const ResetPasswordPage: React.FC = () => {
             icon={<Lock className="w-4 h-4 text-slate-400" />}
           />
 
-          <div className="bg-slate-50 p-4 rounded-xl border border-[#D9E2EC] space-y-1.5 text-xs">
+          <div className="bg-slate-50 p-3.5 rounded-lg border border-[#D9E2EC] space-y-1.5 text-xs">
             <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Requirements</p>
             <div className="flex items-center space-x-2 text-slate-700">
               <CheckCircle2 className={`w-3.5 h-3.5 ${newPassword.length >= 8 ? 'text-emerald-600' : 'text-slate-400'}`} />
@@ -142,7 +142,7 @@ export const ResetPasswordPage: React.FC = () => {
 
           <Button 
             type="submit" 
-            className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm" 
+            className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs sm:text-sm shadow-2xs" 
             isLoading={loading}
           >
             Update Password

@@ -147,22 +147,22 @@ export const DependencyDiagnosticsModal: React.FC<DependencyDiagnosticsModalProp
   const counts = analysis ? countDependencies(analysis.dependencies) : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#091E42]/50 backdrop-blur-[2px] animate-fadeIn">
       <div
-        className="w-full max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden p-8 flex flex-col space-y-6 max-h-[85vh]"
+        className="w-full max-w-2xl bg-white rounded-xl border border-[#D9E2EC] shadow-xl overflow-hidden p-6 flex flex-col space-y-5 max-h-[85vh]"
         role="dialog"
         aria-modal="true"
       >
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between pb-3 border-b border-[#E5EAF0]">
           <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Program</p>
-            <h3 className="text-2xl font-bold text-slate-900 tracking-tight font-mono">
+            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Program</p>
+            <h3 className="text-xl font-bold text-slate-900 tracking-tight font-mono">
               {analysis?.program ?? screenId}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -173,15 +173,15 @@ export const DependencyDiagnosticsModal: React.FC<DependencyDiagnosticsModalProp
         {error && <p className="text-sm text-rose-600">{error}</p>}
 
         {analysis && counts && (
-          <div className="space-y-6 overflow-y-auto">
+          <div className="space-y-5 overflow-y-auto pr-1">
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                 Dependency Status
               </p>
               <StatusBadge status={overallStatusLabel(analysis.status)} />
             </div>
 
-            <div className="grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-5 gap-2.5">
               {[
                 { label: 'Resolved', value: counts.resolved },
                 { label: 'Missing', value: counts.missing },
@@ -189,19 +189,19 @@ export const DependencyDiagnosticsModal: React.FC<DependencyDiagnosticsModalProp
                 { label: 'System', value: counts.system },
                 { label: 'Total', value: counts.total },
               ].map((stat) => (
-                <div key={stat.label} className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold text-slate-900">{stat.value}</p>
-                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{stat.label}</p>
+                <div key={stat.label} className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-lg p-2.5 text-center">
+                  <p className="text-lg font-bold text-slate-900">{stat.value}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{stat.label}</p>
                 </div>
               ))}
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Dependencies</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Dependencies</p>
               {analysis.dependencies.length === 0 ? (
                 <p className="text-sm text-slate-500">This program has no COPY statements.</p>
               ) : (
-                <div className="border border-slate-200 rounded-xl px-3">
+                <div className="border border-[#D9E2EC] rounded-lg px-3 py-1 bg-white">
                   {analysis.dependencies.map((entry) => (
                     <DependencyRow key={entry.copyName} entry={entry} depth={0} />
                   ))}

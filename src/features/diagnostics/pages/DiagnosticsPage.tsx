@@ -186,7 +186,7 @@ export const DiagnosticsPage: React.FC = () => {
       )}
 
       {/* Filter and Search Toolbar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-[#D9E2EC] shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-lg border border-[#D9E2EC] shadow-2xs">
         <div className="flex items-center space-x-3 w-full sm:w-auto">
           <div className="relative flex items-center">
             <Filter className="w-3.5 h-3.5 absolute left-3 text-[#6B778C] pointer-events-none" />
@@ -194,7 +194,7 @@ export const DiagnosticsPage: React.FC = () => {
               aria-label="Filter by Severity"
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="pl-8 pr-8 py-2 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
+              className="pl-8 pr-8 py-2 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
             >
               <option value="ALL">All Severities</option>
               <option value="FATAL">Fatal</option>
@@ -209,7 +209,7 @@ export const DiagnosticsPage: React.FC = () => {
               aria-label="Filter by Time Range"
               value={timeFilter}
               onChange={(e) => setTimeFilter(e.target.value)}
-              className="pl-8 pr-8 py-2 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
+              className="pl-8 pr-8 py-2 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
             >
               <option value="24h">Last 24 Hours</option>
               <option value="7d">Last 7 Days</option>
@@ -225,13 +225,13 @@ export const DiagnosticsPage: React.FC = () => {
             placeholder="Search error codes, screens..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC] placeholder-[#6B778C]"
+            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-md text-xs text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC] placeholder-[#6B778C]"
           />
         </div>
       </div>
 
       {/* Error Log Table */}
-      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-[#D9E2EC] rounded-lg overflow-hidden shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead className="bg-[#F7F9FC] text-[#42526E] font-sans font-bold uppercase text-[11px] border-b border-[#D9E2EC] tracking-wider">
@@ -270,7 +270,7 @@ export const DiagnosticsPage: React.FC = () => {
                     <tr
                       key={log.id}
                       onClick={() => setSelectedId(log.id)}
-                      className={`cursor-pointer transition-all duration-150 group ${
+                      className={`cursor-pointer transition-colors duration-150 group ${
                         isSelected
                           ? 'bg-blue-50/80 text-[#091E42] border-l-4 border-[#0652CC] font-semibold'
                           : 'hover:bg-slate-50/80 text-[#42526E] border-l-4 border-transparent'
@@ -293,7 +293,7 @@ export const DiagnosticsPage: React.FC = () => {
                       </td>
                       <td className="p-3.5 whitespace-nowrap">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border ${
                             log.severity === 'Fatal'
                               ? 'bg-rose-50 text-rose-700 border-rose-200'
                               : log.severity === 'Warning'
@@ -329,20 +329,20 @@ export const DiagnosticsPage: React.FC = () => {
       {selectedLog && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Card 1: Source Code Snippet */}
-          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-5 space-y-4 shadow-2xs flex flex-col justify-between">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 space-y-4 shadow-2xs flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between border-b border-[#E5EAF0] pb-3">
                 <div className="flex items-center space-x-2 text-[#091E42] font-bold text-xs uppercase tracking-wider">
                   <Code2 className="w-4 h-4 text-[#0652CC]" />
                   <span>Source Code Snippet</span>
                 </div>
-                <span className="font-mono text-xs font-bold text-[#0652CC] bg-[#E8F1FF] px-2.5 py-1 rounded-lg border border-blue-200">
+                <span className="font-mono text-xs font-bold text-[#0652CC] bg-[#E8F1FF] px-2.5 py-1 rounded border border-[#B3D4FF]">
                   {selectedLog.screenName}
                 </span>
               </div>
 
               {/* Dark Code Snippet Viewer */}
-              <div className="mt-4 bg-[#0F172A] rounded-xl border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner overflow-x-auto">
+              <div className="mt-4 bg-[#0F172A] rounded-lg border border-slate-800 p-4 font-mono text-xs text-slate-300 shadow-inner overflow-x-auto">
                 <div className="space-y-1">
                   {selectedLog.snippet?.map((line) => (
                     <div
@@ -365,14 +365,14 @@ export const DiagnosticsPage: React.FC = () => {
           </div>
 
           {/* Card 2: AI-Suggested Resolution */}
-          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-5 space-y-4 shadow-2xs flex flex-col justify-between">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 space-y-4 shadow-2xs flex flex-col justify-between">
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b border-[#E5EAF0] pb-3">
                 <div className="flex items-center space-x-2 text-[#091E42] font-bold text-xs uppercase tracking-wider">
                   <Sparkles className="w-4 h-4 text-[#0652CC]" />
                   <span>AI-Suggested Resolution</span>
                 </div>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {selectedLog.suggestedPatch.confidence || 'High Confidence Match'}
                 </span>
               </div>
@@ -409,7 +409,7 @@ export const DiagnosticsPage: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="bg-[#0F172A] border border-slate-800 rounded-xl p-4 font-mono text-xs text-emerald-400 overflow-x-auto shadow-inner">
+                <div className="bg-[#0F172A] border border-slate-800 rounded-lg p-4 font-mono text-xs text-emerald-400 overflow-x-auto shadow-inner">
                   <pre className="whitespace-pre-wrap leading-relaxed">
                     {selectedLog.suggestedPatch.patchSnippet || selectedLog.suggestedPatch.suggestedLine}
                   </pre>
@@ -424,7 +424,7 @@ export const DiagnosticsPage: React.FC = () => {
                 onClick={handleApplyPatch}
                 isLoading={patching}
                 disabled={selectedLog.resolved}
-                className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white px-4 py-2 rounded-xl shadow-xs"
+                className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white px-4 py-2 rounded-md shadow-xs"
               >
                 <Wrench className="w-3.5 h-3.5" />
                 <span>{selectedLog.resolved ? 'Patch Applied & Retried' : 'Apply Patch & Retry'}</span>
@@ -434,7 +434,7 @@ export const DiagnosticsPage: React.FC = () => {
                 variant="secondary"
                 onClick={handleEscalate}
                 disabled={selectedLog.escalated}
-                className="w-full sm:w-auto space-x-1.5 text-xs font-semibold border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-xl"
+                className="w-full sm:w-auto space-x-1.5 text-xs font-semibold border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-md"
               >
                 <Headphones className="w-3.5 h-3.5 text-rose-600" />
                 <span>{selectedLog.escalated ? 'Escalated' : 'Escalate to Support'}</span>
@@ -450,7 +450,7 @@ export const DiagnosticsPage: React.FC = () => {
           variant="secondary"
           onClick={handleSendManualReview}
           disabled={selectedLog?.manualReview}
-          className="w-full sm:w-auto space-x-1.5 text-xs font-semibold border-amber-200 text-amber-800 bg-amber-50 hover:bg-amber-100 px-4 py-2 rounded-xl"
+          className="w-full sm:w-auto space-x-1.5 text-xs font-semibold border-amber-200 text-amber-800 bg-amber-50 hover:bg-amber-100 px-4 py-2 rounded-md"
         >
           <FileText className="w-3.5 h-3.5 text-amber-600" />
           <span>{selectedLog?.manualReview ? 'Sent to Manual Review' : 'Send to Manual Review'}</span>
@@ -459,7 +459,7 @@ export const DiagnosticsPage: React.FC = () => {
         <Button
           variant="primary"
           onClick={handleDownloadFullLog}
-          className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white px-5 py-2 rounded-xl shadow-xs"
+          className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white px-5 py-2 rounded-md shadow-xs"
         >
           <Download className="w-3.5 h-3.5" />
           <span>Download Log Archive</span>

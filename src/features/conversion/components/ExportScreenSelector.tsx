@@ -56,7 +56,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
       </div>
 
       {hasUnreadySelected && (
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-2.5 text-xs text-amber-800">
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start space-x-2.5 text-xs text-amber-800">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-semibold">Notice:</span> One or more selected screens are still in review or processing. They will be included using the latest conversion candidate.
@@ -64,7 +64,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
         </div>
       )}
 
-      <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 bg-white overflow-hidden shadow-2xs max-h-72 overflow-y-auto">
+      <div className="border border-[#D9E2EC] rounded-lg divide-y divide-[#E5EAF0] bg-white overflow-hidden shadow-2xs max-h-72 overflow-y-auto">
         {screens.map((screen) => {
           const isSelected = selectedScreenIds.includes(screen.id);
 
@@ -74,7 +74,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
               onClick={() => onToggleScreen(screen.id)}
               className={`p-3.5 flex items-center justify-between cursor-pointer transition-colors ${
                 isSelected
-                  ? 'bg-blue-50/40 hover:bg-blue-50/70'
+                  ? 'bg-blue-50/50 hover:bg-blue-50/70'
                   : 'hover:bg-slate-50'
               }`}
             >
@@ -82,10 +82,10 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
                 <button
                   type="button"
                   aria-label={`Toggle screen ${screen.name}`}
-                  className="text-brand-600 shrink-0 focus:outline-none"
+                  className="text-[#0652CC] shrink-0 focus:outline-none"
                 >
                   {isSelected ? (
-                    <CheckSquare className="w-4 h-4 text-blue-600" />
+                    <CheckSquare className="w-4 h-4 text-[#0652CC]" />
                   ) : (
                     <Square className="w-4 h-4 text-slate-300" />
                   )}

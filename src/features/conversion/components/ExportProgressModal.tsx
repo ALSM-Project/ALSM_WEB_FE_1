@@ -62,7 +62,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
       <div className="space-y-6 py-2">
         {error ? (
           <div className="space-y-4">
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start space-x-3 text-rose-800">
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg flex items-start space-x-3 text-rose-800">
               <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <h4 className="font-bold text-sm">Bundle generation failed</h4>
@@ -71,17 +71,17 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
             </div>
 
             <div className="flex justify-end space-x-3 pt-2">
-              <Button variant="secondary" onClick={onClose}>
+              <Button variant="secondary" onClick={onClose} className="rounded-md">
                 Cancel
               </Button>
-              <Button onClick={onRetry}>Try Again</Button>
+              <Button onClick={onRetry} className="bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md">Try Again</Button>
             </div>
           </div>
         ) : !isComplete ? (
           <div className="space-y-5">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 shrink-0">
-                <Loader2 className="w-5 h-5 animate-spin" />
+              <div className="w-9 h-9 rounded-md bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center border border-[#B3D4FF] shrink-0">
+                <Loader2 className="w-4 h-4 animate-spin" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900">
@@ -101,9 +101,9 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                   {progressPercent}%
                 </span>
               </div>
-              <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                 <div
-                  className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out"
+                  className="bg-[#0652CC] h-full rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -125,7 +125,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                     {isPassed ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                     ) : isCurrent ? (
-                      <Loader2 className="w-4 h-4 text-blue-600 animate-spin shrink-0" />
+                      <Loader2 className="w-4 h-4 text-[#0652CC] animate-spin shrink-0" />
                     ) : (
                       <div className="w-4 h-4 rounded-full border border-slate-200 shrink-0" />
                     )}
@@ -134,7 +134,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                         isPassed
                           ? 'text-slate-700 font-medium'
                           : isCurrent
-                          ? 'text-blue-700 font-semibold'
+                          ? 'text-[#0652CC] font-semibold'
                           : 'text-slate-400'
                       }
                     >
@@ -148,9 +148,9 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
         ) : (
           /* Success state */
           <div className="space-y-5">
-            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center space-x-3.5">
-              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <FileArchive className="w-5 h-5" />
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center space-x-3.5">
+              <div className="w-9 h-9 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <FileArchive className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-emerald-950 flex items-center space-x-1.5">
@@ -169,7 +169,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                 <Terminal className="w-3.5 h-3.5 text-slate-500" />
                 <span>Next steps to run your code</span>
               </div>
-              <div className="bg-slate-950 text-slate-200 p-3.5 rounded-xl font-mono text-xs space-y-1.5 border border-slate-800 shadow-inner">
+              <div className="bg-slate-950 text-slate-200 p-3.5 rounded-lg font-mono text-xs space-y-1.5 border border-slate-800 shadow-inner">
                 <p className="text-slate-400"># 1. Unzip the package</p>
                 <p className="text-cyan-400 font-bold">
                   tar -xf {bundleFilename}
@@ -186,7 +186,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={onDownloadAgain}
-                className="space-x-1.5 text-xs font-semibold"
+                className="space-x-1.5 text-xs font-semibold rounded-md"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download Again</span>
@@ -194,7 +194,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
 
               <Button
                 onClick={onClose}
-                className="space-x-1.5 text-xs font-semibold"
+                className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md"
               >
                 <span>Back to Screens</span>
                 <ArrowRight className="w-3.5 h-3.5" />

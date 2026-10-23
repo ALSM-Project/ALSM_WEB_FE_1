@@ -104,13 +104,13 @@ export const VerifyEmailPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-3.5 py-2 rounded-xl text-xs font-medium">
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-lg text-xs font-medium">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3.5 py-2 rounded-xl text-xs font-medium">
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-3.5 py-2.5 rounded-lg text-xs font-medium">
             {success}
           </div>
         )}
@@ -136,7 +136,7 @@ export const VerifyEmailPage: React.FC = () => {
 
           <Button
             type="submit"
-            className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm mt-2"
+            className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs sm:text-sm shadow-2xs mt-2"
             isLoading={loading}
           >
             Verify Email & Continue

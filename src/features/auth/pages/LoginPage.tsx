@@ -9,6 +9,8 @@ import { ApiError } from '@/services/api/apiError';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { AuthLayout } from '../components/AuthLayout';
 
+import { env } from '@/shared/constants/env';
+
 export const LoginPage: React.FC = () => {
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -38,8 +40,6 @@ export const LoginPage: React.FC = () => {
     try {
       const user = await login({ email: email.trim(), password });
       if (user) {
-        // Admin users are already being redirected to FE2 by AppProviders.
-        // For non-admin users, navigate within FE1.
         navigate(getRedirectTarget(), { replace: true });
       } else {
         setError('Unable to retrieve account information. Please try again.');
@@ -63,7 +63,6 @@ export const LoginPage: React.FC = () => {
     try {
       const user = await loginWithGoogle(idToken);
       if (user) {
-        // Admin users are already being redirected to FE2 by AppProviders.
         navigate(getRedirectTarget(), { replace: true });
       } else {
         setError('Google sign-in failed. Please try again.');
@@ -79,17 +78,17 @@ export const LoginPage: React.FC = () => {
     <AuthLayout
       variant="login"
       eyebrow="LEGACY MODERNIZATION PLATFORM"
-      headline="Convert IBM Legacy Systems to Modern Web Apps"
-      description="Modernize legacy BMS/DSPF screens and COBOL business logic into modern web technologies with structured analysis, generation and validation."
+      headline="Automating Legacy System Modernization"
+      description="Modernize IBM BMS and DSPF screens and COBOL business logic into modern React TypeScript and Spring Boot microservices."
     >
-      <div className="space-y-4 h-full flex flex-col justify-between">
+      <div className="space-y-5">
         <div>
-          <h2 className="text-2xl font-bold text-[#091E42] tracking-tight">Welcome Back</h2>
-          <p className="text-slate-500 text-sm mt-1">Sign in to your ALSM Platform account</p>
+          <h1 className="text-xl font-bold text-[#091E42] tracking-tight">Sign In</h1>
+          <p className="text-xs text-[#6B778C] mt-1">Access your modernization project workspace</p>
         </div>
 
         {unverifiedEmail ? (
-          <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl text-xs space-y-1">
+          <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-lg text-xs space-y-1">
             <p className="font-semibold text-amber-900">Email chưa được xác thực!</p>
             <p>Vui lòng kiểm tra hộp thư email của bạn hoặc nhập mã xác minh để hoàn tất kích hoạt tài khoản.</p>
             <button
@@ -101,7 +100,7 @@ export const LoginPage: React.FC = () => {
             </button>
           </div>
         ) : error && (
-          <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-3 rounded-xl text-sm font-medium">
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-lg text-xs font-medium">
             {error}
           </div>
         )}
@@ -110,7 +109,7 @@ export const LoginPage: React.FC = () => {
           <Input
             label="EMAIL OR USERNAME"
             type="email"
-            placeholder="alex.vance@acmecorp.com"
+            placeholder="name@enterprise.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             icon={<Mail className="w-4 h-4 text-slate-400" />}
@@ -118,7 +117,7 @@ export const LoginPage: React.FC = () => {
 
           <div>
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider">PASSWORD</span>
+              <span className="text-xs font-semibold text-[#42526E] uppercase tracking-wider">PASSWORD</span>
               <Link to={ROUTES.PUBLIC.FORGOT_PASSWORD} className="text-xs text-[#0652CC] hover:underline font-semibold">
                 Forgot?
               </Link>
@@ -131,7 +130,7 @@ export const LoginPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center space-x-2 pt-1">
+          <div className="flex items-center space-x-2 pt-0.5">
             <input
               type="checkbox"
               id="remember"
@@ -139,38 +138,42 @@ export const LoginPage: React.FC = () => {
               onChange={(e) => setRememberMe(e.target.checked)}
               className="w-4 h-4 rounded border-[#D9E2EC] text-[#0652CC] focus:ring-[#0652CC] cursor-pointer"
             />
-            <label htmlFor="remember" className="text-xs text-slate-600 cursor-pointer select-none">
+            <label htmlFor="remember" className="text-xs text-[#42526E] cursor-pointer select-none">
               Remember me on this device
             </label>
           </div>
 
           <Button 
             type="submit" 
-            className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm" 
+            className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs sm:text-sm shadow-2xs" 
             isLoading={loading}
           >
             Sign In
           </Button>
         </form>
 
-        <div className="relative border-t border-[#D9E2EC] my-6">
-          <span className="absolute left-1/2 -translate-x-1/2 -top-2.5 bg-white px-3 text-[11px] font-semibold text-slate-400 tracking-wider">
-            OR CONTINUE WITH
-          </span>
-        </div>
+        {Boolean(env.googleClientId) && (
+          <>
+            <div className="relative border-t border-[#D9E2EC] my-4">
+              <span className="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-2.5 text-[10px] font-semibold text-[#6B778C] tracking-wider uppercase">
+                OR CONTINUE WITH
+              </span>
+            </div>
 
-        <GoogleSignInButton onCredential={handleGoogleCredential} />
+            <GoogleSignInButton onCredential={handleGoogleCredential} />
+          </>
+        )}
 
-        <div className="flex justify-between items-center text-xs text-slate-500 pt-2">
+        <div className="flex items-center justify-between text-xs text-[#6B778C] pt-2 border-t border-[#E5EAF0]">
           <span>
             Don't have an account?{' '}
             <Link to={ROUTES.PUBLIC.REGISTER} className="text-[#0652CC] font-semibold hover:underline">
               Sign Up
             </Link>
           </span>
-          <a href="#" className="text-slate-400 hover:text-slate-700 transition-colors">
+          <Link to="/contact" className="text-[#6B778C] hover:text-[#091E42] transition-colors">
             Need help?
-          </a>
+          </Link>
         </div>
       </div>
     </AuthLayout>

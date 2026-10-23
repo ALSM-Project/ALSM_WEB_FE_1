@@ -46,11 +46,11 @@ export const VersionHistoryPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
         <div>
           <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-slate-900 font-mono">{screenName}</h1>
-            <span className="bg-brand-50 text-brand-700 border border-brand-200 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+            <h1 className="text-xl font-bold text-slate-900 font-mono">{screenName}</h1>
+            <span className="bg-[#E8F1FF] text-[#0652CC] border border-blue-200 text-xs px-2.5 py-0.5 rounded-md font-semibold">
               Version History
             </span>
           </div>
@@ -61,7 +61,7 @@ export const VersionHistoryPage: React.FC = () => {
         <Button
           variant="outline"
           onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}
-          className="space-x-1.5 text-xs font-semibold"
+          className="space-x-1.5 text-xs font-semibold rounded-md"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Latest Result</span>
@@ -69,7 +69,7 @@ export const VersionHistoryPage: React.FC = () => {
       </div>
 
       {isLoading && (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-12 text-center text-xs text-slate-500 shadow-xs">
           Loading version history…
         </div>
       )}
@@ -85,13 +85,13 @@ export const VersionHistoryPage: React.FC = () => {
       )}
 
       {!isLoading && !isError && total === 0 && (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-12 text-center text-xs text-slate-500 shadow-xs">
           No conversion attempts have been run for this screen yet.
         </div>
       )}
 
       {!isLoading && !isError && total > 0 && (
-        <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-xl divide-y divide-slate-100 overflow-hidden shadow-xs">
           {history!.map((job, index) => {
             // The backend already sorts newest first — this is a real ordinal derived from
             // that real order (oldest = 1 ... newest = total), not a fabricated field.
@@ -100,12 +100,12 @@ export const VersionHistoryPage: React.FC = () => {
             const canViewResult = job.status === 'COMPLETED' && Boolean(job.resultReference);
             const duration = formatDuration(job);
             return (
-              <div key={job.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div key={job.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors">
                 <div className="min-w-0 space-y-1">
                   <div className="flex items-center flex-wrap gap-2">
                     <span className="text-sm font-bold text-slate-900">Version {versionNumber}</span>
                     {isLatest && (
-                      <span className="bg-brand-50 text-brand-700 border border-brand-200 text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase">
+                      <span className="bg-[#E8F1FF] text-[#0652CC] border border-blue-200 text-[10px] px-2 py-0.5 rounded-md font-semibold uppercase">
                         Latest
                       </span>
                     )}

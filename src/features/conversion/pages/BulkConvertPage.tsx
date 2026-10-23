@@ -50,22 +50,24 @@ export const BulkConvertPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 py-2">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Bulk Convert Screens</h1>
-        <p className="text-slate-500 text-sm mt-1">Convert multiple legacy screens to modern frameworks simultaneously.</p>
+    <div className="space-y-6">
+      <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#091E42]">Bulk Convert Screens</h1>
+          <p className="text-xs text-[#6B778C] mt-1">Convert multiple legacy screens to modern frameworks simultaneously in batch mode.</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
+          <div className="bg-white border border-[#D9E2EC] rounded-xl p-3.5 flex items-center justify-between shadow-xs">
             <button
               onClick={handleToggleSelectAll}
               disabled={screensLoading || screens.length === 0}
               className="flex items-center space-x-2 text-xs font-semibold text-slate-700 hover:text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {selectedIds.length === screens.length && screens.length > 0 ? (
-                <CheckSquare className="w-4 h-4 text-brand-600" />
+                <CheckSquare className="w-4 h-4 text-[#0652CC]" />
               ) : (
                 <Square className="w-4 h-4 text-slate-400" />
               )}
@@ -73,17 +75,17 @@ export const BulkConvertPage: React.FC = () => {
             </button>
 
             {selectedIds.length > 0 && (
-              <span className="text-xs text-brand-600 font-semibold">
+              <span className="text-xs text-[#0652CC] font-semibold bg-[#E8F1FF] px-2.5 py-0.5 rounded-md border border-blue-200">
                 {selectedIds.length} screens selected
               </span>
             )}
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 shadow-sm">
+          <div className="bg-white border border-[#D9E2EC] rounded-xl overflow-hidden divide-y divide-slate-100 shadow-xs">
             {screensLoading ? (
-              <div className="p-8 text-center text-sm text-slate-500">Loading screens…</div>
+              <div className="p-8 text-center text-xs text-slate-500">Loading screens…</div>
             ) : screens.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500">No screens available for this project.</div>
+              <div className="p-8 text-center text-xs text-slate-500">No screens available for this project.</div>
             ) : (
               screens.map((screen) => {
                 const isSelected = selectedIds.includes(screen.id);
@@ -92,18 +94,18 @@ export const BulkConvertPage: React.FC = () => {
                     key={screen.id}
                     onClick={() => handleToggleOne(screen.id)}
                     className={`p-4 flex items-center justify-between cursor-pointer transition-colors ${
-                      isSelected ? 'bg-brand-50/60' : 'hover:bg-slate-50'
+                      isSelected ? 'bg-blue-50/50' : 'hover:bg-slate-50'
                     }`}
                   >
                     <div className="flex items-center space-x-3">
                       {isSelected ? (
-                        <CheckSquare className="w-4 h-4 text-brand-600 flex-shrink-0" />
+                        <CheckSquare className="w-4 h-4 text-[#0652CC] flex-shrink-0" />
                       ) : (
                         <Square className="w-4 h-4 text-slate-400 flex-shrink-0" />
                       )}
                       <div>
-                        <p className="text-sm font-semibold text-slate-900 font-mono">{screen.name}</p>
-                        <p className="text-xs text-slate-500 font-mono">{screen.path}</p>
+                        <p className="text-xs font-bold text-slate-900 font-mono">{screen.name}</p>
+                        <p className="text-[11px] text-slate-500 font-mono">{screen.path}</p>
                       </div>
                     </div>
 
@@ -116,10 +118,10 @@ export const BulkConvertPage: React.FC = () => {
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white border border-[#D9E2EC] rounded-2xl p-6 space-y-6 shadow-2xs">
+          <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 space-y-5 shadow-xs">
             <h3 className="text-xs font-bold text-[#42526E] uppercase tracking-wider">Conversion Settings</h3>
 
-            <div className="bg-[#F7F9FC] p-4 rounded-xl border border-[#D9E2EC] space-y-3 text-xs">
+            <div className="bg-[#F7F9FC] p-3.5 rounded-lg border border-[#D9E2EC] space-y-2.5 text-xs">
               <div className="flex justify-between items-center font-medium">
                 <span className="text-[#6B778C]">Target Framework</span>
                 <span className="text-[#0652CC] font-bold">React 19 + TypeScript</span>
@@ -128,7 +130,7 @@ export const BulkConvertPage: React.FC = () => {
                 <span className="text-[#6B778C]">Conversion Engine</span>
                 <span className="text-[#091E42] font-semibold">ALSM Synthesis Pipeline</span>
               </div>
-              <p className="text-[#0652CC] font-semibold pt-1 border-t border-[#E5EAF0]">
+              <p className="text-[#0652CC] font-semibold pt-1 border-t border-[#D9E2EC] text-[11px]">
                 {selectedIds.length} screen(s) selected for bulk modernization synthesis.
               </p>
             </div>
@@ -136,7 +138,7 @@ export const BulkConvertPage: React.FC = () => {
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-[#42526E]">SCHEDULING</label>
               <div className="space-y-2 text-xs">
-                <label className="flex items-center space-x-2.5 p-2.5 bg-[#F7F9FC] rounded-xl border border-[#D9E2EC] cursor-pointer hover:bg-slate-100 transition-colors">
+                <label className="flex items-center space-x-2.5 p-2.5 bg-[#F7F9FC] rounded-lg border border-[#D9E2EC] cursor-pointer hover:bg-slate-100 transition-colors">
                   <input
                     type="radio"
                     name="schedule"
@@ -146,7 +148,7 @@ export const BulkConvertPage: React.FC = () => {
                   />
                   <span className="text-[#091E42] font-semibold">Start immediately</span>
                 </label>
-                <label className="flex items-center space-x-2.5 p-2.5 bg-[#F7F9FC] rounded-xl border border-[#D9E2EC] cursor-pointer hover:bg-slate-100 transition-colors">
+                <label className="flex items-center space-x-2.5 p-2.5 bg-[#F7F9FC] rounded-lg border border-[#D9E2EC] cursor-pointer hover:bg-slate-100 transition-colors">
                   <input
                     type="radio"
                     name="schedule"
@@ -166,7 +168,7 @@ export const BulkConvertPage: React.FC = () => {
 
             <div className="space-y-2 pt-2">
               {bulkConvert.isError && (
-                <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
+                <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-3 py-2">
                   {bulkConvert.error instanceof Error
                     ? bulkConvert.error.message
                     : 'Could not start the bulk conversion. Please try again.'}
@@ -176,7 +178,7 @@ export const BulkConvertPage: React.FC = () => {
                 onClick={handleStartConversion}
                 isLoading={bulkConvert.isPending}
                 disabled={selectedIds.length === 0 || screensLoading}
-                className="w-full py-2.5 space-x-2 font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-xs"
+                className="w-full py-2 space-x-2 font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-xs text-xs rounded-md"
               >
                 <Play className="w-4 h-4" />
                 <span>Start Conversion ({selectedIds.length})</span>
@@ -184,7 +186,7 @@ export const BulkConvertPage: React.FC = () => {
               <Button
                 variant="secondary"
                 onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}
-                className="w-full text-xs font-semibold"
+                className="w-full text-xs font-semibold rounded-md"
               >
                 Cancel
               </Button>

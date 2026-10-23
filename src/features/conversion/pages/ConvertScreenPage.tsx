@@ -442,36 +442,36 @@ export const ConvertScreenPage: React.FC = () => {
         }}
       />
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
         <div>
           <div className="flex items-center space-x-3">
-            <h1 className="text-2xl font-bold text-slate-900 font-mono">{screenName}</h1>
-            <span className="bg-brand-50 text-brand-700 border border-brand-200 text-xs px-2.5 py-0.5 rounded-full font-semibold">
+            <h1 className="text-xl sm:text-2xl font-bold text-[#091E42] font-mono">{screenName}</h1>
+            <span className="bg-[#E8F1FF] text-[#0652CC] border border-blue-200 text-xs px-2.5 py-0.5 rounded font-semibold">
               Target: {screen?.framework ?? 'React'} TypeScript
             </span>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-[#6B778C] mt-1">
             {isCobol
               ? 'Deterministic Conversion Engine: Compiles COBOL programs into Java classes & methods via tool2java.'
               : 'Deterministic Conversion Engine: Parses BMS AST and converts into React TypeScript components & DTOs.'}
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5">
           <Button variant="outline" onClick={() => navigate(mappingRoute)} className="space-x-1.5 text-xs font-semibold">
-            <Sliders className="w-4 h-4 text-brand-600" />
+            <Sliders className="w-3.5 h-3.5 text-[#0652CC]" />
             <span>{isCobol ? 'Edit Method Mapping' : 'Edit Mapping & Correct'}</span>
           </Button>
-          <Button onClick={handleRunConverter} isLoading={isRunning} className="space-x-2 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]">
-            <Play className="w-4 h-4" />
+          <Button onClick={handleRunConverter} isLoading={isRunning} className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-2xs">
+            <Play className="w-3.5 h-3.5" />
             <span>Run Conversion Algorithm</span>
           </Button>
         </div>
       </div>
 
       {createJob.isError ? (
-        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
-          <XCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-rose-50 border border-rose-200 p-3.5 rounded-lg text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold">Could not start the conversion.</p>
             <p className="mt-0.5">
@@ -480,17 +480,17 @@ export const ConvertScreenPage: React.FC = () => {
           </div>
         </div>
       ) : job?.status === 'FAILED' || job?.status === 'DEAD' ? (
-        <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
-          <XCircle className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-rose-50 border border-rose-200 p-3.5 rounded-lg text-rose-700 text-xs font-medium flex items-start space-x-3">
+          <XCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold">Conversion failed{job.errorCode ? ` (${job.errorCode})` : ''}.</p>
             <p className="mt-0.5">{job.errorMessage ?? 'The conversion tool could not process this screen.'}</p>
           </div>
         </div>
       ) : isCompleted ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-lg p-5 space-y-4 shadow-2xs">
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="text-xs text-slate-700 font-medium">
+            <div className="text-xs text-[#091E42] font-medium">
               Conversion algorithm executed. Target components and DTOs generated deterministically.
             </div>
             <div className="flex items-center space-x-2.5">
@@ -502,7 +502,7 @@ export const ConvertScreenPage: React.FC = () => {
                 }}
                 isLoading={isValidationActive}
                 disabled={isValidationActive}
-                className="text-xs font-semibold px-3 py-1.5 border-slate-300 text-slate-700 hover:bg-slate-50"
+                className="text-xs font-semibold px-3 py-1.5 border-[#D9E2EC] text-[#42526E] hover:bg-[#F8FAFC]"
               >
                 {isValidationActive
                   ? 'Validating...'
@@ -512,7 +512,7 @@ export const ConvertScreenPage: React.FC = () => {
               </Button>
               <Button
                 onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}
-                className="text-xs font-semibold px-3.5 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white"
+                className="text-xs font-semibold px-3.5 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-2xs"
               >
                 Inspect Results &rarr;
               </Button>
@@ -520,28 +520,28 @@ export const ConvertScreenPage: React.FC = () => {
           </div>
 
           {metrics && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-slate-100 text-center">
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <p className="text-[11px] text-slate-500 uppercase font-semibold">Files Generated</p>
-                <p className="text-lg font-bold text-brand-600">{metrics.componentsGenerated}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[#E5EAF0] text-center">
+              <div className="bg-[#F8FAFC] p-3 rounded-md border border-[#D9E2EC]">
+                <p className="text-[11px] text-[#6B778C] uppercase font-semibold">Files Generated</p>
+                <p className="text-lg font-bold text-[#0652CC]">{metrics.componentsGenerated}</p>
               </div>
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <p className="text-[11px] text-slate-500 uppercase font-semibold">Lines of Code</p>
-                <p className="text-lg font-bold text-slate-900">{metrics.linesOfCode}</p>
+              <div className="bg-[#F8FAFC] p-3 rounded-md border border-[#D9E2EC]">
+                <p className="text-[11px] text-[#6B778C] uppercase font-semibold">Lines of Code</p>
+                <p className="text-lg font-bold text-[#091E42]">{metrics.linesOfCode}</p>
               </div>
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <p className="text-[11px] text-slate-500 uppercase font-semibold">Size</p>
-                <p className="text-lg font-bold text-[#DC6803]">{metrics.sizeKb} KB</p>
+              <div className="bg-[#F8FAFC] p-3 rounded-md border border-[#D9E2EC]">
+                <p className="text-[11px] text-[#6B778C] uppercase font-semibold">Size</p>
+                <p className="text-lg font-bold text-amber-700">{metrics.sizeKb} KB</p>
               </div>
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <p className="text-[11px] text-slate-500 uppercase font-semibold">Duration</p>
-                <p className="text-lg font-bold text-[#079455]">{metrics.duration}</p>
+              <div className="bg-[#F8FAFC] p-3 rounded-md border border-[#D9E2EC]">
+                <p className="text-[11px] text-[#6B778C] uppercase font-semibold">Duration</p>
+                <p className="text-lg font-bold text-emerald-700">{metrics.duration}</p>
               </div>
             </div>
           )}
         </div>
       ) : (
-        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-slate-700 text-xs font-medium flex items-center justify-between">
+        <div className="bg-[#F8FAFC] border border-[#D9E2EC] p-3.5 rounded-lg text-[#42526E] text-xs font-medium flex items-center justify-between">
           <span>
             Source map loaded. Click <strong>"Run Conversion Algorithm"</strong> above to generate target React TSX code.
           </span>

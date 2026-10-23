@@ -217,20 +217,20 @@ export const FieldMappingPage: React.FC = () => {
   return (
     <div className="space-y-6">
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white border border-[#D9E2EC] rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Automated Field Mapping</h1>
           <p className="text-xs text-slate-500 mt-1">Configure structural component mapping and field validation rules between legacy fields and target React props.</p>
         </div>
 
         <div className="flex space-x-2.5 flex-wrap gap-2">
-          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))} className="text-xs font-semibold">
+          <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))} className="text-xs font-semibold rounded-md">
             Cancel
           </Button>
           <Button
             variant="outline"
             onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))}
-            className="text-xs font-semibold border-slate-300 text-slate-700 hover:bg-slate-50"
+            className="text-xs font-semibold border-slate-300 text-slate-700 hover:bg-slate-50 rounded-md"
           >
             Proceed to AI Validation &rarr;
           </Button>
@@ -238,7 +238,7 @@ export const FieldMappingPage: React.FC = () => {
             <Button
               onClick={handleSaveCode}
               isLoading={loading}
-              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md"
             >
               <Save className="w-4 h-4" />
               <span>Save Code & Proceed to AI Validation</span>
@@ -248,7 +248,7 @@ export const FieldMappingPage: React.FC = () => {
               onClick={handleSave}
               isLoading={loading}
               disabled={mappingsLoading}
-              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md"
             >
               <Save className="w-4 h-4" />
               <span>Save & Re-convert (Create Version v2)</span>
@@ -258,25 +258,25 @@ export const FieldMappingPage: React.FC = () => {
       </div>
 
       {savedMsg && (
-        <div className="bg-[#ECFDF3] border border-[#ABEFC6] text-[#079455] p-4 rounded-xl text-sm font-medium flex items-center space-x-2">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+        <div className="bg-[#ECFDF3] border border-[#ABEFC6] text-[#079455] p-3.5 rounded-md text-xs font-medium flex items-center space-x-2">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>{savedMsg}</span>
         </div>
       )}
 
-      <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs flex items-center space-x-3 font-medium">
-        <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+      <div className="bg-[#FFFAEB] border border-[#FEDF89] p-3.5 rounded-md text-[#DC6803] text-xs flex items-center space-x-2.5 font-medium">
+        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
         <span>Modifying this mapping will trigger a re-generation of the screen code upon saving.</span>
       </div>
 
       {/* Mode Switcher */}
-      <div className="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-slate-200">
-        <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl text-xs">
+      <div className="flex items-center justify-between flex-wrap gap-3 pb-2 border-b border-[#E5EAF0]">
+        <div className="flex items-center space-x-1 bg-slate-100 p-1 rounded-lg text-xs">
           <button
             onClick={() => setEditMode('form')}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
               editMode === 'form'
-                ? 'bg-white text-slate-900 shadow-sm'
+                ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -284,9 +284,9 @@ export const FieldMappingPage: React.FC = () => {
           </button>
           <button
             onClick={() => setEditMode('code')}
-            className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
+            className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
               editMode === 'code'
-                ? 'bg-white text-slate-900 shadow-sm'
+                ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -343,7 +343,7 @@ export const FieldMappingPage: React.FC = () => {
       ) : (
         <>
           {/* Live Preview Header */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+          <div className="bg-white border border-[#D9E2EC] rounded-lg p-4 shadow-2xs">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Live Preview (Legacy Terminal)</h3>
             {tsxCode && liveMetadata ? (
               <LiveTsxRenderer
@@ -357,16 +357,16 @@ export const FieldMappingPage: React.FC = () => {
           </div>
 
       {mappingsLoading ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-lg p-12 text-center text-sm text-slate-500 shadow-2xs">
           Loading field mapping…
         </div>
       ) : !selectedMapping ? (
-        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-sm text-slate-500 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-lg p-12 text-center text-sm text-slate-500 shadow-2xs">
           No field mapping has been saved for this screen yet.
         </div>
       ) : (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4 shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-lg p-4 space-y-4 shadow-2xs">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Legacy Source Fields</h3>
 
           <div className="relative">
@@ -376,7 +376,7 @@ export const FieldMappingPage: React.FC = () => {
               placeholder="Search fields..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600 shadow-xs"
+              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-md text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0652CC] shadow-xs"
             />
           </div>
 
@@ -387,15 +387,15 @@ export const FieldMappingPage: React.FC = () => {
                 <div
                   key={item.id}
                   onClick={() => setSelectedId(item.id)}
-                  className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                  className={`p-3.5 rounded-lg border cursor-pointer transition-colors ${
                     isSelected
-                      ? 'bg-brand-50 border-brand-300 shadow-xs'
-                      : 'bg-slate-50 border-slate-200 hover:border-slate-300'
+                      ? 'bg-[#E8F1FF] border-[#B3D4FF] shadow-xs'
+                      : 'bg-[#F7F9FC] border-[#D9E2EC] hover:border-[#0652CC]/50'
                   }`}
                 >
                   <p className="font-mono text-xs font-bold text-slate-900">{item.legacyField.name}</p>
                   <div className="text-[11px] text-slate-500 font-mono mt-1 space-y-0.5">
-                    <p>Type: <span className="text-brand-700 font-semibold">{item.legacyField.type}</span></p>
+                    <p>Type: <span className="text-[#0652CC] font-semibold">{item.legacyField.type}</span></p>
                     <p>Length: {item.legacyField.length} | Pos: {item.legacyField.position}</p>
                   </div>
                 </div>
@@ -404,7 +404,7 @@ export const FieldMappingPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-6 space-y-6 shadow-sm">
+        <div className="lg:col-span-2 bg-white border border-[#D9E2EC] rounded-lg p-6 space-y-6 shadow-2xs">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Component Mapping & Validation — <span className="font-mono text-slate-900 font-bold">{selectedMapping.legacyField.name}</span>
           </h3>

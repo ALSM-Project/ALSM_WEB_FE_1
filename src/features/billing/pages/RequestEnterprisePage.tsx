@@ -209,21 +209,21 @@ export const RequestEnterprisePage: React.FC = () => {
   if (existingRequest && existingRequest.status === 'PENDING') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
-        <div className="bg-white border border-amber-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
-          <div className="w-14 h-14 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center text-amber-600 mb-2">
-            <RefreshCw className="w-7 h-7" />
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 sm:p-8 shadow-xs space-y-5">
+          <div className="w-10 h-10 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-center text-amber-600 mb-2">
+            <RefreshCw className="w-5 h-5" />
           </div>
           <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 mb-2">
+            <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold bg-amber-100 text-amber-800 mb-2">
               Under Review
             </span>
-            <h1 className="text-2xl font-bold text-slate-900">Your request is being processed</h1>
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+            <h1 className="text-xl font-bold text-slate-900">Your request is being processed</h1>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
               Your enterprise quote request has been received. Our engineering leadership will reach out to{' '}
               <strong>{existingRequest.email}</strong> within <strong>24 business hours</strong>.
             </p>
           </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2 text-xs text-slate-700">
+          <div className="bg-slate-50 border border-[#D9E2EC] rounded-lg p-3.5 space-y-2 text-xs text-slate-700">
             <div className="flex justify-between py-1 border-b border-slate-200/60">
               <span className="text-slate-500 font-medium">Request ID:</span>
               <span className="font-mono font-semibold text-slate-900">{existingRequest.id}</span>
@@ -244,14 +244,14 @@ export const RequestEnterprisePage: React.FC = () => {
           <div className="pt-2 flex flex-col sm:flex-row gap-3">
             <Button
               onClick={() => navigate(ROUTES.DASHBOARD)}
-              className="w-full sm:w-auto px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+              className="w-full sm:w-auto px-5 py-2 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs"
             >
               Return to Dashboard
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate(ROUTES.PROJECTS.LIST)}
-              className="w-full sm:w-auto px-6 py-2.5 border border-slate-300 hover:bg-slate-50 font-semibold rounded-xl text-sm"
+              className="w-full sm:w-auto px-5 py-2 border border-slate-300 hover:bg-slate-50 font-semibold rounded-md text-xs"
             >
               Go to Projects
             </Button>
@@ -265,27 +265,27 @@ export const RequestEnterprisePage: React.FC = () => {
   if (existingRequest && existingRequest.status === 'CONTACTED') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
-        <div className="bg-white border border-blue-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
-          <div className="w-14 h-14 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-center text-blue-600 mb-2">
-            <PhoneCall className="w-7 h-7" />
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 sm:p-8 shadow-xs space-y-5">
+          <div className="w-10 h-10 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center text-[#0652CC] mb-2">
+            <PhoneCall className="w-5 h-5" />
           </div>
           <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-2">
+            <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-800 mb-2">
               Sales Team Contacted You
             </span>
-            <h1 className="text-2xl font-bold text-slate-900">We've reached out to you</h1>
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+            <h1 className="text-xl font-bold text-slate-900">We've reached out to you</h1>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
               Our dedicated modernization architect has contacted <strong>{existingRequest.email}</strong>. Please check
               your inbox for next steps and custom scoping details.
             </p>
           </div>
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-700 leading-relaxed">
+          <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 leading-relaxed">
             <strong>Request ID:</strong> {existingRequest.id} &nbsp;|&nbsp;{' '}
             <strong>Company:</strong> {existingRequest.companyName}
           </div>
           <Button
             onClick={() => navigate(ROUTES.DASHBOARD)}
-            className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+            className="w-full py-2 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs"
           >
             Return to Dashboard
           </Button>
@@ -297,22 +297,22 @@ export const RequestEnterprisePage: React.FC = () => {
   if (existingRequest && existingRequest.status === 'REJECTED') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
-        <div className="bg-white border border-rose-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
-          <div className="w-14 h-14 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center text-rose-600 mb-2">
-            <AlertCircle className="w-7 h-7" />
+        <div className="bg-white border border-rose-200 rounded-xl p-6 sm:p-8 shadow-xs space-y-5">
+          <div className="w-10 h-10 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-center text-rose-600 mb-2">
+            <AlertCircle className="w-5 h-5" />
           </div>
           <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 mb-2">
+            <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-100 text-rose-800 mb-2">
               Request declined
             </span>
-            <h1 className="text-2xl font-bold text-slate-900">Your Enterprise request was not approved</h1>
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+            <h1 className="text-xl font-bold text-slate-900">Your Enterprise request was not approved</h1>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
               Request {existingRequest.id} for {existingRequest.companyName} was declined. You can submit a new request if your requirements change.
             </p>
           </div>
           <Button
             onClick={() => setExistingRequest(null)}
-            className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+            className="w-full py-2 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs"
           >
             Submit a New Request
           </Button>
@@ -324,43 +324,43 @@ export const RequestEnterprisePage: React.FC = () => {
   if (existingRequest && existingRequest.status === 'SUSPENDED') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
-        <div className="bg-white border border-rose-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
-          <div className="w-14 h-14 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center text-rose-600 mb-2">
-            <AlertCircle className="w-7 h-7" />
+        <div className="bg-white border border-rose-200 rounded-xl p-6 sm:p-8 shadow-xs space-y-5">
+          <div className="w-10 h-10 bg-rose-50 border border-rose-200 rounded-lg flex items-center justify-center text-rose-600 mb-2">
+            <AlertCircle className="w-5 h-5" />
           </div>
           <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800 mb-2">
+            <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold bg-rose-100 text-rose-800 mb-2">
               Enterprise access suspended
             </span>
-            <h1 className="text-2xl font-bold text-slate-900">Enterprise access is temporarily unavailable</h1>
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+            <h1 className="text-xl font-bold text-slate-900">Enterprise access is temporarily unavailable</h1>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
               An administrator suspended this organization’s Enterprise access. Contact the admin team using the existing Contact & Upgrade page to discuss the issue or submit an appeal.
             </p>
           </div>
           {existingRequest.statusReason && (
-            <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 text-sm text-rose-900">
+            <div className="bg-rose-50 border border-rose-100 rounded-lg p-3.5 text-xs text-rose-900">
               <strong>Reason:</strong> {existingRequest.statusReason}
             </div>
           )}
           {existingRequest.appealStatus === 'PENDING' ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-2">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900 space-y-2">
               <strong>Your appeal is awaiting admin review.</strong>
               <p>For a follow-up, use Contact & Upgrade and provide request ID {existingRequest.id}.</p>
               {existingRequest.appealMessage && <p>Your appeal: {existingRequest.appealMessage}</p>}
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3.5 space-y-3">
               {existingRequest.appealStatus === 'DECLINED' && (
-                <div className="text-sm text-rose-800 space-y-1">
+                <div className="text-xs text-rose-800 space-y-1">
                   <strong>Your appeal was declined; Enterprise access remains suspended.</strong>
                   <p>Please contact the ALSM administrator to discuss the decision and next steps.</p>
                   {existingRequest.appealResponse && <p>Admin response: {existingRequest.appealResponse}</p>}
                 </div>
               )}
-              <p className="text-sm text-slate-700">Continue in the existing Contact & Upgrade form. It will include this request ID and suspension reason so the admin team can review your appeal.</p>
+              <p className="text-xs text-slate-700">Continue in the existing Contact & Upgrade form. It will include this request ID and suspension reason so the admin team can review your appeal.</p>
               <Button
                 onClick={() => navigate('/workspace/contact', { state: { appeal: { id: existingRequest.id, companyName: existingRequest.companyName, reason: existingRequest.statusReason, previousAppeal: existingRequest.appealMessage } } })}
-                className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm disabled:opacity-50"
+                className="px-4 py-2 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs disabled:opacity-50"
               >
                 {existingRequest.appealStatus === 'DECLINED' ? 'Appeal Again in Contact & Upgrade' : 'Contact Admin / Appeal'}
               </Button>
@@ -369,7 +369,7 @@ export const RequestEnterprisePage: React.FC = () => {
           <div className="text-xs text-slate-500">Request ID: <span className="font-mono">{existingRequest.id}</span></div>
           <Button
             onClick={() => navigate(ROUTES.DASHBOARD)}
-            className="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+            className="w-full py-2 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs"
           >
             Return to Dashboard
           </Button>
@@ -381,20 +381,20 @@ export const RequestEnterprisePage: React.FC = () => {
   if (existingRequest && existingRequest.status === 'APPROVED') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
-        <div className="bg-white border border-emerald-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-5">
-          <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center text-emerald-600 mb-2">
-            <CheckCircle2 className="w-7 h-7" />
+        <div className="bg-white border border-emerald-200 rounded-xl p-6 sm:p-8 shadow-xs space-y-5">
+          <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center text-emerald-600 mb-2">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
+            <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
               Enterprise Plan Active
             </span>
-            <h1 className="text-2xl font-bold text-slate-900">Your Enterprise upgrade is approved</h1>
-            <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+            <h1 className="text-xl font-bold text-slate-900">Your Enterprise upgrade is approved</h1>
+            <p className="text-xs text-slate-600 mt-2 leading-relaxed">
               Enterprise access is active for {existingRequest.companyName}. Your request has been approved and your organization can use the Enterprise quotas.
             </p>
           </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2 text-xs text-slate-700">
+          <div className="bg-slate-50 border border-slate-200/80 rounded-lg p-3.5 space-y-2 text-xs text-slate-700">
             <div className="flex justify-between py-1 border-b border-slate-200/60">
               <span className="text-slate-500 font-medium">Request ID:</span>
               <span className="font-mono font-semibold text-slate-900">{existingRequest.id}</span>
@@ -407,14 +407,14 @@ export const RequestEnterprisePage: React.FC = () => {
           <div className="pt-2 flex flex-col sm:flex-row gap-3">
             <Button
               onClick={() => navigate(ROUTES.BILLING.USAGE)}
-              className="w-full sm:w-auto px-6 py-2.5 bg-[#0652CC] hover:bg-[#0448b3] text-white font-semibold rounded-xl text-sm"
+              className="w-full sm:w-auto px-5 py-2 bg-[#0652CC] hover:bg-[#0448b3] text-white font-semibold rounded-md text-xs"
             >
               View Service Usage
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate(ROUTES.PROJECTS.LIST)}
-              className="w-full sm:w-auto px-6 py-2.5 border border-slate-300 hover:bg-slate-50 font-semibold rounded-xl text-sm"
+              className="w-full sm:w-auto px-5 py-2 border border-slate-300 hover:bg-slate-50 font-semibold rounded-md text-xs"
             >
               Go to Projects
             </Button>
@@ -432,14 +432,14 @@ export const RequestEnterprisePage: React.FC = () => {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Page Header */}
       <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-          <Zap className="w-3.5 h-3.5 text-indigo-600" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md text-xs font-semibold bg-[#E8F1FF] text-[#0652CC] border border-blue-200">
+          <Zap className="w-3.5 h-3.5 text-[#0652CC]" />
           <span>Full Migration & Modernization</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           Upgrade to Enterprise Full Migration
         </h1>
-        <p className="text-sm sm:text-base text-slate-600">
+        <p className="text-xs sm:text-sm text-slate-600">
           Accelerate your mission-critical system modernization with high-capacity processing, custom AI adapters, and dedicated technical architects.
         </p>
       </div>
@@ -447,30 +447,30 @@ export const RequestEnterprisePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Plan Benefits & Features */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
-            <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">Custom Deployment</span>
-            <h2 className="text-2xl font-bold mt-1 mb-3">Enterprise Plan</h2>
-            <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+          <div className="bg-[#091E42] text-white rounded-xl p-6 sm:p-7 shadow-xs">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-300">Custom Deployment</span>
+            <h2 className="text-xl font-bold mt-1 mb-2">Enterprise Plan</h2>
+            <p className="text-xs text-slate-300 mb-5 leading-relaxed">
               Designed for enterprise IT teams and systems integrators modernizing mission-critical legacy applications.
             </p>
 
-            <div className="space-y-4 pt-2 border-t border-slate-700/60">
+            <div className="space-y-4 pt-4 border-t border-slate-700">
               {enterpriseFeatures.map((f, i) => (
-                <div key={i} className="flex gap-3.5 items-start">
-                  <div className="p-2 rounded-lg bg-slate-800 border border-slate-700 shrink-0">
+                <div key={i} className="flex gap-3 items-start">
+                  <div className="p-2 rounded-md bg-slate-800 border border-slate-700 shrink-0">
                     {f.icon}
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-white">{f.title}</h3>
-                    <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{f.desc}</p>
+                    <h3 className="text-xs font-bold text-white">{f.title}</h3>
+                    <p className="text-[11px] text-slate-300 mt-0.5 leading-relaxed">{f.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs flex items-center gap-3 text-xs text-slate-600">
-            <Clock className="w-4 h-4 text-brand-600 shrink-0" />
+          <div className="bg-white border border-[#D9E2EC] rounded-xl p-4 shadow-xs flex items-center gap-3 text-xs text-slate-600">
+            <Clock className="w-4 h-4 text-[#0652CC] shrink-0" />
             <span>Quotes are reviewed by our engineering leadership within <strong>24 business hours</strong>.</span>
           </div>
         </div>
@@ -478,22 +478,22 @@ export const RequestEnterprisePage: React.FC = () => {
         {/* Right Column: Quote Form or Confirmation */}
         <div className="lg:col-span-7">
           {quoteResult ? (
-            <div className="bg-white border border-emerald-200 rounded-2xl p-8 sm:p-10 shadow-xs space-y-6">
-              <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center text-emerald-600 mb-2">
-                <CheckCircle2 className="w-8 h-8" />
+            <div className="bg-white border border-emerald-200 rounded-xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div className="w-10 h-10 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center text-emerald-600 mb-2">
+                <CheckCircle2 className="w-6 h-6" />
               </div>
 
               <div>
-                <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
+                <span className="inline-block px-2.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800 mb-2">
                   Quote Request Received
                 </span>
-                <h2 className="text-2xl font-bold text-slate-900">Thank you, {quoteResult.fullName}!</h2>
-                <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+                <h2 className="text-xl font-bold text-slate-900">Thank you, {quoteResult.fullName}!</h2>
+                <p className="text-xs text-slate-600 mt-2 leading-relaxed">
                   Your request for full enterprise migration quote has been registered in our system. A dedicated modernization architect will reach out to <strong>{quoteResult.email}</strong> to discuss custom scopes and volume estimates.
                 </p>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2 text-xs text-slate-700">
+              <div className="bg-slate-50 border border-[#D9E2EC] rounded-lg p-3.5 space-y-2 text-xs text-slate-700">
                 <div className="flex justify-between py-1 border-b border-slate-200/60">
                   <span className="text-slate-500 font-medium">Request ID:</span>
                   <span className="font-mono font-semibold text-slate-900">{quoteResult.id}</span>
@@ -515,31 +515,31 @@ export const RequestEnterprisePage: React.FC = () => {
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={() => navigate(ROUTES.DASHBOARD)}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+                  className="w-full sm:w-auto px-5 py-2 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs"
                 >
                   Return to Dashboard
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => navigate(ROUTES.PROJECTS.LIST)}
-                  className="w-full sm:w-auto px-6 py-2.5 border border-slate-300 hover:bg-slate-50 font-semibold rounded-xl text-sm"
+                  className="w-full sm:w-auto px-5 py-2 border border-slate-300 hover:bg-slate-50 font-semibold rounded-md text-xs"
                 >
                   Go to Projects
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs">
-              <div className="mb-6 pb-4 border-b border-slate-100">
-                <h2 className="text-xl font-bold text-slate-900">Request Custom Migration Quote</h2>
-                <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 sm:p-7 shadow-xs">
+              <div className="mb-5 pb-3 border-b border-slate-100">
+                <h2 className="text-lg font-bold text-slate-900">Request Custom Migration Quote</h2>
+                <p className="text-xs text-slate-500 mt-0.5">
                   Please provide your modernization requirements and our team will prepare a tailored proposal.
                 </p>
               </div>
 
               {generalError && (
-                <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm rounded-xl flex items-start gap-2.5">
-                  <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+                <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
                   <span>{generalError}</span>
                 </div>
               )}
@@ -548,11 +548,11 @@ export const RequestEnterprisePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Full Name */}
                   <div className="space-y-1.5">
-                    <label htmlFor="fullName" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    <label htmlFor="fullName" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
                       Contact Name <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <User className="w-4 h-4" />
                       </div>
                       <input
@@ -562,8 +562,8 @@ export const RequestEnterprisePage: React.FC = () => {
                         value={formData.fullName}
                         onChange={handleChange}
                         placeholder="John Doe"
-                        className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-white border rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 transition-colors ${
-                          fieldErrors.fullName ? 'border-rose-400 bg-rose-50/20' : 'border-slate-300'
+                        className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0652CC]/10 focus:border-[#0652CC] transition-colors ${
+                          fieldErrors.fullName ? 'border-rose-400 bg-rose-50/20' : 'border-[#D9E2EC]'
                         }`}
                       />
                     </div>
@@ -572,11 +572,11 @@ export const RequestEnterprisePage: React.FC = () => {
 
                   {/* Company Name */}
                   <div className="space-y-1.5">
-                    <label htmlFor="companyName" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    <label htmlFor="companyName" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
                       Company / Organization <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <Building2 className="w-4 h-4" />
                       </div>
                       <input
@@ -586,8 +586,8 @@ export const RequestEnterprisePage: React.FC = () => {
                         value={formData.companyName}
                         onChange={handleChange}
                         placeholder="ACME Financial Corp"
-                        className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-white border rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 transition-colors ${
-                          fieldErrors.companyName ? 'border-rose-400 bg-rose-50/20' : 'border-slate-300'
+                        className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0652CC]/10 focus:border-[#0652CC] transition-colors ${
+                          fieldErrors.companyName ? 'border-rose-400 bg-rose-50/20' : 'border-[#D9E2EC]'
                         }`}
                       />
                     </div>
@@ -598,11 +598,11 @@ export const RequestEnterprisePage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Email */}
                   <div className="space-y-1.5">
-                    <label htmlFor="email" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    <label htmlFor="email" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
                       Work Email <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <Mail className="w-4 h-4" />
                       </div>
                       <input
@@ -612,8 +612,8 @@ export const RequestEnterprisePage: React.FC = () => {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="johndoe@acme.com"
-                        className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-white border rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 transition-colors ${
-                          fieldErrors.email ? 'border-rose-400 bg-rose-50/20' : 'border-slate-300'
+                        className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0652CC]/10 focus:border-[#0652CC] transition-colors ${
+                          fieldErrors.email ? 'border-rose-400 bg-rose-50/20' : 'border-[#D9E2EC]'
                         }`}
                       />
                     </div>
@@ -622,11 +622,11 @@ export const RequestEnterprisePage: React.FC = () => {
 
                   {/* Phone */}
                   <div className="space-y-1.5">
-                    <label htmlFor="phone" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    <label htmlFor="phone" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
                       Phone Number <span className="text-slate-400 text-[10px] font-normal">(Optional)</span>
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
                         <Phone className="w-4 h-4" />
                       </div>
                       <input
@@ -636,8 +636,8 @@ export const RequestEnterprisePage: React.FC = () => {
                         value={formData.phone}
                         onChange={handleChange}
                         placeholder="+84 90 123 4567"
-                        className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-white border rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 transition-colors ${
-                          fieldErrors.phone ? 'border-rose-400 bg-rose-50/20' : 'border-slate-300'
+                        className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0652CC]/10 focus:border-[#0652CC] transition-colors ${
+                          fieldErrors.phone ? 'border-rose-400 bg-rose-50/20' : 'border-[#D9E2EC]'
                         }`}
                       />
                     </div>
@@ -647,11 +647,11 @@ export const RequestEnterprisePage: React.FC = () => {
 
                 {/* Message */}
                 <div className="space-y-1.5">
-                  <label htmlFor="message" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  <label htmlFor="message" className="block text-[11px] font-bold uppercase tracking-wider text-slate-700">
                     Project Scope & Requirements <span className="text-slate-400 text-[10px] font-normal">(Optional)</span>
                   </label>
                   <div className="relative">
-                    <div className="absolute top-3 left-3.5 pointer-events-none text-slate-400">
+                    <div className="absolute top-2.5 left-3 pointer-events-none text-slate-400">
                       <MessageSquare className="w-4 h-4" />
                     </div>
                     <textarea
@@ -661,8 +661,8 @@ export const RequestEnterprisePage: React.FC = () => {
                       value={formData.message}
                       onChange={handleChange}
                       placeholder="Tell us about your legacy platform (e.g. BMS/DSPF/COBOL), number of screens, target stack, and timeline..."
-                      className={`w-full pl-10 pr-3.5 py-2.5 text-sm bg-white border rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600 transition-colors resize-none ${
-                        fieldErrors.message ? 'border-rose-400 bg-rose-50/20' : 'border-slate-300'
+                      className={`w-full pl-9 pr-3 py-2 text-xs bg-white border rounded-md text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0652CC]/10 focus:border-[#0652CC] transition-colors resize-none ${
+                        fieldErrors.message ? 'border-rose-400 bg-rose-50/20' : 'border-[#D9E2EC]'
                       }`}
                     />
                   </div>
@@ -674,7 +674,7 @@ export const RequestEnterprisePage: React.FC = () => {
                   <Button
                     type="submit"
                     isLoading={submitting}
-                    className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-xs transition-colors"
+                    className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-bold rounded-md text-xs flex items-center justify-center gap-2 shadow-xs transition-colors"
                   >
                     <span>Submit Enterprise Quote Request</span>
                     <ArrowRight className="w-4 h-4" />

@@ -73,18 +73,19 @@ export const WorkspaceContactPage: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-6">
-      {/* Top Banner */}
-      <div className="bg-gradient-to-r from-[#091E42] via-[#0A2540] to-[#0652CC] text-white rounded-2xl p-6 sm:p-8 shadow-md relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold text-amber-300 border border-white/10">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>ALSM Platform Capacity & Upgrade</span>
+      {/* Top Header */}
+      <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#091E42]">
+              Contact Team & Request Upgrade
+            </h1>
+            <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold bg-[#E8F1FF] text-[#0652CC] border border-blue-200">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Platform Capacity</span>
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Contact Team & Request Upgrade
-          </h1>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="text-xs text-[#6B778C] mt-1 leading-relaxed max-w-2xl">
             Need to expand project limits, unlock additional screen conversions, or request custom COBOL/BMS parsers? Get in touch with our modernization architects.
           </p>
         </div>
@@ -92,9 +93,9 @@ export const WorkspaceContactPage: React.FC = () => {
 
       {/* Upgrade Options Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div className="bg-white border border-[#E5EAF0] rounded-xl p-5 shadow-2xs hover:shadow-md transition-shadow space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center font-bold">
-            <Zap className="w-5 h-5" />
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 shadow-xs space-y-3">
+          <div className="w-9 h-9 rounded-lg bg-[#E8F1FF] text-[#0652CC] flex items-center justify-center font-bold">
+            <Zap className="w-4 h-4" />
           </div>
           <h3 className="font-bold text-[#091E42] text-sm">Capacity Limit Expansion</h3>
           <p className="text-xs text-[#6B778C] leading-relaxed">
@@ -102,9 +103,9 @@ export const WorkspaceContactPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white border border-[#E5EAF0] rounded-xl p-5 shadow-2xs hover:shadow-md transition-shadow space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
-            <Layers className="w-5 h-5" />
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 shadow-xs space-y-3">
+          <div className="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+            <Layers className="w-4 h-4" />
           </div>
           <h3 className="font-bold text-[#091E42] text-sm">Custom Parsers & Rules</h3>
           <p className="text-xs text-[#6B778C] leading-relaxed">
@@ -112,9 +113,9 @@ export const WorkspaceContactPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white border border-[#E5EAF0] rounded-xl p-5 shadow-2xs hover:shadow-md transition-shadow space-y-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-            <ShieldCheck className="w-5 h-5" />
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 shadow-xs space-y-3">
+          <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <ShieldCheck className="w-4 h-4" />
           </div>
           <h3 className="font-bold text-[#091E42] text-sm">Enterprise On-Premises & SLA</h3>
           <p className="text-xs text-[#6B778C] leading-relaxed">
@@ -126,11 +127,11 @@ export const WorkspaceContactPage: React.FC = () => {
       {/* Main Grid: Form + Info Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Cols: Form / Confirmation */}
-        <div className="lg:col-span-2 bg-white border border-[#E5EAF0] rounded-2xl p-6 sm:p-8 shadow-2xs">
+        <div className="lg:col-span-2 bg-white border border-[#D9E2EC] rounded-xl p-6 sm:p-8 shadow-xs">
           {submitted ? (
             <div className="text-center py-12 space-y-4">
-              <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8" />
+              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
               <h2 className="text-xl font-bold text-[#091E42]">{appeal ? 'Appeal Sent to Admin!' : 'Upgrade Request Submitted!'}</h2>
               <p className="text-xs text-[#6B778C] max-w-md mx-auto leading-relaxed">
@@ -139,7 +140,7 @@ export const WorkspaceContactPage: React.FC = () => {
               <div className="pt-4">
                 <Button
                   onClick={() => appeal ? navigate('/billing/upgrade') : setSubmitted(false)}
-                  className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs px-6 py-2.5 rounded-xl font-semibold shadow-xs"
+                  className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs px-6 py-2.5 rounded-md font-semibold shadow-xs"
                 >
                   {appeal ? 'Back to Enterprise Status' : 'Submit Another Request'}
                 </Button>
@@ -148,7 +149,7 @@ export const WorkspaceContactPage: React.FC = () => {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                  <h2 className="text-lg font-bold text-[#091E42]">{appeal ? 'Contact Admin & Appeal Suspension' : 'Send Upgrade & Technical Request'}</h2>
+                <h2 className="text-base font-bold text-[#091E42]">{appeal ? 'Contact Admin & Appeal Suspension' : 'Send Upgrade & Technical Request'}</h2>
                 <p className="text-xs text-[#6B778C] mt-1">
                   {appeal ? `Request ${appeal.id} and the suspension details are attached to this appeal for admin review.` : 'Fill out the form below to contact our team or request additional system capacity.'}
                 </p>
@@ -166,7 +167,7 @@ export const WorkspaceContactPage: React.FC = () => {
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Alex Vance"
-                    className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20 outline-none transition-all"
+                    className="w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-md text-xs text-[#091E42] focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/10 outline-none transition-all"
                   />
                 </div>
 
@@ -181,7 +182,7 @@ export const WorkspaceContactPage: React.FC = () => {
                     value={formData.email}
                     onChange={handleChange}
                     placeholder="alex.vance@company.com"
-                    className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20 outline-none transition-all"
+                    className="w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-md text-xs text-[#091E42] focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/10 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -197,7 +198,7 @@ export const WorkspaceContactPage: React.FC = () => {
                     value={formData.company}
                     onChange={handleChange}
                     placeholder="Acme Financial Services"
-                    className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20 outline-none transition-all"
+                    className="w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-md text-xs text-[#091E42] focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/10 outline-none transition-all"
                   />
                 </div>
 
@@ -209,7 +210,7 @@ export const WorkspaceContactPage: React.FC = () => {
                     name="requestType"
                     value={formData.requestType}
                     onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20 outline-none transition-all cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-md text-xs text-[#091E42] focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/10 outline-none transition-all cursor-pointer"
                   >
                     <option value="LIMIT_UPGRADE">Capacity & Screen Limit Upgrade</option>
                     <option value="CUSTOM_PARSER">Custom BMS / COBOL Parser</option>
@@ -228,7 +229,7 @@ export const WorkspaceContactPage: React.FC = () => {
                   name="targetLimit"
                   value={formData.targetLimit}
                   onChange={handleChange}
-                  className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20 outline-none transition-all cursor-pointer"
+                  className="w-full px-3.5 py-2 bg-white border border-[#D9E2EC] rounded-md text-xs text-[#091E42] focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/10 outline-none transition-all cursor-pointer"
                 >
                   <option value="50_SCREENS">50 Screens / Programs</option>
                   <option value="100_SCREENS">100+ Screens / Programs</option>
@@ -250,7 +251,7 @@ export const WorkspaceContactPage: React.FC = () => {
                   minLength={appeal ? 10 : undefined}
                   maxLength={2000}
                   placeholder="Describe your legacy codebase (BMS mapsets, COBOL programs, target React/Java requirements)..."
-                  className="w-full px-3.5 py-2.5 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/20 outline-none transition-all"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#D9E2EC] rounded-md text-xs text-[#091E42] focus:border-[#0652CC] focus:ring-2 focus:ring-[#0652CC]/10 outline-none transition-all"
                 />
               </div>
 
@@ -259,9 +260,9 @@ export const WorkspaceContactPage: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full sm:w-auto px-8 py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-xs transition-colors shadow-sm flex items-center justify-center space-x-2"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs transition-colors shadow-xs flex items-center justify-center space-x-2"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-3.5 h-3.5" />
                   <span>{submitting ? 'Sending…' : appeal ? 'Submit Appeal to Admin' : 'Send Upgrade Request'}</span>
                 </Button>
               </div>
@@ -271,12 +272,12 @@ export const WorkspaceContactPage: React.FC = () => {
 
         {/* Right 1 Col: Direct Contact Information */}
         <div className="space-y-6">
-          <div className="bg-[#F8FAFC] border border-[#E5EAF0] rounded-2xl p-6 space-y-5">
+          <div className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl p-5 space-y-4">
             <h3 className="font-bold text-[#091E42] text-sm">Direct Contact Channels</h3>
 
-            <div className="space-y-4 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-white border border-[#D9E2EC] rounded-xl text-[#0652CC] shrink-0">
+                <div className="p-2 bg-white border border-[#D9E2EC] rounded-lg text-[#0652CC] shrink-0">
                   <Mail className="w-4 h-4" />
                 </div>
                 <div>
@@ -287,7 +288,7 @@ export const WorkspaceContactPage: React.FC = () => {
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-white border border-[#D9E2EC] rounded-xl text-[#0652CC] shrink-0">
+                <div className="p-2 bg-white border border-[#D9E2EC] rounded-lg text-[#0652CC] shrink-0">
                   <Phone className="w-4 h-4" />
                 </div>
                 <div>
@@ -298,7 +299,7 @@ export const WorkspaceContactPage: React.FC = () => {
               </div>
 
               <div className="flex items-start space-x-3">
-                <div className="p-2 bg-white border border-[#D9E2EC] rounded-xl text-[#0652CC] shrink-0">
+                <div className="p-2 bg-white border border-[#D9E2EC] rounded-lg text-[#0652CC] shrink-0">
                   <MessageSquare className="w-4 h-4" />
                 </div>
                 <div>
@@ -310,7 +311,7 @@ export const WorkspaceContactPage: React.FC = () => {
           </div>
 
           {/* Quick Docs Link Card */}
-          <div className="bg-[#E8F1FF] border border-[#B3D4FF] rounded-2xl p-6 space-y-3">
+          <div className="bg-[#E8F1FF] border border-blue-200 rounded-xl p-5 space-y-2.5">
             <h4 className="font-bold text-[#0652CC] text-xs uppercase tracking-wider">Need Technical Docs?</h4>
             <p className="text-xs text-[#091E42] leading-relaxed">
               Explore how BMS/DSPF screen maps and COBOL business logic are parsed and converted into modern React and Java.
@@ -318,7 +319,7 @@ export const WorkspaceContactPage: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate('/workspace/docs')}
-              className="inline-flex items-center space-x-1.5 text-xs font-bold text-[#0652CC] hover:underline"
+              className="inline-flex items-center space-x-1.5 text-xs font-bold text-[#0652CC] hover:underline pt-1"
             >
               <span>View Workspace Documentation</span>
               <ArrowRight className="w-3.5 h-3.5" />

@@ -17,21 +17,21 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0652CC] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-[#0652CC]/25 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
 
   const variants = {
-    primary: 'bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-[0_4px_15px_rgba(6,82,204,0.25)] hover:shadow-[0_6px_20px_rgba(6,85,255,0.35)]',
-    secondary: 'bg-[#E8F1FF] text-[#0652CC] hover:bg-[#0652CC] hover:text-white border border-[#0652CC]/25 shadow-sm',
-    outline: 'bg-white border border-[#D9E2EC] hover:border-[#0652CC]/50 text-[#091E42] hover:bg-[#F7F9FC] shadow-sm',
-    ghost: 'hover:bg-[#E8F1FF] text-[#42526E] hover:text-[#091E42]',
-    danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm',
-    ai: 'bg-gradient-to-r from-[#22D3EE] via-[#0655FF] to-[#8B5CF6] text-white font-bold shadow-[0_4px_20px_rgba(34,211,238,0.3)] hover:opacity-95',
+    primary: 'bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-2xs',
+    secondary: 'bg-[#F1F5F9] text-[#091E42] hover:bg-[#E2E8F0] border border-[#D9E2EC]',
+    outline: 'bg-white border border-[#D9E2EC] hover:border-[#0652CC] text-[#091E42] hover:bg-[#F8FAFC] shadow-2xs',
+    ghost: 'text-[#42526E] hover:text-[#091E42] hover:bg-[#F1F5F9]',
+    danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-2xs',
+    ai: 'bg-[#091E42] hover:bg-[#132A52] text-white border border-slate-700 shadow-2xs',
   };
 
   const sizes = {
-    sm: 'px-3.5 py-1.5 text-xs',
-    md: 'px-5 py-2.5 text-sm',
-    lg: 'px-8 py-3.5 text-base',
+    sm: 'px-2.5 py-1.5 text-xs',
+    md: 'px-4 py-2 text-xs sm:text-sm',
+    lg: 'px-5 py-2.5 text-sm',
   };
 
   return (

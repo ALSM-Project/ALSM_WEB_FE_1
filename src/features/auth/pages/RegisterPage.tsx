@@ -8,6 +8,7 @@ import { Button } from '@/shared/ui/Button';
 import { ApiError } from '@/services/api/apiError';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { AuthLayout } from '../components/AuthLayout';
+import { env } from '@/shared/constants/env';
 
 // Backend requires a minimum of 8 characters (RegisterDto @MinLength(8)).
 const MIN_PASSWORD_LENGTH = 8;
@@ -202,22 +203,26 @@ export const RegisterPage: React.FC = () => {
 
           <Button 
             type="submit" 
-            className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm mt-1" 
+            className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-md text-xs sm:text-sm shadow-2xs mt-1" 
             isLoading={loading}
           >
             Create Account
           </Button>
         </form>
 
-        <div className="relative border-t border-[#D9E2EC] my-2">
-          <span className="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-2.5 text-[10px] font-semibold text-slate-400 tracking-wider">
-            OR CONTINUE WITH
-          </span>
-        </div>
+        {Boolean(env.googleClientId) && (
+          <>
+            <div className="relative border-t border-[#D9E2EC] my-3">
+              <span className="absolute left-1/2 -translate-x-1/2 -top-2 bg-white px-2.5 text-[10px] font-semibold text-[#6B778C] tracking-wider uppercase">
+                OR CONTINUE WITH
+              </span>
+            </div>
 
-        <GoogleSignInButton onCredential={handleGoogleCredential} />
+            <GoogleSignInButton onCredential={handleGoogleCredential} />
+          </>
+        )}
 
-        <div className="text-center text-xs text-slate-500 pt-0.5">
+        <div className="text-center text-xs text-[#6B778C] pt-2 border-t border-[#E5EAF0]">
           Already have an account?{' '}
           <Link to={ROUTES.PUBLIC.LOGIN} className="text-[#0652CC] font-semibold hover:underline">
             Sign In

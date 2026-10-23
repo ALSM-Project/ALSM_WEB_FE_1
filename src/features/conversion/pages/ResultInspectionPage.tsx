@@ -103,7 +103,7 @@ export const ResultInspectionPage: React.FC = () => {
         }}
       />
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+      <div className="bg-white border border-[#D9E2EC] rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
         <div>
           <div className="flex items-center space-x-3">
             <h1 className="text-2xl font-bold text-slate-900 font-mono">{screenName}</h1>
@@ -120,7 +120,7 @@ export const ResultInspectionPage: React.FC = () => {
           <Button
             variant="outline"
             onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
-            className="space-x-1.5 text-xs font-semibold"
+            className="space-x-1.5 text-xs font-semibold rounded-md"
           >
             <History className="w-4 h-4" />
             <span>Version History</span>
@@ -128,12 +128,12 @@ export const ResultInspectionPage: React.FC = () => {
           <Button
             variant="outline"
             onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
-            className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
+            className="space-x-1.5 text-xs font-bold border-[#B3D4FF] text-[#0652CC] bg-[#E8F1FF] hover:bg-[#D0E2FF] rounded-md"
           >
-            <Eye className="w-4 h-4 text-brand-600" />
+            <Eye className="w-4 h-4 text-[#0652CC]" />
             <span>Open UI Screen Preview</span>
           </Button>
-          <Button onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))} disabled={!hasRealResult} className="space-x-1.5 text-xs font-semibold">
+          <Button onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))} disabled={!hasRealResult} className="space-x-1.5 text-xs font-semibold rounded-md">
             <Download className="w-4 h-4" />
             <span>Download</span>
           </Button>
@@ -141,7 +141,7 @@ export const ResultInspectionPage: React.FC = () => {
       </div>
 
       {viewingJobId && (
-        <div className="bg-[#E8F1FF] border border-[#B3D4FF] p-3 rounded-xl text-[#0652CC] text-xs font-medium flex items-center justify-between">
+        <div className="bg-[#E8F1FF] border border-[#B3D4FF] p-3 rounded-lg text-[#0652CC] text-xs font-medium flex items-center justify-between">
           <span>Viewing a past version from {job ? new Date(job.createdAt).toLocaleString() : '…'}.</span>
           <Link to={ROUTES.PROJECTS.RESULT(projectId, screenId)} className="font-semibold hover:underline">
             View latest instead
@@ -150,7 +150,7 @@ export const ResultInspectionPage: React.FC = () => {
       )}
 
       {!hasRealResult && (
-        <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-xl text-[#DC6803] text-xs font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-[#FFFAEB] border border-[#FEDF89] p-4 rounded-lg text-[#DC6803] text-xs font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <span>
             {job
               ? isRetryable
@@ -163,7 +163,7 @@ export const ResultInspectionPage: React.FC = () => {
               variant="outline"
               onClick={() => retryJob.mutate(job.id)}
               isLoading={retryJob.isPending}
-              className="space-x-1.5 text-xs font-bold border-[#FEDF89] text-[#DC6803] bg-white hover:bg-amber-50 flex-shrink-0"
+              className="space-x-1.5 text-xs font-bold border-[#FEDF89] text-[#DC6803] bg-white hover:bg-amber-50 flex-shrink-0 rounded-md"
             >
               <RotateCw className="w-3.5 h-3.5" />
               <span>Retry Job</span>
@@ -172,31 +172,31 @@ export const ResultInspectionPage: React.FC = () => {
         </div>
       )}
       {retryJob.isError && (
-        <div className="bg-rose-50 border border-rose-200 p-3 rounded-xl text-rose-700 text-xs font-medium">
+        <div className="bg-rose-50 border border-rose-200 p-3 rounded-lg text-rose-700 text-xs font-medium">
           Failed to retry this job: {retryJob.error instanceof Error ? retryJob.error.message : 'unknown error'}
         </div>
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center text-xs">
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <p className="text-slate-500 text-[11px] font-semibold uppercase">SCREEN NAME</p>
+        <div className="bg-white p-3.5 rounded-lg border border-[#D9E2EC] shadow-2xs">
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">SCREEN NAME</p>
           <p className="font-bold text-slate-900 font-mono truncate mt-0.5">{screenName}</p>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <p className="text-slate-500 text-[11px] font-semibold uppercase">TIMESTAMP</p>
+        <div className="bg-white p-3.5 rounded-lg border border-[#D9E2EC] shadow-2xs">
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">TIMESTAMP</p>
           <p className="font-bold text-slate-700 mt-0.5">{job ? new Date(job.createdAt).toLocaleString() : '—'}</p>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <p className="text-slate-500 text-[11px] font-semibold uppercase">EXECUTION</p>
+        <div className="bg-white p-3.5 rounded-lg border border-[#D9E2EC] shadow-2xs">
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">EXECUTION</p>
           <p className="font-bold text-[#079455] mt-0.5">{executionDuration ?? '—'}</p>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <p className="text-slate-500 text-[11px] font-semibold uppercase">FILES GENERATED</p>
-          <p className="font-bold text-brand-600 mt-0.5">{hasRealResult ? files.length : '—'}</p>
+        <div className="bg-white p-3.5 rounded-lg border border-[#D9E2EC] shadow-2xs">
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">FILES GENERATED</p>
+          <p className="font-bold text-[#0652CC] mt-0.5">{hasRealResult ? files.length : '—'}</p>
         </div>
-        <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-          <p className="text-slate-500 text-[11px] font-semibold uppercase">GENERATED LOC</p>
-          <p className="font-bold text-brand-600 mt-0.5">{generatedLoc ?? '—'} lines</p>
+        <div className="bg-white p-3.5 rounded-lg border border-[#D9E2EC] shadow-2xs">
+          <p className="text-slate-500 text-[10px] font-bold uppercase tracking-wider">GENERATED LOC</p>
+          <p className="font-bold text-[#0652CC] mt-0.5">{generatedLoc ?? '—'} lines</p>
         </div>
       </div>
 
@@ -204,7 +204,7 @@ export const ResultInspectionPage: React.FC = () => {
         <div className="space-y-3">
           <div className="flex justify-between items-center text-xs font-semibold text-slate-700">
             <span className="flex items-center space-x-1.5">
-              <FileCode className="w-4 h-4 text-brand-600" />
+              <FileCode className="w-4 h-4 text-[#0652CC]" />
               <span>Generated Code</span>
             </span>
           </div>
@@ -214,10 +214,10 @@ export const ResultInspectionPage: React.FC = () => {
                 <button
                   key={file.relativePath}
                   onClick={() => setSelectedFileIndex(index)}
-                  className={`text-xs font-mono px-2.5 py-1 rounded-lg border ${
+                  className={`text-xs font-mono px-2.5 py-1 rounded-md border transition-colors ${
                     index === selectedFileIndex
-                      ? 'bg-brand-50 border-brand-300 text-brand-700 font-semibold'
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                      ? 'bg-blue-50 border-[#0652CC] text-[#0652CC] font-semibold'
+                      : 'bg-white border-[#D9E2EC] text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   {file.relativePath}
@@ -234,27 +234,27 @@ export const ResultInspectionPage: React.FC = () => {
         <div className="space-y-3">
           <div className="flex justify-between items-center text-xs font-semibold text-slate-700">
             <span className="flex items-center space-x-1.5">
-              <Files className="w-4 h-4 text-brand-600" />
+              <Files className="w-4 h-4 text-[#0652CC]" />
               <span>Generated Files</span>
             </span>
           </div>
           {files.length === 0 ? (
-            <div className="bg-white border border-slate-200 rounded-xl p-6 text-center text-xs text-slate-500">
+            <div className="bg-white border border-[#D9E2EC] rounded-lg p-6 text-center text-xs text-slate-500 shadow-2xs">
               No generated files yet — this appears once the conversion job completes.
             </div>
           ) : (
-            <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden">
+            <div className="bg-white border border-[#D9E2EC] rounded-lg divide-y divide-[#E5EAF0] overflow-hidden shadow-2xs">
               {files.map((file, index) => (
                 <button
                   key={file.relativePath}
                   onClick={() => setSelectedFileIndex(index)}
                   className={`w-full flex items-center justify-between gap-3 px-4 py-3 text-left text-xs transition-colors ${
-                    index === selectedFileIndex ? 'bg-brand-50' : 'hover:bg-slate-50'
+                    index === selectedFileIndex ? 'bg-blue-50/70' : 'hover:bg-slate-50'
                   }`}
                 >
                   <span className="flex items-center space-x-2 min-w-0">
-                    <FileCode className="w-3.5 h-3.5 text-brand-600 flex-shrink-0" />
-                    <span className={`font-mono truncate ${index === selectedFileIndex ? 'text-brand-700 font-semibold' : 'text-slate-700'}`}>
+                    <FileCode className="w-3.5 h-3.5 text-[#0652CC] flex-shrink-0" />
+                    <span className={`font-mono truncate ${index === selectedFileIndex ? 'text-[#0652CC] font-semibold' : 'text-slate-700'}`}>
                       {file.relativePath}
                     </span>
                   </span>
@@ -266,8 +266,8 @@ export const ResultInspectionPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-100">
-        <Button variant="outline" onClick={handleReRunValidator} isLoading={validating} className="space-x-1.5 text-xs font-semibold">
+      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-[#E5EAF0]">
+        <Button variant="outline" onClick={handleReRunValidator} isLoading={validating} className="space-x-1.5 text-xs font-semibold rounded-md">
           <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
           <span>Re-run Validation Engine</span>
         </Button>
@@ -276,9 +276,9 @@ export const ResultInspectionPage: React.FC = () => {
           <Button
             variant="outline"
             onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
-            className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
+            className="space-x-1.5 text-xs font-bold border-[#B3D4FF] text-[#0652CC] bg-[#E8F1FF] hover:bg-[#D0E2FF] rounded-md"
           >
-            <Eye className="w-3.5 h-3.5 text-brand-600" />
+            <Eye className="w-3.5 h-3.5 text-[#0652CC]" />
             <span>Open UI Screen Preview</span>
           </Button>
           <Button
@@ -290,14 +290,14 @@ export const ResultInspectionPage: React.FC = () => {
                   : ROUTES.PROJECTS.MAPPING(projectId, screenId),
               )
             }
-            className="space-x-1.5 text-xs font-semibold"
+            className="space-x-1.5 text-xs font-semibold rounded-md"
           >
             <Sliders className="w-3.5 h-3.5" />
             <span>{screen?.sourceType === 'COBOL' ? 'Edit Method Mapping' : 'Edit Field Mapping'}</span>
           </Button>
           <Button
             onClick={() => navigate(ROUTES.PROJECTS.QUALITY_REVIEW(projectId, screenId))}
-            className="space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white"
+            className="space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-md"
           >
             <span>Review Initial Quality &rarr;</span>
           </Button>

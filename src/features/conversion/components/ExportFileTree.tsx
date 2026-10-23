@@ -140,7 +140,7 @@ export const ExportFileTree: React.FC<ExportFileTreeProps> = ({ files }) => {
         <span className="text-[11px] text-slate-400">Click any file to preview</span>
       </div>
 
-      <div className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 max-h-[380px] overflow-y-auto font-mono text-xs shadow-inner">
+      <div className="bg-slate-950 border border-slate-800 rounded-lg p-3.5 max-h-[380px] overflow-y-auto font-mono text-xs shadow-inner">
         {files.map((file) => (
           <TreeItem
             key={file.path}
@@ -165,7 +165,7 @@ export const ExportFileTree: React.FC<ExportFileTreeProps> = ({ files }) => {
                   variant="outline"
                   size="sm"
                   onClick={handleCopy}
-                  className="space-x-1 text-xs py-1 px-2.5 h-auto"
+                  className="space-x-1 text-xs py-1 px-2.5 h-auto rounded-md"
                 >
                   {copied ? (
                     <>
@@ -182,7 +182,7 @@ export const ExportFileTree: React.FC<ExportFileTreeProps> = ({ files }) => {
               </div>
             </div>
 
-            <div className="bg-slate-950 text-slate-200 p-4 rounded-xl font-mono text-xs overflow-x-auto max-h-[420px] overflow-y-auto leading-relaxed border border-slate-800 shadow-inner">
+            <div className="bg-slate-950 text-slate-200 p-4 rounded-lg font-mono text-xs overflow-x-auto max-h-[420px] overflow-y-auto leading-relaxed border border-slate-800 shadow-inner">
               <pre>
                 <code>{previewItem.content}</code>
               </pre>

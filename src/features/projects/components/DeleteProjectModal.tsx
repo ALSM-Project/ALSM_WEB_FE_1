@@ -89,19 +89,19 @@ export const DeleteProjectModal: React.FC<DeleteProjectModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/50 backdrop-blur-[2px] flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
       style={{ zIndex: 999999 }}
       onClick={onClose}
     >
       <div
-        className="relative bg-white border border-[#D9E2EC] rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 space-y-5 my-auto overflow-hidden animate-scaleUp"
+        className="relative bg-white border border-[#D9E2EC] rounded-xl shadow-xl w-full max-w-md p-6 sm:p-8 space-y-5 my-auto overflow-hidden animate-scaleUp"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header with Warning Icon */}
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5.5 h-5.5" />
+            <div className="w-10 h-10 rounded-lg bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-lg font-bold text-[#091E42] tracking-tight">
@@ -115,25 +115,25 @@ export const DeleteProjectModal: React.FC<DeleteProjectModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#6B778C] hover:text-[#091E42] hover:bg-[#F7F9FC] transition-colors"
+            className="p-1.5 rounded-md text-[#6B778C] hover:text-[#091E42] hover:bg-[#F7F9FC] transition-colors"
             title="Close modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <p className="text-xs text-[#42526E] leading-relaxed bg-[#F7F9FC] p-3.5 rounded-xl border border-[#D9E2EC]">
+        <p className="text-xs text-[#42526E] leading-relaxed bg-[#F7F9FC] p-3.5 rounded-lg border border-[#D9E2EC]">
           This project will be soft-deleted and archived. All screen conversion files and field mappings associated with <strong className="text-[#091E42] font-semibold">{confirmName || 'this project'}</strong> will be hidden.
         </p>
 
         {successMsg && (
-          <div className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] px-4 py-2.5 rounded-xl text-xs font-semibold">
+          <div className="bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] px-4 py-2.5 rounded-md text-xs font-semibold">
             {successMsg}
           </div>
         )}
 
         {error && (
-          <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-2.5 rounded-xl text-xs font-semibold">
+          <div className="bg-[#FEF3F2] border border-[#FECDCA] text-[#D92D20] px-4 py-2.5 rounded-md text-xs font-semibold">
             {error}
           </div>
         )}
@@ -158,7 +158,7 @@ export const DeleteProjectModal: React.FC<DeleteProjectModalProps> = ({
               type="button"
               variant="secondary"
               onClick={onClose}
-              className="text-xs px-4 py-2 font-medium"
+              className="text-xs px-4 py-2 font-medium rounded-md"
             >
               Cancel
             </Button>
@@ -166,7 +166,7 @@ export const DeleteProjectModal: React.FC<DeleteProjectModalProps> = ({
               type="submit"
               isLoading={loading}
               disabled={!isConfirmed}
-              className="bg-[#D92D20] hover:bg-[#B71C1C] disabled:bg-slate-300 text-white text-xs px-5 py-2 font-bold shadow-xs space-x-1.5 disabled:cursor-not-allowed"
+              className="bg-[#D92D20] hover:bg-[#B71C1C] disabled:bg-slate-300 text-white text-xs px-5 py-2 font-bold shadow-xs space-x-1.5 disabled:cursor-not-allowed rounded-md"
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete Project</span>
