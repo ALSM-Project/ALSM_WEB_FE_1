@@ -11,6 +11,8 @@ import { DocsPage, WorkspaceDocsPage } from '@/features/docs';
 
 import {
   ProfileInfoPage,
+  CompanyLegalProfilePage,
+  CustomerContractsPage,
   PreferencesPage,
   ChangePasswordPage,
   TwoFactorAuthenticationPage,
@@ -39,7 +41,15 @@ import {
 import { WorkspaceContactPage } from '@/features/contact';
 import { DiagnosticsPage } from '@/features/diagnostics';
 import { Web1WorkspacePreview } from '@/features/preview/Web1WorkspacePreview';
-import { InvoicesPage, RequestEnterprisePage, TrialActivationPage, UsageStatsPage } from '@/features/billing';
+import {
+  RequestEnterprisePage,
+  TrialActivationPage,
+  UsageStatsPage,
+  ContractDetailPage,
+  ContractPreviewPage,
+  InvoicesPage,
+  InvoicePaymentCheckoutPage,
+} from '@/features/billing';
 
 export const router = createBrowserRouter([
   { path: '/auth/password-callback', element: <PasswordCallbackPage /> },
@@ -51,6 +61,10 @@ export const router = createBrowserRouter([
       { path: '/faq', element: <FaqPage /> },
       { path: '/docs', element: <DocsPage /> },
       { path: '/contact', element: <ContactPage /> },
+      { path: '/public/contracts/:contractId/sign', element: <ContractDetailPage /> },
+      { path: '/public/contracts/:contractId', element: <ContractDetailPage /> },
+      { path: '/public/billing/invoices/:invoiceId/pay', element: <InvoicePaymentCheckoutPage /> },
+      { path: '/public/billing/contracts/:contractId/pay', element: <ContractDetailPage /> },
     ],
   },
 
@@ -82,12 +96,17 @@ export const router = createBrowserRouter([
           { path: '/projects', element: <ProjectsListPage /> },
           { path: '/projects/:projectId', element: <ProjectOverviewPage /> },
 
-          // Account Security Nested Subroutes
+          // Organization Profile
+          { path: '/organization/profile', element: <CompanyLegalProfilePage /> },
+
+          // Account Security Nested Subroutes (Profile, Preferences, Passwords, etc.)
           {
             element: <AccountSettingsLayout />,
             children: [
               { path: '/account', element: <Navigate to="/account/profile" replace /> },
               { path: '/account/profile', element: <ProfileInfoPage /> },
+              { path: '/account/company', element: <CompanyLegalProfilePage /> },
+              { path: '/account/company-profile', element: <CompanyLegalProfilePage /> },
               { path: '/account/preferences', element: <PreferencesPage /> },
               { path: '/account/security', element: <Navigate to="/account/security/password" replace /> },
               { path: '/account/security/password', element: <ChangePasswordPage /> },
@@ -95,6 +114,16 @@ export const router = createBrowserRouter([
               { path: '/account/security/sessions', element: <ActiveSessionsPage /> },
             ],
           },
+
+          // Enterprise Contracts Management & Unified Contract Details / Signing / Payment View
+          { path: '/account/contracts', element: <Navigate to="/contracts" replace /> },
+          { path: '/account/contracts/:contractId', element: <ContractDetailPage /> },
+          { path: '/account/contracts/:contractId/preview', element: <ContractPreviewPage /> },
+          { path: '/account/contracts/:contractId/sign', element: <ContractDetailPage /> },
+          { path: '/contracts', element: <CustomerContractsPage /> },
+          { path: '/contracts/:contractId', element: <ContractDetailPage /> },
+          { path: '/contracts/:contractId/preview', element: <ContractPreviewPage /> },
+          { path: '/contracts/:contractId/sign', element: <ContractDetailPage /> },
 
           // Project & Conversion Pipeline Routes
           { path: '/projects/new', element: <CreateProjectPage /> },
@@ -119,11 +148,14 @@ export const router = createBrowserRouter([
           { path: '/projects/:projectId/diagnostics', element: <DiagnosticsPage /> },
           { path: '/projects/:projectId/delete', element: <DeleteProjectPage /> },
 
-          // Billing & Enterprise Upgrade Routes (UC-32 & UC-35) & Invoices
+          // Billing & Enterprise Upgrade Routes (UC-32 & UC-35)
           { path: '/billing/usage', element: <UsageStatsPage /> },
           { path: '/billing/upgrade', element: <RequestEnterprisePage /> },
           { path: '/billing/trial', element: <TrialActivationPage /> },
           { path: '/billing/invoices', element: <InvoicesPage /> },
+          { path: '/billing/invoices/:invoiceId', element: <InvoicesPage /> },
+          { path: '/billing/invoices/:invoiceId/pay', element: <InvoicePaymentCheckoutPage /> },
+          { path: '/billing/contracts/:contractId/pay', element: <ContractDetailPage /> },
         ],
       },
     ],
