@@ -5,6 +5,7 @@ import { tokenStore } from '@/services/api/tokenStore';
 import type { AuthState, LoginCredentials, RegisterData, RegisterResponse, User } from '@/features/auth/types/auth';
 
 interface AuthContextType extends AuthState {
+  token?: string | null;
   login: (credentials: LoginCredentials) => Promise<User | null>;
   register: (data: RegisterData) => Promise<RegisterResponse>;
   verifyEmail: (email: string, code: string) => Promise<User | null>;
@@ -49,9 +50,11 @@ export function isUserStaffOrAdmin(u: User | null | undefined): boolean {
  */
 export function isUserPartner(u: User | null | undefined): boolean {
   if (!u) return false;
+  if (u.hasWeb3Access) return true;
   const roles = (u.roles || []).map((r) => String(r).toUpperCase());
   const role = (u.role || '').toUpperCase();
-  return role === 'PARTNER' || roles.includes('PARTNER');
+  const partnerRoles = ['PARTNER', 'ORGANIZATION_OWNER', 'ENTERPRISE_CUSTOMER'];
+  return partnerRoles.includes(role) || roles.some((r) => partnerRoles.includes(r));
 }
 
 /**
@@ -70,6 +73,23 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
       const params = new URLSearchParams(window.location.search);
       const returnTo = params.get("returnTo");
       if (returnTo && (returnTo.startsWith("http://") || returnTo.startsWith("https://"))) {
+        // If returnTo points to Web 3 (Partner Portal), ONLY redirect if user is actually a partner or staff/admin
+        if (returnTo.includes('3003') || returnTo.includes('web3')) {
+          if (isUserPartner(u) || isUserStaffOrAdmin(u) || u.hasWeb3Access) {
+            return returnTo;
+          }
+          // Standard customer without Web 3 access must stay in Web 1!
+          return null;
+        }
+
+        // If returnTo points to Web 2 (Staff Portal), ONLY redirect if user is staff/admin
+        if (returnTo.includes('3002') || returnTo.includes('staff')) {
+          if (isUserStaffOrAdmin(u)) {
+            return returnTo;
+          }
+          return null;
+        }
+
         return returnTo;
       }
     } catch {
@@ -77,8 +97,8 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
     }
   }
 
-  // 2. PARTNER role -> redirect to Web 3
-  if (isUserPartner(u)) {
+  // 2. PARTNER role or has Web 3 access -> redirect to Web 3
+  if (isUserPartner(u) || u.hasWeb3Access) {
     const web3Url = import.meta.env.VITE_WEB3_PORTAL_URL || "http://localhost:3003";
     return `${web3Url}/auth/callback`;
   }
@@ -97,10 +117,10 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
  * Clears FE1 tokens so that on any back-navigation FE1 won't loop.
  * For Web 3, passes tokens in URL hash fragment so secrets never enter query strings or server logs.
  */
-export function redirectUserToPortal(targetUrl?: string | null): void {
+export async function redirectUserToPortal(targetUrl?: string | null): Promise<void> {
   const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || "http://localhost:3002";
   const target = targetUrl || `${staffUrl}/auth/callback`;
-  void tokenStore.handoff(({ accessToken, refreshToken }) => {
+  await tokenStore.handoff(({ accessToken, refreshToken }) => {
     if (target.includes('3003') || target.includes('web3')) {
       window.location.href = `${target}#access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
     } else {
@@ -176,7 +196,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
     const targetHandoff = getTargetHandoffUrl(loggedInUser);
     if (targetHandoff) {
-      redirectAdminToStaffPortal(targetHandoff);
+      await redirectAdminToStaffPortal(targetHandoff);
       return loggedInUser;
     }
 
@@ -192,7 +212,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     const verifiedUser = await authService.verifyEmail(email, code);
     const targetHandoff = getTargetHandoffUrl(verifiedUser);
     if (targetHandoff) {
-      redirectAdminToStaffPortal(targetHandoff);
+      await redirectAdminToStaffPortal(targetHandoff);
       return verifiedUser;
     }
     setUser(verifiedUser);
@@ -208,7 +228,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
     const targetHandoff = getTargetHandoffUrl(loggedInUser);
     if (targetHandoff) {
-      redirectUserToPortal(targetHandoff);
+      await redirectUserToPortal(targetHandoff);
       return loggedInUser;
     }
 
@@ -225,11 +245,14 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           // ignore
         }
       }
-      await authService.logout();
+      try {
+        await authService.logout();
+      } catch (err) {
+        console.warn('Backend session revocation failed, proceeding with client cleanup:', err);
+      }
+    } finally {
+      tokenStore.clear();
       setUser(null);
-    } catch (error) {
-      window.alert('Sign out could not be confirmed. Please try Sign Out again.');
-      throw error;
     }
   }, []);
 
@@ -251,6 +274,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         isAuthenticated: !!user,
         isLoading,
+        error: null,
         token: tokenStore.getAccessToken(),
         login: handleLogin,
         register: handleRegister,
