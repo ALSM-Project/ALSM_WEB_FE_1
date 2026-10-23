@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
+import { toast } from '@/shared/ui';
 import { useCommandPalette } from '../../hooks/useCommandPalette';
 import './CommandPaletteModal.css';
 
@@ -35,7 +36,7 @@ export const CommandPaletteModal: React.FC = () => {
     } else if (cmd.data?.route) {
       window.location.href = cmd.data.route;
     } else {
-      alert(`Đã thực thi lệnh: ${cmd.label}`);
+      toast.info(`Executed command: ${cmd.label}`);
     }
   };
 
@@ -51,7 +52,7 @@ export const CommandPaletteModal: React.FC = () => {
           <input
             type="text"
             className="command-palette-input"
-            placeholder="Nhập lệnh hoặc từ khóa (ví dụ: BMS, Project, Mapping, Convert)..."
+            placeholder="Type a command or keyword (e.g. BMS, Project, Mapping, Convert)..."
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoFocus
@@ -60,9 +61,9 @@ export const CommandPaletteModal: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="command-palette-empty">Đang tìm kiếm...</div>
+          <div className="command-palette-empty">Searching...</div>
         ) : commands.length === 0 ? (
-          <div className="command-palette-empty">Không tìm thấy lệnh phù hợp</div>
+          <div className="command-palette-empty">No matching command found</div>
         ) : (
           <ul className="command-palette-list">
             {commands.map((cmd, idx) => (
