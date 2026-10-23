@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { User } from '@/features/auth/types/auth';
 import { AppProviders, useAuth } from './providers';
 
@@ -76,11 +77,21 @@ function LoginAction({ google = false }: { google?: boolean }) {
   return <button onClick={() => { void (google ? auth.loginWithGoogle('fixture-google-token') : auth.login({ email: 'staff@example.invalid', password: 'test-only' })); }}>Fixture sign in</button>;
 }
 
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  });
+
 function renderWithProviders() {
+  const queryClient = createTestQueryClient();
   return render(
-    <AppProviders>
-      <AuthStatus />
-    </AppProviders>,
+    <QueryClientProvider client={queryClient}>
+      <AppProviders>
+        <AuthStatus />
+      </AppProviders>
+    </QueryClientProvider>,
   );
 }
 
@@ -207,6 +218,7 @@ describe('AppProviders authentication bootstrap', () => {
     await vi.waitFor(() => {
       expect(mocks.handoff).toHaveBeenCalled();
     });
+  });
 
   it.each([
     { roles: ['CONVERSION_STAFF'] },
@@ -219,7 +231,12 @@ describe('AppProviders authentication bootstrap', () => {
     { isPlatformAdmin: true },
   ])('uses the existing secure handoff after authenticated staff login: %j', async (identity) => {
     mocks.login.mockResolvedValue({ ...authenticatedUser, ...identity });
-    render(<AppProviders><LoginAction /></AppProviders>);
+    const queryClient = createTestQueryClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AppProviders><LoginAction /></AppProviders>
+      </QueryClientProvider>
+    );
     await act(async () => { screen.getByRole('button', { name: 'Fixture sign in' }).click(); });
     expect(mocks.handoff).toHaveBeenCalledTimes(1);
     expect(mocks.clearTokens).not.toHaveBeenCalled();
@@ -227,14 +244,24 @@ describe('AppProviders authentication bootstrap', () => {
 
   it('also hands off an authenticated Conversion Staff Google session', async () => {
     mocks.loginWithGoogle.mockResolvedValue({ ...authenticatedUser, roles: ['CONVERSION_STAFF'] });
-    render(<AppProviders><LoginAction google /></AppProviders>);
+    const queryClient = createTestQueryClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AppProviders><LoginAction google /></AppProviders>
+      </QueryClientProvider>
+    );
     await act(async () => { screen.getByRole('button', { name: 'Fixture sign in' }).click(); });
     expect(mocks.handoff).toHaveBeenCalledTimes(1);
   });
 
   it.each([{ role: 'USER' }, { roles: ['CUSTOMER'] }, { roles: ['CONVERSION_STAFF_LOOKALIKE'] }, null])('does not hand off a non-staff or unauthenticated login result: %j', async (identity) => {
     mocks.login.mockResolvedValue(identity ? { ...authenticatedUser, ...identity } : null);
-    render(<AppProviders><LoginAction /></AppProviders>);
+    const queryClient = createTestQueryClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AppProviders><LoginAction /></AppProviders>
+      </QueryClientProvider>
+    );
     await act(async () => { screen.getByRole('button', { name: 'Fixture sign in' }).click(); });
     expect(mocks.handoff).not.toHaveBeenCalled();
   });
