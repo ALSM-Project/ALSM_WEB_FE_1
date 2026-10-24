@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { useNavigation } from '@/hooks/useNavigation';
 import { SidebarItem } from './SidebarItem';
 import { ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
-import { useAuth } from '@/app/providers';
 import type { MenuItem } from '@/features/menus/types/menu';
 import { ROUTES } from '@/shared/constants/routes';
 
@@ -26,27 +25,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onLogout,
 }) => {
   const { sidebarNav, loading } = useNavigation();
-  const { user } = useAuth();
 
   // Dynamically group items into sections
   const sections = useMemo(() => {
     const result: NavSection[] = [];
     const mainItems: MenuItem[] = [];
+    const sectionOrderMap = new Map<string, number>();
+    sectionOrderMap.set('MAIN', 1);
 
     for (const item of sidebarNav) {
       if (item.isVisible === false) continue;
 
-      // Account group or items: unpack children directly under ACCOUNT section header (no redundant "Account" item inside "ACCOUNT")
-      const isAccountGroup =
-        item.category === 'ACCOUNT' ||
-        item.id === 'settings' ||
-        item.id.includes('group_account') ||
-        item.label.toLowerCase() === 'account';
+      // Service group or items: unpack children directly under SERVICE section header
+      const isServiceGroup =
+        item.category === 'SERVICE' ||
+        item.id === 'service-group' ||
+        item.id === 'web1_group_service' ||
+        item.label.toLowerCase() === 'service';
 
-      if (isAccountGroup && item.children && item.children.length > 0) {
-        let existing = result.find((s) => s.title === 'ACCOUNT');
+      if (isServiceGroup && item.children && item.children.length > 0) {
+        sectionOrderMap.set('SERVICE', item.order ?? 5);
+        let existing = result.find((s) => s.title === 'SERVICE');
         if (!existing) {
-          existing = { title: 'ACCOUNT', items: [] };
+          existing = { title: 'SERVICE', items: [] };
           result.push(existing);
         }
         for (const child of item.children) {
@@ -57,9 +58,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
             existing.items.push(child);
           }
         }
-      } else if (isAccountGroup) {
-        // Only push if it has an actual navigable route (never push container group itself)
+      } else if (isServiceGroup) {
         if (item.path && item.path !== '#') {
+          sectionOrderMap.set('SERVICE', item.order ?? 5);
+          let existing = result.find((s) => s.title === 'SERVICE');
+          if (!existing) {
+            existing = { title: 'SERVICE', items: [] };
+            result.push(existing);
+          }
+          if (!existing.items.some((i) => i.id === item.id || (i.path && item.path && i.path === item.path))) {
+            existing.items.push(item);
+          }
+        }
+      } else if (
+        item.category === 'ACCOUNT' ||
+        item.id === 'settings' ||
+        item.id.includes('group_account') ||
+        item.label.toLowerCase() === 'account'
+      ) {
+        sectionOrderMap.set('ACCOUNT', item.order ?? 7);
+        if (item.children && item.children.length > 0) {
+          let existing = result.find((s) => s.title === 'ACCOUNT');
+          if (!existing) {
+            existing = { title: 'ACCOUNT', items: [] };
+            result.push(existing);
+          }
+          for (const child of item.children) {
+            if (
+              child.isVisible !== false &&
+              !existing.items.some((i) => i.id === child.id || (i.path && child.path && i.path === child.path))
+            ) {
+              existing.items.push(child);
+            }
+          }
+        } else if (item.path && item.path !== '#') {
+          // Only push if it has an actual navigable route (never push container group itself)
           let existing = result.find((s) => s.title === 'ACCOUNT');
           if (!existing) {
             existing = { title: 'ACCOUNT', items: [] };
@@ -70,15 +103,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }
         }
       } else if ((!item.path || item.path === '#') && item.children && item.children.length > 0) {
-        // Top-level custom group with children and without direct path
-        result.push({
-          title: item.label.toUpperCase(),
-          items: item.children.filter((c) => c.isVisible !== false),
-        });
-      } else if (item.category && item.category !== 'MAIN') {
-        let existing = result.find((s) => s.title === item.category);
+        // Top-level custom group with children and without direct path (e.g. RESOURCES or custom group)
+        const groupTitle = item.label.toUpperCase();
+        sectionOrderMap.set(groupTitle, item.order ?? 6);
+        let existing = result.find((s) => s.title === groupTitle);
         if (!existing) {
-          existing = { title: item.category, items: [] };
+          existing = { title: groupTitle, items: [] };
+          result.push(existing);
+        }
+        for (const child of item.children) {
+          if (
+            child.isVisible !== false &&
+            !existing.items.some((i) => i.id === child.id || (i.path && child.path && i.path === child.path))
+          ) {
+            existing.items.push(child);
+          }
+        }
+      } else if (item.category && item.category !== 'MAIN') {
+        const groupTitle = item.category.toUpperCase();
+        if (!sectionOrderMap.has(groupTitle)) {
+          sectionOrderMap.set(groupTitle, item.order ?? 6);
+        }
+        let existing = result.find((s) => s.title === groupTitle);
+        if (!existing) {
+          existing = { title: groupTitle, items: [] };
           result.push(existing);
         }
         if (!existing.items.some((i) => i.id === item.id || (i.path && item.path && i.path === item.path))) {
@@ -91,6 +139,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }
     }
 
+    // Sort main items strictly by order
+    mainItems.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
     if (mainItems.length > 0) {
       result.unshift({
         title: 'MAIN',
@@ -98,19 +149,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       });
     }
 
-    // Canonical ordering: MAIN -> Custom Groups (e.g. ENTERPRISE ORGANISATION) -> RESOURCES (Documents) -> ACCOUNT
-    const customGroups = Array.from(
-      new Set(
-        result
-          .map((s) => s.title)
-          .filter((t) => t !== 'MAIN' && t !== 'RESOURCES' && t !== 'ACCOUNT')
-      )
-    );
-    const fullOrder = ['MAIN', ...customGroups, 'RESOURCES', 'ACCOUNT'];
+    // Sort items inside EVERY section strictly by item.order
+    for (const section of result) {
+      section.items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
 
-    return fullOrder
-      .map((title) => result.find((s) => s.title === title))
-      .filter((s): s is NavSection => Boolean(s && s.items.length > 0));
+    // Section ordering priority: WORKSPACE (1) -> MAIN (2) -> ORGANIZATION (3) -> CONTRACT & BILLING (4) -> COLLABORATION (5) -> ACCOUNT (7)
+    const getSectionPriority = (title: string): number => {
+      if (title === 'WORKSPACE') return 1;
+      if (title === 'MAIN') return 2;
+      if (title === 'ORGANIZATION') return 3;
+      if (title === 'CONTRACT & BILLING' || title === 'SERVICE') return 4;
+      if (title === 'COLLABORATION') return 5;
+      if (sectionOrderMap.has(title)) return sectionOrderMap.get(title)!;
+      if (title === 'RESOURCES') return 6;
+      if (title === 'ACCOUNT') return 7;
+      return 10;
+    };
+
+    result.sort((a, b) => getSectionPriority(a.title) - getSectionPriority(b.title));
+
+    return result.filter((s) => s.items.length > 0);
   }, [sidebarNav]);
 
   const renderSection = (title: string, items: MenuItem[]) => {
@@ -167,7 +226,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                hover:bg-[#EFF6FF]
                transition-colors cursor-pointer"
           title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-          aria-label={isCollapsed ? 'Mở rộng thanh điều hướng' : 'Thu gọn thanh điều hướng'}
+          aria-label={isCollapsed ? 'Expand navigation sidebar' : 'Collapse navigation sidebar'}
         >
           {isCollapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -186,21 +245,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
       </nav>
 
-      {/* Bottom Sidebar Footer: User Avatar & Sign Out */}
-      <footer className="p-3 border-t border-[#E2E8F0] flex flex-col space-y-2 shrink-0">
-        {!isCollapsed && (
-          <div className="flex items-center space-x-2.5 px-2 py-1.5 w-full min-w-0 overflow-hidden">
-            <div className="w-8 h-8 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] font-bold text-xs flex items-center justify-center shrink-0">
-              {user?.fullName ? user.fullName.charAt(0).toUpperCase() : (user?.email ? user.email.charAt(0).toUpperCase() : 'U')}
-            </div>
-            <div className="flex-1 w-0 min-w-0 overflow-hidden">
-              <p className="text-sm font-bold text-[#0F172A] truncate leading-tight">{user?.fullName || user?.email?.split('@')[0] || 'User Account'}</p>
-              <p className="text-xs font-normal text-[#64748B] truncate leading-tight mt-0.5 block overflow-hidden" title={user?.email || 'partner@alsm.io'}>
-                {user?.email ? (user.email.length > 22 ? `${user.email.slice(0, 19)}...` : user.email) : 'partner@alsm.io'}
-              </p>
-            </div>
-          </div>
-        )}
+      {/* Bottom Sidebar Footer: Sign Out */}
+      <footer className="p-3 border-t border-[#E2E8F0] shrink-0">
         <button
           type="button"
           onClick={onLogout}
