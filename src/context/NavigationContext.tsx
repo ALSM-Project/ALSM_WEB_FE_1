@@ -8,24 +8,10 @@ import {
   insertItemInTree,
 } from '@/features/menus/utils/navigationTreeUtils';
 import { apiClient } from '@/services/api/apiClient';
+import { tokenStore } from '@/services/api/tokenStore';
+import { useNavigationQuery, type BackendNavItem } from '@/features/navigation/hooks/useNavigationQuery';
 
-export interface BackendNavItem {
-  id: string;
-  key: string;
-  application: string;
-  label: string;
-  type: string;
-  icon: string;
-  route: string | null;
-  parentId: string | null;
-  order: number;
-  visibility: boolean;
-  status: string;
-  requiredPermissions: string[];
-  openInNewTab?: boolean;
-  hideParentLabel?: boolean;
-  children?: BackendNavItem[];
-}
+export type { BackendNavItem };
 
 /**
  * Authoritative static Document navigation items (PoC / Web 1 baseline).
@@ -61,12 +47,45 @@ export const STATIC_RESOURCE_DOCS: MenuItem[] = [
   },
   {
     id: 'contact',
-    label: 'Contact & Upgrade',
-    icon: 'Mail',
+    label: 'Contact & Support',
+    icon: 'Headphones',
     path: '/workspace/contact',
     isVisible: true,
     order: 63,
     category: 'RESOURCES',
+  },
+];
+
+/**
+ * Authoritative static Service navigation items (Service Group).
+ */
+export const STATIC_SERVICE_ITEMS: MenuItem[] = [
+  {
+    id: 'service-usage',
+    label: 'Service Usage & Quotas',
+    icon: 'Activity',
+    path: '/billing/usage',
+    isVisible: true,
+    order: 50,
+    category: 'SERVICE',
+  },
+  {
+    id: 'contract-subscription',
+    label: 'Contract & Subscription',
+    icon: 'FileText',
+    path: '/contracts',
+    isVisible: true,
+    order: 51,
+    category: 'SERVICE',
+  },
+  {
+    id: 'invoices',
+    label: 'Invoices',
+    icon: 'Receipt',
+    path: '/billing/invoices',
+    isVisible: true,
+    order: 52,
+    category: 'SERVICE',
   },
 ];
 
@@ -157,12 +176,34 @@ export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuI
   const merged: MenuItem[] = [...dynamicItems];
 
   // 2. Add static Document entries if not explicitly overridden by dynamic items
-  for (const doc of STATIC_RESOURCE_DOCS) {
-    const hasDuplicate =
-      dynamicIds.has(doc.id.toLowerCase()) ||
-      (doc.path && dynamicPaths.has(doc.path.toLowerCase()));
-    if (!hasDuplicate) {
-      merged.push({ ...doc });
+  const hasDynamicResources = dynamicItems.some(
+    (item) =>
+      item.category === 'RESOURCES' ||
+      item.id?.includes('resource') ||
+      item.id?.includes('docs') ||
+      item.id?.includes('guide') ||
+      item.id === 'docs' ||
+      item.id === 'user-guide' ||
+      item.id === 'modernization-guide' ||
+      item.id === 'contact' ||
+      (item.children &&
+        item.children.some(
+          (c) =>
+            c.category === 'RESOURCES' ||
+            c.id?.includes('docs') ||
+            c.id?.includes('guide') ||
+            c.path?.includes('/workspace/docs'),
+        )),
+  );
+
+  if (!hasDynamicResources) {
+    for (const doc of STATIC_RESOURCE_DOCS) {
+      const hasDuplicate =
+        dynamicIds.has(doc.id.toLowerCase()) ||
+        (doc.path && dynamicPaths.has(doc.path.toLowerCase()));
+      if (!hasDuplicate) {
+        merged.push({ ...doc });
+      }
     }
   }
 
@@ -182,6 +223,27 @@ export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuI
         (acc.path && dynamicPaths.has(acc.path.toLowerCase()));
       if (!hasDuplicate) {
         merged.push({ ...acc });
+      }
+    }
+  }
+
+  // 4. Add static Service entries if not explicitly provided by dynamic backend items
+  const hasDynamicService = dynamicItems.some(
+    (item) =>
+      item.category === 'SERVICE' ||
+      item.id?.includes('service') ||
+      item.id?.includes('contract') ||
+      item.path === '/contracts' ||
+      item.path === '/billing/usage'
+  );
+
+  if (!hasDynamicService) {
+    for (const s of STATIC_SERVICE_ITEMS) {
+      const hasDuplicate =
+        dynamicIds.has(s.id.toLowerCase()) ||
+        (s.path && dynamicPaths.has(s.path.toLowerCase()));
+      if (!hasDuplicate) {
+        merged.push({ ...s });
       }
     }
   }
@@ -212,15 +274,43 @@ export interface NavigationContextType {
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
-function mapBackendNodeToMenuItem(node: BackendNavItem): MenuItem {
-  let category: 'MAIN' | 'RESOURCES' | 'ACCOUNT' | undefined;
+function mapBackendNodeToMenuItem(
+  node: BackendNavItem,
+  parentCategory?: 'MAIN' | 'SERVICE' | 'RESOURCES' | 'ACCOUNT'
+): MenuItem {
+  let category: 'MAIN' | 'SERVICE' | 'RESOURCES' | 'ACCOUNT' | undefined = parentCategory;
   const k = (node.key || '').toLowerCase();
   const id = (node.id || '').toLowerCase();
-  if (k.includes('resource') || id.includes('resource') || id.includes('docs') || id.includes('guide') || id.includes('contact')) {
+  const l = (node.label || '').toLowerCase();
+
+  if (
+    k.includes('resource') ||
+    id.includes('resource') ||
+    id.includes('docs') ||
+    id.includes('guide') ||
+    id.includes('contact') ||
+    l.includes('resource') ||
+    l.includes('documentation')
+  ) {
     category = 'RESOURCES';
-  } else if (k.includes('account') || id.includes('account') || id.includes('security') || id.includes('settings')) {
+  } else if (
+    k.includes('account') ||
+    id.includes('account') ||
+    id.includes('security') ||
+    id.includes('settings') ||
+    l.includes('account')
+  ) {
     category = 'ACCOUNT';
-  } else {
+  } else if (
+    k.includes('service') ||
+    id.includes('service') ||
+    id.includes('usage') ||
+    id.includes('contract') ||
+    id.includes('upgrade') ||
+    l.includes('service')
+  ) {
+    category = 'SERVICE';
+  } else if (!category) {
     category = 'MAIN';
   }
 
@@ -236,40 +326,58 @@ function mapBackendNodeToMenuItem(node: BackendNavItem): MenuItem {
     category,
     children:
       node.children && node.children.length > 0
-        ? node.children.map(mapBackendNodeToMenuItem)
+        ? node.children.map((c) => mapBackendNodeToMenuItem(c, category))
         : undefined,
   };
 }
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const isAuth = !!tokenStore.getAccessToken();
+  const { data: backendNavNodes, isLoading, refetch } = useNavigationQuery('WEB_1', isAuth);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [sidebarNav, setSidebarNav] = useState<MenuItem[]>(() =>
     mergeDynamicAndStaticNavigation(DEFAULT_SIDEBAR_NAV)
   );
   const [selectedItemId, setSelectedItemId] = useState<string | null>('dashboard');
   const [isDirty, setIsDirty] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
 
-  const fetchRemoteNavigation = useCallback(async () => {
+  // Real-time synchronization: listen for events emitted when Menu Builder modifies items
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'alsm_nav_updated_at') {
+        refetch();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    let channel: BroadcastChannel | null = null;
     try {
-      setLoading(true);
-      const res = await apiClient.get<BackendNavItem[]>('/navigation?application=WEB_1');
-      if (Array.isArray(res) && res.length > 0) {
-        const mapped = res.map(mapBackendNodeToMenuItem);
+      channel = new BroadcastChannel('alsm_navigation_channel');
+      channel.onmessage = () => {
+        refetch();
+      };
+    } catch {}
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      if (channel) channel.close();
+    };
+  }, [refetch]);
+
+  useEffect(() => {
+    if (backendNavNodes && !isDirty) {
+      if (Array.isArray(backendNavNodes) && backendNavNodes.length > 0) {
+        const mapped = backendNavNodes.map((n) => mapBackendNodeToMenuItem(n));
         setSidebarNav(mergeDynamicAndStaticNavigation(mapped));
       } else {
         setSidebarNav(mergeDynamicAndStaticNavigation([]));
       }
-    } catch (e) {
-      console.warn('Could not fetch remote navigation for WEB_1, using fallback:', e);
-      setSidebarNav(mergeDynamicAndStaticNavigation([]));
-    } finally {
-      setLoading(false);
     }
-  }, []);
+  }, [backendNavNodes, isDirty]);
 
-  useEffect(() => {
-    fetchRemoteNavigation();
-  }, [fetchRemoteNavigation]);
+  const handleRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const addItem = useCallback((itemData: Partial<MenuItem>, parentId?: string | null): MenuItem => {
     const newId = itemData.id || `menu-${Date.now()}`;
@@ -419,16 +527,17 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   const saveChanges = useCallback(async () => {
     try {
-      setLoading(true);
-      await apiClient.post('/menus/save', { sidebarNav });
+      setIsSaving(true);
+      await apiClient.post('/menus/save', { sidebarNav, application: 'WEB_1' });
       setIsDirty(false);
+      await refetch();
     } catch (e) {
       console.warn('Backend menu save failed:', e);
       setIsDirty(false);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
-  }, [sidebarNav]);
+  }, [sidebarNav, refetch]);
 
   const trackMenuItemUsage = useCallback(async (itemId: string) => {
     try {
@@ -463,12 +572,14 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     },
   };
 
+  const isNavLoading = isSaving || (isLoading && (!sidebarNav || sidebarNav.length === 0));
+
   return (
     <NavigationContext.Provider
       value={{
         sidebarNav,
         navigation: navigationData,
-        loading,
+        loading: isNavLoading,
         selectedItemId,
         setSelectedItemId,
         addItem,
@@ -483,7 +594,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         trackMenuItemUsage,
         pinMenuItem,
         unpinMenuItem,
-        refreshNavigation: fetchRemoteNavigation,
+        refreshNavigation: handleRefresh,
       }}
     >
       {children}
