@@ -28,12 +28,12 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     if (!node.path) return false;
 
     // Projects menu item only active on exact projects list page (/projects)
-    if (node.id === 'projects') {
+    if (node.id === 'projects' || node.id === 'web1_projects') {
       return currentPath === '/projects' || currentPath === '/projects/';
     }
 
     // Screens menu item active when navigating inside screen workflows
-    if (node.id === 'screens') {
+    if (node.id === 'screens' || node.id === 'web1_screens') {
       return (
         currentPath.includes('/screens') ||
         currentPath.includes('/upload') ||
@@ -45,7 +45,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
       );
     }
 
-    if (node.id === 'conversion') {
+    if (node.id === 'conversion' || node.id === 'web1_conversion') {
       return currentPath.includes('/bulk-convert');
     }
 
@@ -78,11 +78,11 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     : 'pl-11 pr-2.5 justify-between';
 
   const getDynamicPath = (node: MenuItem): string => {
-    if (node.id === 'screens') {
+    if (node.id === 'screens' || node.id === 'web1_screens') {
       const lastProjId = localStorage.getItem('last_active_project_id') || 'proj-acme';
       return `/projects/${lastProjId}/screens`;
     }
-    if (node.id === 'diagnostics') {
+    if (node.id === 'diagnostics' || node.id === 'web1_diagnostics') {
       const lastProjId = localStorage.getItem('last_active_project_id') || 'proj-acme';
       return `/projects/${lastProjId}/diagnostics`;
     }
@@ -148,7 +148,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           </div>
           {!isCollapsed && item.badge && (
             <span
-              className="text-xs px-2 py-0.5 rounded-full text-white font-bold shrink-0 ml-1.5"
+              className="text-xs px-2.5 py-1 rounded-full text-white font-bold shrink-0 ml-1.5"
               style={{ backgroundColor: item.badgeColor || '#2563EB' }}
             >
               {item.badge}
