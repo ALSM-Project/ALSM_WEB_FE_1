@@ -109,6 +109,15 @@ export const ProfileInfoPage: React.FC = () => {
                   placeholder="e.g. Modernization Lead"
                   icon={<Briefcase className="w-4 h-4 text-slate-500" />}
                 />
+                <div className="sm:col-span-2 pt-1 flex items-center justify-between text-xs bg-slate-50 border border-slate-200 p-3 rounded-lg">
+                  <span className="text-slate-600">Need to verify enterprise Tax ID or update corporate legal details for contracts?</span>
+                  <a
+                    href="/account/company"
+                    className="font-bold text-blue-600 hover:text-blue-700 underline"
+                  >
+                    Open Legal Profile & Tax Lookup →
+                  </a>
+                </div>
               </div>
             </div>
           </form>
@@ -210,7 +219,7 @@ export const ProfileInfoPage: React.FC = () => {
                 className="w-full h-11 bg-white border border-slate-200 text-slate-900 rounded-lg pl-10 pr-3 text-sm focus:outline-none focus:border-blue-600 focus:ring-[3px] focus:ring-blue-100 transition-all shadow-xs"
               >
                 <option value="en">English (United States)</option>
-                <option value="vi">Tiếng Việt (Vietnamese)</option>
+                <option value="vi">Vietnamese</option>
               </select>
             </div>
           </div>
