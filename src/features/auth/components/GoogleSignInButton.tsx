@@ -47,7 +47,11 @@ function loadGisScript(): Promise<void> {
   return scriptLoading;
 }
 
-function initializeGis(clientId: string, callback: (response: { credential?: string }) => void) {
+function initializeGis(
+  clientId: string,
+  callback: (response: { credential?: string }) => void,
+  errorCallback?: (err: unknown) => void
+) {
   if (initializedClientId === clientId && window.google?.accounts?.id) {
     return;
   }
@@ -56,6 +60,9 @@ function initializeGis(clientId: string, callback: (response: { credential?: str
       client_id: clientId,
       callback,
       auto_select: false,
+      error_callback: (err: unknown) => {
+        errorCallback?.(err);
+      },
     });
     initializedClientId = clientId;
   }
@@ -83,11 +90,20 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onCreden
 
     const render = (width: number) => {
       if (cancelled || !containerRef.current || !window.google?.accounts?.id) return;
-      initializeGis(env.googleClientId, (response: { credential?: string }) => {
-        if (response.credential) {
-          onCredentialRef.current(response.credential);
+      initializeGis(
+        env.googleClientId,
+        (response: { credential?: string }) => {
+          if (response.credential) {
+            onCredentialRef.current(response.credential);
+          }
+        },
+        () => {
+          if (!cancelled) {
+            setUnavailable(true);
+            onErrorRef.current?.('Google sign-in is not authorized for this domain.');
+          }
         }
-      });
+      );
       containerRef.current.innerHTML = '';
       const buttonWidth = Math.min(Math.max(Math.floor(width || 380), 200), 400);
       window.google.accounts.id.renderButton(containerRef.current, {
