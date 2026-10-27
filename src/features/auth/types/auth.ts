@@ -21,6 +21,7 @@ export interface User {
   email: string;
   fullName: string;
   isPlatformAdmin?: boolean;
+  hasWeb3Access?: boolean;
   roles?: string[];
   isActive?: boolean;
   hasPassword?: boolean;
@@ -33,7 +34,9 @@ export interface User {
   avatarUrl?: string;
   companyName?: string;
   company?: string;
-  role?: 'ADMIN' | 'ENGINEER' | 'VIEWER' | 'USER';
+  organizationId?: string;
+  organizationName?: string;
+  role?: string;
 }
 
 export interface LoginCredentials {
@@ -51,6 +54,5 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  token: string | null;
+  error: string | null;
 }
-
