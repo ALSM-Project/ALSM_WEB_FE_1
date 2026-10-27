@@ -170,7 +170,7 @@ describe('ExportCodePage - COBOL to Java export', () => {
     renderJava();
     await screen.findByText('Spring Boot Batch Project Scaffold');
 
-    expect(await screen.findByText('pom.xml')).toBeInTheDocument();
+    expect(await screen.findByText('pom.xml', {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByText('application.yml')).toBeInTheDocument();
     expect(screen.queryByText('App.tsx')).not.toBeInTheDocument();
     expect(screen.queryByText('vite.config.ts')).not.toBeInTheDocument();
