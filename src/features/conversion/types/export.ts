@@ -9,7 +9,7 @@ export interface ExportFileItem {
   name: string;
   size: string;
   type: 'file' | 'dir';
-  language?: 'typescript' | 'javascript' | 'json' | 'markdown' | 'html' | 'css' | 'java';
+  language?: 'typescript' | 'javascript' | 'json' | 'markdown' | 'html' | 'css' | 'java' | 'xml' | 'yaml';
   content?: string;
   children?: ExportFileItem[];
 }
@@ -40,3 +40,16 @@ export interface BundleMetrics {
   selectedScreensCount: number;
 }
 
+
+/** Output formats of a Java (COBOL to Java) export. Used by the page only - the API keeps its own formats. */
+export type JavaExportFormat = 'spring-boot-batch' | 'java-sources';
+
+export type JavaVersion = '17' | '21';
+
+export interface JavaExportOptions {
+  format: JavaExportFormat;
+  javaVersion: JavaVersion;
+  includeJUnitTests: boolean;
+  includeEntrypoint: boolean;
+  includeReadme: boolean;
+}
