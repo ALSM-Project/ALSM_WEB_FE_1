@@ -1,6 +1,12 @@
 import JSZip from 'jszip';
 import type { LegacyScreen } from '@/features/screens/types/screen';
-import type { ExportConfiguration, ExportFileItem, BundleMetrics } from '../types/export';
+import type {
+  ExportConfiguration,
+  ExportFileItem,
+  BundleMetrics,
+  JavaExportOptions,
+} from '../types/export';
+import { buildJavaProjectTree } from '../utils/javaExportBundle';
 import { mockConversionResult } from '@/mocks/conversions.mock';
 import { apiClient } from '@/services/api/apiClient';
 
@@ -433,6 +439,41 @@ export class ExportService {
       estimatedSizeKb,
       selectedScreensCount: screensCount,
     };
+  }
+
+  /**
+   * Lays the real generated Java out as a Maven project (or plain source files) for a
+   * COBOL to Java export. `apiTree` is the tree the backend returned for the selection.
+   */
+  buildJavaExportTree(input: {
+    projectName: string;
+    options: JavaExportOptions;
+    apiTree: ExportFileItem[];
+  }): ExportFileItem[] {
+    return buildJavaProjectTree(input);
+  }
+
+  /** Zips a Java export tree in the browser. The backend does not write the Maven build files. */
+  async generateJavaBundle(
+    tree: ExportFileItem[],
+    onProgress?: (percent: number, stepLabel: string) => void,
+  ): Promise<Blob> {
+    const zip = new JSZip();
+    const add = (items: ExportFileItem[], folder: JSZip) => {
+      for (const item of items) {
+        if (item.type === 'dir') {
+          const sub = folder.folder(item.name);
+          if (sub && item.children) add(item.children, sub);
+        } else if (item.content !== undefined) {
+          folder.file(item.name, item.content);
+        }
+      }
+    };
+    onProgress?.(40, 'Packaging the Java project...');
+    add(tree[0]?.children ?? tree, zip);
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+    onProgress?.(100, 'Package generated successfully!');
+    return blob;
   }
 
   /**

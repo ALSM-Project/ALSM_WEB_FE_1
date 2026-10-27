@@ -21,7 +21,10 @@ import type {
   ExportOutputOption,
   FrameworkTarget,
   BundleMetrics,
+  JavaExportOptions,
 } from '../types/export';
+import { countTreeFiles, countTreeLines } from '../utils/javaExportBundle';
+import { JavaExportSettings } from '../components/JavaExportSettings';
 import { ExportScreenSelector } from '../components/ExportScreenSelector';
 import { ExportFileTree } from '../components/ExportFileTree';
 import { ExportProgressModal } from '../components/ExportProgressModal';
@@ -42,6 +45,13 @@ export const ExportCodePage: React.FC = () => {
   const [includeUnitTests, setIncludeUnitTests] = useState(true);
   const [includeDocumentation, setIncludeDocumentation] = useState(true);
   const [selectedScreenIds, setSelectedScreenIds] = useState<string[]>([]);
+  const [javaOptions, setJavaOptions] = useState<JavaExportOptions>({
+    format: 'spring-boot-batch',
+    javaVersion: '17',
+    includeJUnitTests: true,
+    includeEntrypoint: true,
+    includeReadme: true,
+  });
 
   // Generation / Export modal state
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -83,6 +93,13 @@ export const ExportCodePage: React.FC = () => {
     };
   }, [projectId]);
 
+  // A COBOL to Java project, or a selection made only of COBOL programs, exports Java.
+  const isJavaExport = useMemo(() => {
+    if (project?.conversionType === 'COBOL_TO_JAVA') return true;
+    const selected = screens.filter((s) => selectedScreenIds.includes(s.id));
+    return selected.length > 0 && selected.every((s) => s.sourceType === 'COBOL');
+  }, [project?.conversionType, screens, selectedScreenIds]);
+
   // Current export configuration
   const exportConfig: ExportConfiguration = useMemo(() => {
     return {
@@ -111,8 +128,8 @@ export const ExportCodePage: React.FC = () => {
   // File tree preview and metrics come from the real backend (real generated code for
   // any screen with a completed conversion job) — exportService falls back to a local
   // mock only if the API call itself fails (offline/unreachable backend).
-  const [fileTree, setFileTree] = useState<ExportFileItem[]>([]);
-  const [metrics, setMetrics] = useState<BundleMetrics>({
+  const [apiTree, setApiTree] = useState<ExportFileItem[]>([]);
+  const [apiMetrics, setApiMetrics] = useState<BundleMetrics>({
     totalFiles: 0,
     totalLoc: 0,
     estimatedSizeKb: 0,
@@ -122,8 +139,8 @@ export const ExportCodePage: React.FC = () => {
 
   useEffect(() => {
     if (selectedScreenIds.length === 0) {
-      setFileTree([]);
-      setMetrics({ totalFiles: 0, totalLoc: 0, estimatedSizeKb: 0, selectedScreensCount: 0 });
+      setApiTree([]);
+      setApiMetrics({ totalFiles: 0, totalLoc: 0, estimatedSizeKb: 0, selectedScreensCount: 0 });
       return;
     }
     let cancelled = false;
@@ -132,8 +149,8 @@ export const ExportCodePage: React.FC = () => {
       .fetchExportPreviewFromApi(exportConfig)
       .then((preview) => {
         if (cancelled) return;
-        setFileTree(preview.fileTree);
-        setMetrics(preview.metrics);
+        setApiTree(preview.fileTree);
+        setApiMetrics(preview.metrics);
       })
       .catch((err) => console.error('Failed to load export preview', err))
       .finally(() => {
@@ -145,12 +162,38 @@ export const ExportCodePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exportConfig]);
 
+  // For a Java export the tree is laid out as a Maven project from the real generated files.
+  const fileTree = useMemo(
+    () =>
+      isJavaExport
+        ? exportService.buildJavaExportTree({
+            projectName: project?.name || 'ALSM',
+            options: javaOptions,
+            apiTree,
+          })
+        : apiTree,
+    [isJavaExport, project?.name, javaOptions, apiTree],
+  );
+
+  const metrics = useMemo<BundleMetrics>(() => {
+    if (!isJavaExport) return apiMetrics;
+    const loc = countTreeLines(fileTree);
+    return {
+      totalFiles: countTreeFiles(fileTree),
+      totalLoc: loc,
+      estimatedSizeKb: Math.max(1, Math.round(loc * 0.04)),
+      selectedScreensCount: apiMetrics.selectedScreensCount,
+    };
+  }, [isJavaExport, apiMetrics, fileTree]);
+
   const bundleFilename = useMemo(() => {
     const slug = (project?.name || 'alsm')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-');
-    return `${slug}-${outputOption}-bundle.zip`;
-  }, [project?.name, outputOption]);
+    return isJavaExport
+      ? `${slug}-${javaOptions.format}-bundle.zip`
+      : `${slug}-${outputOption}-bundle.zip`;
+  }, [project?.name, outputOption, isJavaExport, javaOptions.format]);
 
   // Screen selection toggles
   const handleToggleScreen = (screenId: string) => {
@@ -183,10 +226,13 @@ export const ExportCodePage: React.FC = () => {
     setExportError(null);
 
     try {
-      const blob = await exportService.downloadZipBundleFromApi(exportConfig, (percent, label) => {
+      const onProgress = (percent: number, label: string) => {
         setExportProgress(percent);
         setStepLabel(label);
-      });
+      };
+      const blob = isJavaExport
+        ? await exportService.generateJavaBundle(fileTree, onProgress)
+        : await exportService.downloadZipBundleFromApi(exportConfig, onProgress);
 
       setGeneratedBlob(blob);
       setIsComplete(true);
@@ -269,6 +315,10 @@ export const ExportCodePage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column (Configuration & Screen Selector) */}
         <div className="lg:col-span-7 space-y-6">
+          {isJavaExport ? (
+            <JavaExportSettings options={javaOptions} onChange={setJavaOptions} />
+          ) : (
+            <>
           {/* Output Option Cards */}
           <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-2xs">
             <div>
@@ -484,6 +534,9 @@ export const ExportCodePage: React.FC = () => {
             </div>
           </div>
 
+            </>
+          )}
+
           {/* Included Screens Checklist */}
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs">
             <ExportScreenSelector
@@ -551,13 +604,21 @@ export const ExportCodePage: React.FC = () => {
               <div className="flex justify-between">
                 <span>Output Format:</span>
                 <strong className="text-slate-800 capitalize">
-                  {outputOption}
+                  {isJavaExport
+                    ? javaOptions.format === 'spring-boot-batch'
+                      ? 'Spring Boot Batch project'
+                      : 'Java source files'
+                    : outputOption}
                 </strong>
               </div>
               <div className="flex justify-between">
                 <span>Runtime Target:</span>
                 <strong className="text-slate-800">
-                  {frameworkTarget === 'react-19' ? 'React 19' : 'React 18'}
+                  {isJavaExport
+                    ? `Java ${javaOptions.javaVersion} · Spring Boot 3.3`
+                    : frameworkTarget === 'react-19'
+                      ? 'React 19'
+                      : 'React 18'}
                 </strong>
               </div>
             </div>

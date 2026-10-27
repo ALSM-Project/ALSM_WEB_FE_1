@@ -124,3 +124,55 @@ describe('ExportCodePage', () => {
     });
   });
 });
+
+// A selection made only of COBOL programs exports Java: the React scaffold options and
+// Vite/Tailwind files must not be offered.
+describe('ExportCodePage - COBOL to Java export', () => {
+  const cobolOnly: LegacyScreen[] = [
+    {
+      id: 'scr-cobol',
+      projectId: 'proj-acme',
+      name: 'MODEL09.cbl',
+      sourceType: 'COBOL',
+      status: 'Completed',
+      framework: 'React',
+      lastUpdated: '1 day ago',
+    },
+  ];
+
+  const renderJava = () => {
+    mocks.getScreens.mockResolvedValueOnce(cobolOnly);
+    return render(
+      <MemoryRouter initialEntries={['/projects/proj-acme/export']}>
+        <Routes>
+          <Route path="/projects/:projectId/export" element={<ExportCodePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
+
+  it('offers Spring Boot Batch and Java source formats with Java settings instead of React ones', async () => {
+    renderJava();
+
+    expect(await screen.findByText('Spring Boot Batch Project Scaffold')).toBeInTheDocument();
+    expect(screen.getByText('Standalone Java Source Files')).toBeInTheDocument();
+    expect(screen.getByText('Java 17 LTS (Spring Boot 3.3.x)')).toBeInTheDocument();
+    expect(screen.getByText('Java 21 LTS (Spring Boot 3.3.x)')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Apache Maven 3.9+ (pom.xml pre-configured)')).toBeInTheDocument();
+    expect(screen.getByText(/Include JUnit 5 Automated Unit Tests/)).toBeInTheDocument();
+
+    expect(screen.queryByText(/Full Project Scaffold/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tailwind/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/React 19/)).not.toBeInTheDocument();
+  });
+
+  it('shows the Maven project tree without any React files', async () => {
+    renderJava();
+    await screen.findByText('Spring Boot Batch Project Scaffold');
+
+    expect(await screen.findByText('pom.xml', {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(screen.getByText('application.yml')).toBeInTheDocument();
+    expect(screen.queryByText('App.tsx')).not.toBeInTheDocument();
+    expect(screen.queryByText('vite.config.ts')).not.toBeInTheDocument();
+  });
+});
