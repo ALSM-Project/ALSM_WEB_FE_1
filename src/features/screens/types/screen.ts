@@ -1,6 +1,6 @@
 export type SourceType = 'BMS' | 'DSPF' | 'COBOL' | 'RPG' | 'TXT';
 export type ScreenStatus = 'Completed' | 'Converted' | 'COMPLETED' | 'Processing' | 'Review Required' | 'Failed' | 'Ready' | 'Pending Parse' | 'Queued';
-export type TargetFramework = 'React' | 'Vue' | 'Angular' | 'Next.js';
+export type TargetFramework = 'React' | 'Vue' | 'Angular' | 'Next.js' | 'Java' | 'Java (Spring Boot)';
 export type SourceFileStatus = ScreenStatus | 'Uploading' | 'Failed to parse';
 
 export interface LegacyScreen {
@@ -15,6 +15,8 @@ export interface LegacyScreen {
   sizeKb?: number;
   /** Storage reference returned by the real conversion-sources upload endpoint, if this screen was uploaded (not seed/mock data). */
   inputReference?: string;
+  /** Original legacy source text, when the backend provides it. */
+  content?: string;
 }
 
 export interface SourceFile {
