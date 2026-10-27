@@ -135,7 +135,7 @@ describe('ExportCodePage - COBOL to Java export', () => {
       name: 'MODEL09.cbl',
       sourceType: 'COBOL',
       status: 'Completed',
-      framework: 'Java (Spring Boot)',
+      framework: 'React',
       lastUpdated: '1 day ago',
     },
   ];
