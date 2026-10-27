@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Lock,
@@ -9,12 +9,16 @@ import {
   Loader2,
   ArrowRight,
 } from 'lucide-react';
-import { useAuth, isUserStaffOrAdmin } from '@/app/providers';
+import { useAuth, isUserStaffOrAdmin, isUserPartner, getTargetHandoffUrl } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
 import { ApiError } from '@/services/api/apiError';
 import logo from '@/assets/logo.png';
 import alsm3dBg from '@/assets/alsm-3d-bg.jpg';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
+
+const REMEMBER_EMAIL_KEY = 'alsm_remembered_email';
+const REMEMBER_PASSWORD_KEY = 'alsm_remembered_password';
+const REMEMBER_ME_FLAG_KEY = 'alsm_remember_me_flag';
 
 export const LoginPage: React.FC = () => {
   const { login, loginWithGoogle } = useAuth();
@@ -22,19 +26,141 @@ export const LoginPage: React.FC = () => {
   const location = useLocation();
 
   // Form states
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(() => {
+    try {
+      return localStorage.getItem(REMEMBER_EMAIL_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+  const [password, setPassword] = useState(() => {
+    try {
+      return localStorage.getItem(REMEMBER_PASSWORD_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(() => {
+    try {
+      const savedFlag = localStorage.getItem(REMEMBER_ME_FLAG_KEY);
+      if (savedFlag !== null) {
+        return savedFlag === 'true';
+      }
+      return true;
+    } catch {
+      return true;
+    }
+  });
 
   // Status & Feedback states
   const [error, setError] = useState('');
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('auto_google') === '1') {
+        const interval = setInterval(() => {
+          if (window.google?.accounts?.id?.prompt) {
+            window.google.accounts.id.prompt();
+            clearInterval(interval);
+          }
+        }, 200);
+        const timeout = setTimeout(() => clearInterval(interval), 4000);
+        return () => {
+          clearInterval(interval);
+          clearTimeout(timeout);
+        };
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+  const [redirectLabel, setRedirectLabel] = useState('Redirecting to ALSM Partner Portal...');
 
   const getRedirectTarget = () => {
+    if (typeof window !== 'undefined' && window.location) {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const searchReturnTo = params.get('returnTo');
+        if (searchReturnTo) {
+          if (!searchReturnTo.startsWith('http') && !searchReturnTo.includes('300')) {
+            return searchReturnTo;
+          }
+          return ROUTES.DASHBOARD;
+        }
+      } catch {
+        // ignore
+      }
+    }
     const returnTo = (location.state as { returnTo?: string })?.returnTo;
     return returnTo || ROUTES.DASHBOARD;
+  };
+
+  const handleEmailChange = (val: string) => {
+    setEmail(val);
+    if (rememberMe) {
+      try {
+        if (val.trim()) {
+          localStorage.setItem(REMEMBER_EMAIL_KEY, val.trim());
+        } else {
+          localStorage.removeItem(REMEMBER_EMAIL_KEY);
+        }
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
+  };
+
+  const handlePasswordChange = (val: string) => {
+    setPassword(val);
+    if (rememberMe) {
+      try {
+        if (val) {
+          localStorage.setItem(REMEMBER_PASSWORD_KEY, val);
+        } else {
+          localStorage.removeItem(REMEMBER_PASSWORD_KEY);
+        }
+      } catch {
+        // Ignore localStorage errors
+      }
+    }
+  };
+
+  const handleRememberMeChange = (checked: boolean) => {
+    setRememberMe(checked);
+    try {
+      localStorage.setItem(REMEMBER_ME_FLAG_KEY, String(checked));
+      if (!checked) {
+        localStorage.removeItem(REMEMBER_EMAIL_KEY);
+        localStorage.removeItem(REMEMBER_PASSWORD_KEY);
+      } else {
+        if (email.trim()) localStorage.setItem(REMEMBER_EMAIL_KEY, email.trim());
+        if (password) localStorage.setItem(REMEMBER_PASSWORD_KEY, password);
+      }
+    } catch {
+      // Ignore localStorage exceptions in private browsing mode
+    }
+  };
+
+  const persistRememberMeCredentials = (savedEmail: string, savedPassword?: string) => {
+    try {
+      localStorage.setItem(REMEMBER_ME_FLAG_KEY, String(rememberMe));
+      if (rememberMe) {
+        localStorage.setItem(REMEMBER_EMAIL_KEY, savedEmail.trim());
+        if (savedPassword) {
+          localStorage.setItem(REMEMBER_PASSWORD_KEY, savedPassword);
+        }
+      } else {
+        localStorage.removeItem(REMEMBER_EMAIL_KEY);
+        localStorage.removeItem(REMEMBER_PASSWORD_KEY);
+      }
+    } catch {
+      // Ignore localStorage exceptions
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,15 +171,24 @@ export const LoginPage: React.FC = () => {
     if (!email.trim()) return setError('Please enter your work email');
     if (!password) return setError('Please enter your password');
 
+    // Persist immediately before API call in case of fast redirects or unloads
+    persistRememberMeCredentials(email, password);
+
     setLoading(true);
     try {
       const user = await login({ email: email.trim(), password });
       if (user) {
-        // Staff and admin users are redirected to staff portal by AppProviders.
-        // For standard users, navigate within FE3.
-        if (!isUserStaffOrAdmin(user)) {
-          navigate(getRedirectTarget(), { replace: true });
+        const handoff = getTargetHandoffUrl(user);
+        if (handoff || isUserStaffOrAdmin(user) || isUserPartner(user) || user.hasWeb3Access) {
+          setRedirectLabel(
+            handoff?.includes('3002') || isUserStaffOrAdmin(user)
+              ? 'Redirecting to Staff Portal...'
+              : 'Redirecting to ALSM Partner Portal...'
+          );
+          setIsRedirecting(true);
+          return;
         }
+        navigate(getRedirectTarget(), { replace: true });
       } else {
         setError('Unable to retrieve account information. Please try again.');
       }
@@ -76,9 +211,20 @@ export const LoginPage: React.FC = () => {
     try {
       const user = await loginWithGoogle(idToken);
       if (user) {
-        if (!isUserStaffOrAdmin(user)) {
-          navigate(getRedirectTarget(), { replace: true });
+        if (user.email) {
+          persistRememberMeCredentials(user.email);
         }
+        const handoff = getTargetHandoffUrl(user);
+        if (handoff || isUserStaffOrAdmin(user) || isUserPartner(user) || user.hasWeb3Access) {
+          setRedirectLabel(
+            handoff?.includes('3002') || isUserStaffOrAdmin(user)
+              ? 'Redirecting to Staff Portal...'
+              : 'Redirecting to ALSM Partner Portal...'
+          );
+          setIsRedirecting(true);
+          return;
+        }
+        navigate(getRedirectTarget(), { replace: true });
       } else {
         setError('Google sign-in failed. Please try again.');
       }
@@ -88,6 +234,20 @@ export const LoginPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen bg-[#F4F6F9] flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mb-5 shadow-sm border border-blue-100">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900 tracking-tight">{redirectLabel}</h2>
+        <p className="text-sm text-slate-500 mt-2 max-w-sm">
+          Account authenticated successfully. Synchronizing session to dedicated portal...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F4F6F9] flex items-center justify-center p-4 sm:p-6 md:p-8 font-sans">
@@ -134,9 +294,9 @@ export const LoginPage: React.FC = () => {
                 >
                   <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex-1">
-                    <p className="font-semibold text-amber-900">Email chưa được xác thực!</p>
+                    <p className="font-semibold text-amber-900">Email not verified!</p>
                     <p className="text-amber-800 mt-0.5 leading-relaxed">
-                      Vui lòng kiểm tra hộp thư email của bạn hoặc nhập mã xác minh để hoàn tất kích hoạt tài khoản.
+                      Please check your email inbox or enter the verification code to complete account activation.
                     </p>
                     <button
                       type="button"
@@ -145,7 +305,7 @@ export const LoginPage: React.FC = () => {
                       }
                       className="mt-2 text-blue-600 hover:text-blue-700 font-semibold hover:underline inline-flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 rounded"
                     >
-                      <span>Xác minh ngay</span>
+                      <span>Verify Now</span>
                       <ArrowRight className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </div>
@@ -185,7 +345,7 @@ export const LoginPage: React.FC = () => {
                       required
                       disabled={loading}
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(e) => handleEmailChange(e.target.value)}
                       placeholder="Enter your work email"
                       className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-500 hover:border-slate-300 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-colors disabled:opacity-60 shadow-xs"
                     />
@@ -212,7 +372,7 @@ export const LoginPage: React.FC = () => {
                       required
                       disabled={loading}
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => handlePasswordChange(e.target.value)}
                       placeholder="Enter your password"
                       className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-500 hover:border-slate-300 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-colors disabled:opacity-60 shadow-xs"
                     />
@@ -234,7 +394,7 @@ export const LoginPage: React.FC = () => {
                       id="remember"
                       type="checkbox"
                       checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
+                      onChange={(e) => handleRememberMeChange(e.target.checked)}
                       className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-600/20 cursor-pointer transition-colors"
                     />
                     <label
@@ -413,26 +573,26 @@ export const LoginPage: React.FC = () => {
 
 function toErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
-    if (err.code === 'INVALID_CREDENTIALS') return 'Email hoặc mật khẩu không chính xác';
+    if (err.code === 'INVALID_CREDENTIALS') return 'Invalid email or password';
     return err.message;
   }
   if (err && typeof err === 'object') {
     const errorObj = err as any;
     if (errorObj.code === 'INVALID_CREDENTIALS' || errorObj.response?.data?.code === 'INVALID_CREDENTIALS') {
-      return 'Email hoặc mật khẩu không chính xác';
+      return 'Invalid email or password';
     }
     if (errorObj.response?.data?.message) {
       return errorObj.response.data.message;
     }
     if (errorObj.message) {
       if (errorObj.message.includes('Network Error') || errorObj.message.includes('ERR_FAILED')) {
-        return 'Không thể kết nối đến máy chủ Backend (http://localhost:3000). Vui lòng kiểm tra lại dịch vụ Backend.';
+        return 'Cannot connect to Backend server (http://localhost:3000). Please check backend service.';
       }
       return errorObj.message;
     }
   }
   if (typeof err === 'string') return err;
-  return 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.';
+  return 'Invalid email or password. Please try again.';
 }
 
 export default LoginPage;
