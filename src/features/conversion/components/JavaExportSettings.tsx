@@ -1,10 +1,12 @@
 import React from 'react';
 import { Coffee, FileCode2 } from 'lucide-react';
-import type { JavaExportFormat, JavaExportOptions, JavaVersion } from '../types/export';
+import type { JavaExportFormat, JavaExportOptions } from '../types/export';
 
 export interface JavaExportSettingsProps {
   options: JavaExportOptions;
   onChange: (options: JavaExportOptions) => void;
+  /** Java and Spring Boot versions of the project the backend builds, once known. */
+  runtimeLabel?: string | null;
 }
 
 const FORMATS: { id: JavaExportFormat; title: string; badge?: string; description: string; icon: React.ReactNode }[] = [
@@ -24,7 +26,7 @@ const FORMATS: { id: JavaExportFormat; title: string; badge?: string; descriptio
   },
 ];
 
-export const JavaExportSettings: React.FC<JavaExportSettingsProps> = ({ options, onChange }) => {
+export const JavaExportSettings: React.FC<JavaExportSettingsProps> = ({ options, onChange, runtimeLabel }) => {
   const set = <K extends keyof JavaExportOptions>(key: K, value: JavaExportOptions[K]) =>
     onChange({ ...options, [key]: value });
   const scaffold = options.format === 'spring-boot-batch';
@@ -100,16 +102,16 @@ export const JavaExportSettings: React.FC<JavaExportSettingsProps> = ({ options,
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <span className="block text-xs font-semibold text-slate-700">Target Framework Version</span>
-            <select
+            <input
+              type="text"
               aria-label="Target Framework Version"
-              value={options.javaVersion}
-              disabled={!scaffold}
-              onChange={(e) => set('javaVersion', e.target.value as JavaVersion)}
-              className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-slate-100 disabled:text-slate-500"
-            >
-              <option value="17">Java 17 LTS (Spring Boot 3.3.x)</option>
-              <option value="21">Java 21 LTS (Spring Boot 3.3.x)</option>
-            </select>
+              disabled
+              value={runtimeLabel ?? 'Chosen from the generated code'}
+              className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-600 font-medium cursor-not-allowed"
+            />
+            <p className="text-[11px] text-slate-500">
+              Code built on the converter runtime needs Spring Boot 2.4 and Java 11; newer code gets Spring Boot 3.3 and Java 21.
+            </p>
           </div>
           <div className="space-y-1.5">
             <span className="block text-xs font-semibold text-slate-700">Build Tool</span>
@@ -126,7 +128,6 @@ export const JavaExportSettings: React.FC<JavaExportSettingsProps> = ({ options,
           {(
             [
               ['includeJUnitTests', 'Include JUnit 5 Automated Unit Tests (*Test.java)'],
-              ['includeEntrypoint', 'Include Spring Boot Batch Application Entrypoint & Runners'],
               ['includeReadme', "Include Maven Quickstart documentation (README.md with 'mvn clean compile')"],
             ] as const
           ).map(([key, label]) => (
@@ -141,6 +142,12 @@ export const JavaExportSettings: React.FC<JavaExportSettingsProps> = ({ options,
               <span className="text-slate-800 font-medium">{label}</span>
             </label>
           ))}
+          <label className="flex items-center space-x-2.5 text-xs select-none">
+            <input type="checkbox" checked disabled className="rounded text-blue-600" />
+            <span className="text-slate-800 font-medium">
+              Spring Boot Batch Application Entrypoint & Runners (always included in the scaffold)
+            </span>
+          </label>
           {!scaffold && (
             <p className="text-[11px] text-slate-500">These settings apply to the Spring Boot Batch project scaffold only.</p>
           )}
