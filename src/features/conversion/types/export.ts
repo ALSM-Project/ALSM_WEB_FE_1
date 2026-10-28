@@ -44,12 +44,8 @@ export interface BundleMetrics {
 /** Output formats of a Java (COBOL to Java) export. Used by the page only - the API keeps its own formats. */
 export type JavaExportFormat = 'spring-boot-batch' | 'java-sources';
 
-export type JavaVersion = '17' | '21';
-
 export interface JavaExportOptions {
   format: JavaExportFormat;
-  javaVersion: JavaVersion;
   includeJUnitTests: boolean;
-  includeEntrypoint: boolean;
   includeReadme: boolean;
 }

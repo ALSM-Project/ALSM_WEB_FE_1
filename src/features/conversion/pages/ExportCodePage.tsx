@@ -23,11 +23,19 @@ import type {
   BundleMetrics,
   JavaExportOptions,
 } from '../types/export';
-import { countTreeFiles, countTreeLines } from '../utils/javaExportBundle';
 import { JavaExportSettings } from '../components/JavaExportSettings';
 import { ExportScreenSelector } from '../components/ExportScreenSelector';
 import { ExportFileTree } from '../components/ExportFileTree';
 import { ExportProgressModal } from '../components/ExportProgressModal';
+
+function findFileContent(items: ExportFileItem[], name: string): string | undefined {
+  for (const item of items) {
+    if (item.type === 'file' && item.name === name) return item.content;
+    const inside = item.children ? findFileContent(item.children, name) : undefined;
+    if (inside !== undefined) return inside;
+  }
+  return undefined;
+}
 
 export const ExportCodePage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
@@ -47,9 +55,7 @@ export const ExportCodePage: React.FC = () => {
   const [selectedScreenIds, setSelectedScreenIds] = useState<string[]>([]);
   const [javaOptions, setJavaOptions] = useState<JavaExportOptions>({
     format: 'spring-boot-batch',
-    javaVersion: '17',
     includeJUnitTests: true,
-    includeEntrypoint: true,
     includeReadme: true,
   });
 
@@ -105,18 +111,25 @@ export const ExportCodePage: React.FC = () => {
     return {
       projectId,
       projectName: project?.name || 'Acme Modernization',
-      outputOption,
+      // A Java export is packaged by the backend; its own options map onto the API ones.
+      outputOption: isJavaExport
+        ? javaOptions.format === 'spring-boot-batch'
+          ? 'scaffold'
+          : 'standalone'
+        : outputOption,
       frameworkTarget,
       stylingOption: 'tailwind',
       includeTypeScriptStrict,
-      includeUnitTests,
-      includeStorybook: outputOption === 'storybook',
-      includeDocumentation,
+      includeUnitTests: isJavaExport ? javaOptions.includeJUnitTests : includeUnitTests,
+      includeStorybook: !isJavaExport && outputOption === 'storybook',
+      includeDocumentation: isJavaExport ? javaOptions.includeReadme : includeDocumentation,
       selectedScreenIds,
     };
   }, [
     projectId,
     project?.name,
+    isJavaExport,
+    javaOptions,
     outputOption,
     frameworkTarget,
     includeTypeScriptStrict,
@@ -162,29 +175,17 @@ export const ExportCodePage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exportConfig]);
 
-  // For a Java export the tree is laid out as a Maven project from the real generated files.
-  const fileTree = useMemo(
-    () =>
-      isJavaExport
-        ? exportService.buildJavaExportTree({
-            projectName: project?.name || 'ALSM',
-            options: javaOptions,
-            apiTree,
-          })
-        : apiTree,
-    [isJavaExport, project?.name, javaOptions, apiTree],
-  );
+  const fileTree = apiTree;
+  const metrics = apiMetrics;
 
-  const metrics = useMemo<BundleMetrics>(() => {
-    if (!isJavaExport) return apiMetrics;
-    const loc = countTreeLines(fileTree);
-    return {
-      totalFiles: countTreeFiles(fileTree),
-      totalLoc: loc,
-      estimatedSizeKb: Math.max(1, Math.round(loc * 0.04)),
-      selectedScreensCount: apiMetrics.selectedScreensCount,
-    };
-  }, [isJavaExport, apiMetrics, fileTree]);
+  // The build the backend chose for the generated code (Java and Spring Boot versions),
+  // read from the pom.xml it wrote - the code decides it, not a setting here.
+  const javaRuntimeLabel = useMemo(() => {
+    const pom = findFileContent(apiTree, 'pom.xml');
+    const java = /<java\.version>(\d+)<\/java\.version>/.exec(pom ?? '')?.[1];
+    const boot = /spring-boot-starter-parent<\/artifactId>\s*<version>(\d+\.\d+)/.exec(pom ?? '')?.[1];
+    return java && boot ? `Java ${java} · Spring Boot ${boot}` : null;
+  }, [apiTree]);
 
   const bundleFilename = useMemo(() => {
     const slug = (project?.name || 'alsm')
@@ -230,9 +231,7 @@ export const ExportCodePage: React.FC = () => {
         setExportProgress(percent);
         setStepLabel(label);
       };
-      const blob = isJavaExport
-        ? await exportService.generateJavaBundle(fileTree, onProgress)
-        : await exportService.downloadZipBundleFromApi(exportConfig, onProgress);
+      const blob = await exportService.downloadZipBundleFromApi(exportConfig, onProgress);
 
       setGeneratedBlob(blob);
       setIsComplete(true);
@@ -316,7 +315,11 @@ export const ExportCodePage: React.FC = () => {
         {/* Left Column (Configuration & Screen Selector) */}
         <div className="lg:col-span-7 space-y-6">
           {isJavaExport ? (
-            <JavaExportSettings options={javaOptions} onChange={setJavaOptions} />
+            <JavaExportSettings
+              options={javaOptions}
+              onChange={setJavaOptions}
+              runtimeLabel={javaRuntimeLabel}
+            />
           ) : (
             <>
           {/* Output Option Cards */}
@@ -615,7 +618,7 @@ export const ExportCodePage: React.FC = () => {
                 <span>Runtime Target:</span>
                 <strong className="text-slate-800">
                   {isJavaExport
-                    ? `Java ${javaOptions.javaVersion} · Spring Boot 3.3`
+                    ? javaRuntimeLabel ?? 'Chosen from the generated code'
                     : frameworkTarget === 'react-19'
                       ? 'React 19'
                       : 'React 18'}
