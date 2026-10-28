@@ -89,7 +89,7 @@ describe('BulkConvertPage - COBOL to Java project', () => {
 
     expect(await screen.findByText('Bulk Convert Programs')).toBeInTheDocument();
     expect(screen.getByText(/Compile and modernize multiple COBOL programs into Java Spring Boot components/)).toBeInTheDocument();
-    expect(screen.getByText('Java 17/21 (Spring Boot Batch)')).toBeInTheDocument();
+    expect(screen.getByText('Java 11 (Spring Boot 2.4 Batch)')).toBeInTheDocument();
     expect(screen.getByText('tool2java Deterministic Engine')).toBeInTheDocument();
     expect(screen.queryByText('React 19 + TypeScript')).not.toBeInTheDocument();
   });

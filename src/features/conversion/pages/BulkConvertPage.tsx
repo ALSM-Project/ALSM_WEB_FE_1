@@ -146,7 +146,7 @@ export const BulkConvertPage: React.FC = () => {
               <div className="flex justify-between items-center font-medium">
                 <span className="text-[#6B778C]">Target Framework</span>
                 <span className="text-[#0652CC] font-bold">
-                  {isCobol ? 'Java 17/21 (Spring Boot Batch)' : 'React 19 + TypeScript'}
+                  {isCobol ? 'Java 11 (Spring Boot 2.4 Batch)' : 'React 19 + TypeScript'}
                 </span>
               </div>
               <div className="flex justify-between items-center font-medium">
