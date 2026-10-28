@@ -65,13 +65,32 @@ export interface UsageStatistics {
   periodEnd?: string;
 }
 
+export interface InvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
 export interface Invoice {
   id: string;
+  invoiceNumber?: string;
   date: string;
+  issueDate?: string;
+  dueDate?: string;
+  paidAt?: string | null;
   amount: number;
   currency: string;
-  status: 'paid' | 'pending' | 'failed';
+  status: 'paid' | 'pending' | 'failed' | 'overdue' | 'PAID' | 'PENDING' | 'OVERDUE' | 'CANCELLED';
   downloadUrl?: string;
+  organizationId?: string;
+  organizationName?: string;
+  customerId?: string;
+  customerEmail?: string;
+  subtotal?: number;
+  tax?: number;
+  items?: InvoiceLineItem[];
 }
 
 export interface QRDetails {

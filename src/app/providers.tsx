@@ -46,15 +46,58 @@ function isUserStaffOrAdmin(u: User | null | undefined): boolean {
 }
 
 /**
+ * Determine target portal URL for token handoff.
+ * Supports:
+ * 1. returnTo query param (e.g. from Web 3 http://localhost:3003/auth/callback)
+ * 2. PARTNER role default -> Web 3 (VITE_WEB3_PORTAL_URL || http://localhost:3003/auth/callback)
+ * 3. Staff/Admin roles -> Web 2 Staff Portal (VITE_STAFF_PORTAL_URL || http://localhost:3002/auth/callback)
+ */
+function getTargetHandoffUrl(u: User | null | undefined): string | null {
+  if (!u) return null;
+
+  // 1. Check if returnTo query parameter is in URL
+  if (typeof window !== "undefined" && window.location) {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get("returnTo");
+      if (returnTo && (returnTo.startsWith("http://") || returnTo.startsWith("https://"))) {
+        return returnTo;
+      }
+    } catch {
+      // Ignore if URLSearchParams is unavailable
+    }
+  }
+
+  // 2. PARTNER role -> redirect to Web 3
+  const role = (u.role || "").toUpperCase();
+  const roles = (u.roles || []).map((r) => String(r).toUpperCase());
+  if (role === "PARTNER" || roles.includes("PARTNER")) {
+    const web3Url = import.meta.env.VITE_WEB3_PORTAL_URL || "http://localhost:3003";
+    return `${web3Url}/auth/callback`;
+  }
+
+  // 3. Internal staff / admin -> redirect to Web 2
+  if (isUserStaffOrAdmin(u)) {
+    const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || "http://localhost:3002";
+    return `${staffUrl}/auth/callback`;
+  }
+
+  return null;
+}
+
+/**
  * Redirect internal staff/sales/admin user from FE1 to FE2 Staff Portal with tokens in URL.
  * Clears FE1 tokens so that on any back-navigation FE1 won't loop.
  */
-function redirectAdminToStaffPortal(): void {
-  const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
+function redirectAdminToStaffPortal(targetUrl?: string | null): void {
+  const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || "http://localhost:3002";
+  const target = targetUrl || `${staffUrl}/auth/callback`;
   void tokenStore.handoff(({ accessToken, refreshToken }) => {
-    window.location.href = `${staffUrl}/auth/callback?access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+    const separator = target.includes("?") ? "&" : "?";
+    window.location.href = `${target}${separator}access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
   });
 }
+
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -92,8 +135,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
           if (cancelled || epoch !== tokenStore.epoch() || !tokenStore.getRefreshToken()) return;
 
           // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
-          if (isUserStaffOrAdmin(me)) {
-            redirectAdminToStaffPortal();
+          const targetHandoff = getTargetHandoffUrl(me);
+          if (targetHandoff) {
+            redirectAdminToStaffPortal(targetHandoff);
             return;
           }
 
@@ -116,8 +160,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     const loggedInUser = await authService.login(credentials);
 
     // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
-    if (isUserStaffOrAdmin(loggedInUser)) {
-      redirectAdminToStaffPortal();
+    const targetHandoff = getTargetHandoffUrl(loggedInUser);
+    if (targetHandoff) {
+      redirectAdminToStaffPortal(targetHandoff);
       return loggedInUser;
     }
 
@@ -131,8 +176,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleVerifyEmail = useCallback(async (email: string, code: string): Promise<User | null> => {
     const verifiedUser = await authService.verifyEmail(email, code);
-    if (isUserStaffOrAdmin(verifiedUser)) {
-      redirectAdminToStaffPortal();
+    const targetHandoff = getTargetHandoffUrl(verifiedUser);
+    if (targetHandoff) {
+      redirectAdminToStaffPortal(targetHandoff);
       return verifiedUser;
     }
     setUser(verifiedUser);

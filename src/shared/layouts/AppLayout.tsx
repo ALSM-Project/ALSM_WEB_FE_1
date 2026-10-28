@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Bell, Settings, ChevronDown, User, CreditCard, LogOut, BarChart3 } from 'lucide-react';
+import { Bell, Settings, ChevronDown, User, CreditCard, LogOut, BarChart3, FileText } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
@@ -209,6 +209,14 @@ export const AppLayoutContent: React.FC = () => {
                   >
                     <CreditCard className="w-3.5 h-3.5 text-slate-400" />
                     <span>Subscription</span>
+                  </Link>
+                  <Link
+                    to={ROUTES.BILLING.INVOICES}
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center space-x-2 px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Invoices & Billing</span>
                   </Link>
                   <button
                     onClick={handleLogout}

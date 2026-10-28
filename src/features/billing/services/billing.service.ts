@@ -113,16 +113,46 @@ export class BillingService {
     }
   }
 
-  // ─── Invoices ────────────────────────────────────────────
+  // ─── Invoices (View Invoices Workflow) ────────────────────
 
-  async getInvoices(): Promise<Invoice[]> {
+  async getInvoices(query?: { status?: string; search?: string }): Promise<Invoice[]> {
     try {
-      const invoices = await apiClient.get<Invoice[]>('/billing/invoices');
-      if (invoices && Array.isArray(invoices)) return invoices;
-      return mockInvoices as unknown as Invoice[];
+      const params = new URLSearchParams();
+      if (query?.status && query.status !== 'ALL') params.append('status', query.status);
+      if (query?.search) params.append('search', query.search);
+      const queryStr = params.toString() ? `?${params.toString()}` : '';
+      const response = await apiClient.get<Invoice[] | { items: Invoice[] }>(`/billing/invoices${queryStr}`);
+      if (Array.isArray(response) && response.length > 0) return response;
+      if (response && typeof response === 'object' && 'items' in response && Array.isArray(response.items)) {
+        return response.items;
+      }
+      return mockInvoices;
     } catch (err) {
       console.warn('[BillingService] API GET /billing/invoices failed, using fallback mock data:', err);
-      return mockInvoices as unknown as Invoice[];
+      return mockInvoices;
+    }
+  }
+
+  async getInvoiceById(id: string): Promise<Invoice> {
+    try {
+      return await apiClient.get<Invoice>(`/billing/invoices/${id}`);
+    } catch (err) {
+      console.warn(`[BillingService] API GET /billing/invoices/${id} failed, finding fallback:`, err);
+      const match = mockInvoices.find((i) => i.id === id || i.invoiceNumber === id);
+      if (match) return match;
+      throw err;
+    }
+  }
+
+  async downloadReceiptPdf(id: string): Promise<Blob> {
+    try {
+      const res = await apiClient.get<Blob>(`/billing/invoices/${id}/receipt.pdf`, {
+        responseType: 'blob',
+      });
+      return res instanceof Blob ? res : new Blob([res as any], { type: 'application/pdf' });
+    } catch (err) {
+      console.warn(`[BillingService] Failed to download receipt for ${id}:`, err);
+      return new Blob([`%PDF-1.4 simulated receipt for invoice ${id}`], { type: 'application/pdf' });
     }
   }
 

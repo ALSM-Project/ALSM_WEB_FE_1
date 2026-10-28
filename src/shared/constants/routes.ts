@@ -41,6 +41,6 @@ export const ROUTES = {
     SUBSCRIPTION: '/billing/subscription',
     TRIAL: '/billing/trial',
     UPGRADE_ENTERPRISE: '/billing/upgrade',
+    INVOICES: '/billing/invoices',
   },
 };
-
