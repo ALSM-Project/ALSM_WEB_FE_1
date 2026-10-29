@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InvoicesPage } from './InvoicesPage';
 import { billingService } from '../services/billing.service';
@@ -63,7 +64,11 @@ describe('InvoicesPage (Web 1)', () => {
   });
 
   it('renders page header and summary metrics correctly', async () => {
-    render(<InvoicesPage />);
+    render(
+      <MemoryRouter>
+        <InvoicesPage />
+      </MemoryRouter>
+    );
 
     expect(screen.getByText(/Invoices & Billing History/i)).toBeInTheDocument();
 
@@ -81,7 +86,11 @@ describe('InvoicesPage (Web 1)', () => {
   });
 
   it('filters invoices by search term', async () => {
-    render(<InvoicesPage />);
+    render(
+      <MemoryRouter>
+        <InvoicesPage />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('INV-2026-001')).toBeInTheDocument();
@@ -95,7 +104,11 @@ describe('InvoicesPage (Web 1)', () => {
   });
 
   it('filters invoices by status tab', async () => {
-    render(<InvoicesPage />);
+    render(
+      <MemoryRouter>
+        <InvoicesPage />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('INV-2026-001')).toBeInTheDocument();
@@ -111,7 +124,11 @@ describe('InvoicesPage (Web 1)', () => {
   });
 
   it('opens invoice detail modal on row click', async () => {
-    render(<InvoicesPage />);
+    render(
+      <MemoryRouter>
+        <InvoicesPage />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('INV-2026-001')).toBeInTheDocument();
@@ -127,7 +144,11 @@ describe('InvoicesPage (Web 1)', () => {
   });
 
   it('triggers receipt PDF download on click', async () => {
-    render(<InvoicesPage />);
+    render(
+      <MemoryRouter>
+        <InvoicesPage />
+      </MemoryRouter>
+    );
 
     await waitFor(() => {
       expect(screen.getByText('INV-2026-001')).toBeInTheDocument();
