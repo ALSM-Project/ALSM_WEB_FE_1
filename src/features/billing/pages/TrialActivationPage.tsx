@@ -46,7 +46,7 @@ export const TrialActivationPage: React.FC = () => {
           <div>
             <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
               <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Professional Trial — $0 Due Today</span>
+              <span>Professional Trial — 0 VND Due Today</span>
             </span>
           </div>
         </div>
