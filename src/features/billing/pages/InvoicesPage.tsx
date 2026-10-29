@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText,
   Search,
@@ -14,12 +15,14 @@ import {
   Mail,
   Receipt,
   XCircle,
+  CreditCard,
 } from 'lucide-react';
 import { Card, Button, Input, Modal } from '@/shared/ui';
 import { billingService } from '../services/billing.service';
 import type { Invoice } from '../types/billing';
 
 export const InvoicesPage: React.FC = () => {
+  const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,7 +82,7 @@ export const InvoicesPage: React.FC = () => {
       statusFilter === 'ALL' ||
       invStatus === statusFilter.toUpperCase() ||
       (statusFilter === 'PAID' && invStatus === 'PAID') ||
-      (statusFilter === 'PENDING' && invStatus === 'PENDING') ||
+      (statusFilter === 'PENDING' && (invStatus === 'PENDING' || invStatus === 'ISSUED')) ||
       (statusFilter === 'FAILED' && (invStatus === 'FAILED' || invStatus === 'OVERDUE'));
 
     return matchesSearch && matchesStatus;
@@ -92,9 +95,11 @@ export const InvoicesPage: React.FC = () => {
   const totalOutstanding = invoices
     .filter((i) => {
       const s = (i.status || '').toUpperCase();
-      return s === 'PENDING' || s === 'OVERDUE' || s === 'FAILED';
+      return s === 'PENDING' || s === 'ISSUED' || s === 'OVERDUE' || s === 'FAILED';
     })
     .reduce((acc, i) => acc + (i.amount || 0), 0);
+
+  const primaryCurrency = invoices.find((i) => i.currency)?.currency || 'VND';
 
   const renderStatusBadge = (status: string) => {
     const s = (status || '').toUpperCase();
@@ -106,6 +111,7 @@ export const InvoicesPage: React.FC = () => {
             Paid
           </span>
         );
+      case 'ISSUED':
       case 'PENDING':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
@@ -150,16 +156,24 @@ export const InvoicesPage: React.FC = () => {
     }
   };
 
-  const formatCurrency = (amount: number, currency = 'USD') => {
+  const formatCurrency = (amount: number, currency?: string) => {
+    const curr = (currency || primaryCurrency || 'VND').toUpperCase();
+    if (curr === 'VND') {
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND',
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency || 'USD',
+      currency: curr,
       maximumFractionDigits: 0,
     }).format(amount);
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="w-full space-y-6 min-w-0 pb-12">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5EAF0] pb-5">
         <div>
@@ -192,7 +206,7 @@ export const InvoicesPage: React.FC = () => {
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-[#6B778C]">Total Invoiced</p>
               <h3 className="text-2xl font-extrabold text-[#091E42] mt-1">
-                {formatCurrency(totalBilled)}
+                {formatCurrency(totalBilled, primaryCurrency)}
               </h3>
               <p className="text-[11px] text-[#6B778C] mt-0.5">Lifetime statements across all periods</p>
             </div>
@@ -207,7 +221,7 @@ export const InvoicesPage: React.FC = () => {
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Settled & Paid</p>
               <h3 className="text-2xl font-extrabold text-emerald-800 mt-1">
-                {formatCurrency(totalPaid)}
+                {formatCurrency(totalPaid, primaryCurrency)}
               </h3>
               <p className="text-[11px] text-emerald-600 mt-0.5">Fully reconciled payments</p>
             </div>
@@ -222,7 +236,7 @@ export const InvoicesPage: React.FC = () => {
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-amber-700">Outstanding / Due</p>
               <h3 className="text-2xl font-extrabold text-amber-800 mt-1">
-                {formatCurrency(totalOutstanding)}
+                {formatCurrency(totalOutstanding, primaryCurrency)}
               </h3>
               <p className="text-[11px] text-amber-600 mt-0.5">Awaiting processing or settlement</p>
             </div>
@@ -352,13 +366,24 @@ export const InvoicesPage: React.FC = () => {
                         {formatCurrency(inv.amount, inv.currency)}
                       </td>
                       <td className="py-3.5 px-4 text-center">
-                        {renderStatusBadge(inv.status)}
+                        {renderStatusBadge(inv.status || 'PENDING')}
                       </td>
                       <td
                         className="py-3.5 px-4 text-right"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-end gap-1.5">
+                          {(inv.status || '').toUpperCase() !== 'PAID' && (
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/billing/invoices/${inv.id}/pay`)}
+                              className="px-2 py-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-semibold flex items-center gap-1 shadow-sm transition"
+                              title="Pay now via QR / Bank Transfer"
+                            >
+                              <CreditCard className="w-3.5 h-3.5" />
+                              Pay Now
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => setSelectedInvoice(inv)}
@@ -417,7 +442,7 @@ export const InvoicesPage: React.FC = () => {
                 )}
                 <div className="flex items-center gap-2 pt-1">
                   <span className="text-[#6B778C]">Status:</span>
-                  {renderStatusBadge(selectedInvoice.status)}
+                  {renderStatusBadge(selectedInvoice.status || 'PENDING')}
                 </div>
               </div>
 
@@ -525,20 +550,37 @@ export const InvoicesPage: React.FC = () => {
               >
                 Close
               </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => handleDownloadPdf(selectedInvoice)}
-                disabled={downloadingId === selectedInvoice.id}
-                className="flex items-center gap-2 text-xs bg-[#0652CC] hover:bg-[#0655FF] text-white"
-              >
-                {downloadingId === selectedInvoice.id ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Download className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                {(selectedInvoice.status || '').toUpperCase() !== 'PAID' && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      const id = selectedInvoice.id;
+                      setSelectedInvoice(null);
+                      navigate(`/billing/invoices/${id}/pay`);
+                    }}
+                    className="flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    QR Payment
+                  </Button>
                 )}
-                Download Receipt PDF
-              </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => handleDownloadPdf(selectedInvoice)}
+                  disabled={downloadingId === selectedInvoice.id}
+                  className="flex items-center gap-2 text-xs bg-[#0652CC] hover:bg-[#0655FF] text-white"
+                >
+                  {downloadingId === selectedInvoice.id ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  Download Receipt PDF
+                </Button>
+              </div>
             </div>
           </div>
         </Modal>
