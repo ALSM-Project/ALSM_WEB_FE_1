@@ -33,6 +33,7 @@ import { Button } from '@/shared/ui/Button';
 import { CodeEditor } from '../components/CodeEditor';
 import { ModernizationWorkflow, type WorkflowStepId } from '@/shared/ui/ModernizationWorkflow';
 
+import { CobolTransformationView } from '../components/CobolTransformationView';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
 import { generateScreenBundle, parseConvertedTsx, isDisplayableCodeFile } from '../utils/screenGenerator';
 import { applyAiSuggestion } from '../utils/aiRemediation';
@@ -65,7 +66,10 @@ export const ConvertScreenPage: React.FC = () => {
   // UC-28: COBOL screens have their own Method Mapping (class/method renames), which is
   // fetched by MethodMappingPage itself, not here — the BMS field-mapping endpoint has
   // nothing to do with COBOL screens and must not be called for one.
-  const isCobol = screen?.sourceType === 'COBOL';
+  const isCobol = screen?.sourceType === 'COBOL' || Boolean(screen?.name.toLowerCase().endsWith('.cbl'));
+
+  // A COBOL program becomes Java, so the 3270 terminal preview has nothing to show: it opens on Code.
+  const currentTab = isCobol && activeTab === 'preview' ? 'code' : activeTab;
 
   useEffect(() => {
     // Wait until the screen's real sourceType is known — fetching before then would guess
@@ -447,12 +451,12 @@ export const ConvertScreenPage: React.FC = () => {
           <div className="flex items-center space-x-3">
             <h1 className="text-2xl font-bold text-slate-900 font-mono">{screenName}</h1>
             <span className="bg-brand-50 text-brand-700 border border-brand-200 text-xs px-2.5 py-0.5 rounded-full font-semibold">
-              Target: {screen?.framework ?? 'React'} TypeScript
+              {isCobol ? 'Target: Java (Spring Boot Batch)' : `Target: ${screen?.framework ?? 'React'} TypeScript`}
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
             {isCobol
-              ? 'Deterministic Conversion Engine: Compiles COBOL programs into Java classes & methods via tool2java.'
+              ? 'Deterministic Conversion Engine: Translates COBOL Data & Procedure Divisions into Spring Boot Batch Models, Tasklets & Job Configurations.'
               : 'Deterministic Conversion Engine: Parses BMS AST and converts into React TypeScript components & DTOs.'}
           </p>
         </div>
@@ -550,8 +554,8 @@ export const ConvertScreenPage: React.FC = () => {
 
       <Tabs
         tabs={[
-          { id: 'preview', label: 'Preview' },
-          { id: 'code', label: 'Code' },
+          ...(isCobol ? [] : [{ id: 'preview', label: 'Preview' }]),
+          { id: 'code', label: isCobol ? 'Code Transformation & Diff' : 'Code' },
           { id: 'mapping', label: isCobol ? 'Method Mapping' : 'Field Mapping' },
           {
             id: 'findings',
@@ -564,11 +568,11 @@ export const ConvertScreenPage: React.FC = () => {
                   : 'Validation',
           },
         ]}
-        activeTab={activeTab}
+        activeTab={currentTab}
         onChange={setActiveTab}
       />
 
-      {activeTab === 'preview' && (
+      {currentTab === 'preview' && !isCobol && (
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
           <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500 flex-wrap gap-2">
             <div className="flex items-center space-x-2">
@@ -724,7 +728,17 @@ export const ConvertScreenPage: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'code' && (
+      {currentTab === 'code' && isCobol && selectedFile && (
+        <CobolTransformationView
+          cobolSource={screen?.content}
+          cobolName={screenName}
+          files={files}
+          selectedIndex={selectedFileIndex}
+          onSelectFile={setSelectedFileIndex}
+        />
+      )}
+
+      {currentTab === 'code' && !(isCobol && selectedFile) && (
         selectedFile ? (
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -849,7 +863,7 @@ export const ConvertScreenPage: React.FC = () => {
         )
       )}
 
-      {activeTab === 'mapping' && isCobol && (
+      {currentTab === 'mapping' && isCobol && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold text-slate-900">Method Mapping</h3>
@@ -866,7 +880,7 @@ export const ConvertScreenPage: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'mapping' && !isCobol && (
+      {currentTab === 'mapping' && !isCobol && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4 shadow-sm">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold text-slate-900">
@@ -920,7 +934,7 @@ export const ConvertScreenPage: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'findings' && (
+      {currentTab === 'findings' && (
         <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-5 shadow-sm">
           <div className="flex items-center justify-between flex-wrap gap-3 pb-4 border-b border-slate-100">
             <div>

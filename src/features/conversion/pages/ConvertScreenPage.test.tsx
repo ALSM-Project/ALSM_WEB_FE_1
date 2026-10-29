@@ -290,3 +290,92 @@ describe('ConvertScreenPage - COBOL screens route to Method Mapping, not Field M
     expect(screen.queryByText('BMS_MAPPING_PAGE')).not.toBeInTheDocument();
   });
 });
+
+// A COBOL program is converted to Java, so the BMS terminal preview and the "React
+// TypeScript" target badge do not apply: the page opens on the code transformation.
+describe('ConvertScreenPage - COBOL program', () => {
+  const renderPage = () =>
+    render(
+      <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+        <MemoryRouter initialEntries={['/projects/proj-acme/screens/scr-1/convert']}>
+          <Routes>
+            <Route path="/projects/:projectId/screens/:screenId/convert" element={<ConvertScreenPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+
+  const cobolScreen: LegacyScreen = {
+    id: 'scr-1',
+    projectId: 'proj-acme',
+    name: 'MODEL01.cbl',
+    sourceType: 'COBOL',
+    status: 'Completed',
+    framework: 'Java (Spring Boot)',
+    lastUpdated: 'just now',
+    content: [
+      '       PROGRAM-ID.     MODEL01.',
+      '       WORKING-STORAGE SECTION.',
+      '       01  CNT                   PIC   9(009)  VALUE ZERO.',
+      '       PROCEDURE DIVISION.',
+      '       MAIN-CONTROL.',
+      "           DISPLAY 'STARTED' UPON CONSOLE.",
+      '           STOP RUN.',
+    ].join('\n'),
+  };
+
+  const javaBundle: ConversionResultBundle = {
+    conversionJobId: 'job-1',
+    files: [
+      {
+        relativePath: 'model01/Model01Tasklet.java',
+        content: 'public class Model01Tasklet {\n\tpublic void mainControl() {\n\t}\n}',
+      },
+      { relativePath: 'model01/Model01Model.java', content: 'public class Model01Model {\n\tprivate int cnt;\n}' },
+    ],
+  };
+
+  const mockCompleted = () => {
+    mocks.getScreenById.mockResolvedValue(cobolScreen);
+    mocks.getLatestConversion.mockResolvedValue(completedJob);
+    mocks.getConversionResult.mockResolvedValue(javaBundle);
+  };
+
+  it('has no Preview tab and opens on Code Transformation & Diff with the Java target badge', async () => {
+    mockCompleted();
+    renderPage();
+
+    expect(await screen.findByText('Target: Java (Spring Boot Batch)')).toBeInTheDocument();
+    expect(screen.queryByText(/React TypeScript/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Translates COBOL Data & Procedure Divisions into Spring Boot Batch Models/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Code Transformation & Diff' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Method Mapping' })).toBeInTheDocument();
+    expect(await screen.findByTestId('cobol-transformation-view')).toBeInTheDocument();
+  });
+
+  it('shows the COBOL source beside the generated Java and what each item became', async () => {
+    mockCompleted();
+    renderPage();
+
+    const view = await screen.findByTestId('cobol-transformation-view');
+    expect(view).toHaveTextContent('MODEL01.cbl (COBOL)');
+    expect(view).toHaveTextContent('Model01Tasklet.java');
+    expect(view).toHaveTextContent('Data Division → Java Model');
+    expect(view).toHaveTextContent('private int cnt;');
+    expect(view).toHaveTextContent('mainControl()');
+    expect(view).toHaveTextContent('Console.println(...)');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Model01Model.java' }));
+    expect(await screen.findByText('model01/Model01Model.java')).toBeInTheDocument();
+  });
+
+  it('says so when the server did not provide the COBOL source', async () => {
+    mocks.getScreenById.mockResolvedValue({ ...cobolScreen, content: undefined });
+    mocks.getLatestConversion.mockResolvedValue(completedJob);
+    mocks.getConversionResult.mockResolvedValue(javaBundle);
+    renderPage();
+
+    expect(await screen.findByText(/original COBOL source is not available/i)).toBeInTheDocument();
+  });
+});

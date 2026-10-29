@@ -11,7 +11,7 @@ interface ScreenRecordDto {
   id: string;
   projectId: string;
   name: string;
-  sourceType: 'BMS' | 'DSPF' | 'COBOL';
+  sourceType: 'BMS' | 'DSPF' | 'COBOL' | 'RPG';
   status: 'READY' | 'PROCESSING' | 'COMPLETED' | 'REVIEW_REQUIRED' | 'FAILED';
   inputReference: string;
   sizeBytes?: number;
@@ -27,6 +27,11 @@ const SCREEN_STATUS_LABELS: Record<ScreenRecordDto['status'], LegacyScreen['stat
   FAILED: 'Failed',
 };
 
+/** COBOL and RPG programs become Java backend code; BMS and DSPF screens become React. */
+function targetFrameworkFor(sourceType: ScreenRecordDto['sourceType']): LegacyScreen['framework'] {
+  return sourceType === 'COBOL' || sourceType === 'RPG' ? 'Java (Spring Boot)' : 'React';
+}
+
 function toLegacyScreen(record: ScreenRecordDto): LegacyScreen {
   return {
     id: record.id,
@@ -34,7 +39,7 @@ function toLegacyScreen(record: ScreenRecordDto): LegacyScreen {
     name: record.name,
     sourceType: record.sourceType,
     status: SCREEN_STATUS_LABELS[record.status],
-    framework: 'React',
+    framework: targetFrameworkFor(record.sourceType),
     lastUpdated: new Date(record.updatedAt).toLocaleString(),
     sizeKb: record.sizeBytes ? Math.round(record.sizeBytes / 1024) : undefined,
     inputReference: record.inputReference,
