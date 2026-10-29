@@ -19,7 +19,7 @@ describe('TrialActivationPage', () => {
     renderWithRouter();
 
     expect(await screen.findByRole('heading', { name: /Activate Your Trial/i })).toBeInTheDocument();
-    expect(screen.getByText(/Professional Trial — \$0 Due Today/i)).toBeInTheDocument();
+    expect(screen.getByText(/Professional Trial — 0 VND Due Today/i)).toBeInTheDocument();
     expect(screen.getByText(/Unlimited Projects/i)).toBeInTheDocument();
     expect(screen.getByText(/100 Screens\/mo/i)).toBeInTheDocument();
     expect(screen.getByText(/AI-assisted structural mapping/i)).toBeInTheDocument();
