@@ -16,6 +16,7 @@ import {
   Clock,
   RefreshCw,
   PhoneCall,
+  Check,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
@@ -39,6 +40,13 @@ export const RequestEnterprisePage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [quoteResult, setQuoteResult] = useState<QuoteRequestResponse | null>(null);
+
+  // Package & Service Selection Workflow State
+  const [selectedServiceMode, setSelectedServiceMode] = useState<'SELF_SERVICE' | 'WE_CONVERT_FOR_YOU' | 'HYBRID'>(
+    'WE_CONVERT_FOR_YOU',
+  );
+  const [generatingTier, setGeneratingTier] = useState<string | null>(null);
+  const [packageError, setPackageError] = useState<string | null>(null);
 
   // ─── Existing request detection ──────────────────────────
   const [checkingExisting, setCheckingExisting] = useState(true);
@@ -118,6 +126,32 @@ export const RequestEnterprisePage: React.FC = () => {
       });
     }
     if (generalError) setGeneralError(null);
+  };
+
+  const handleGenerateContract = async (tier: 'STARTER' | 'GROWTH' | 'ENTERPRISE') => {
+    try {
+      setGeneratingTier(tier);
+      setPackageError(null);
+      const res = await billingService.generateContractFromPackage({
+        serviceMode: selectedServiceMode,
+        packageTier: tier,
+        organizationName: formData.companyName.trim() || user?.companyName || user?.company || 'Enterprise Customer Corp',
+        contactEmail: formData.email.trim() || user?.email || 'customer@example.com',
+        representativeName: formData.fullName.trim() || user?.fullName || 'Representative Director',
+      });
+
+      const contractId = res?.id || res?.contractId || res?.contractNumber;
+      if (contractId) {
+        navigate(`/contracts/${contractId}`);
+      } else {
+        navigate('/contracts');
+      }
+    } catch (err: any) {
+      console.error('Failed to generate contract from package:', err);
+      setPackageError(err?.message || 'Failed to generate contract agreement. Please try again.');
+    } finally {
+      setGeneratingTier(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -429,9 +463,9 @@ export const RequestEnterprisePage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="w-full space-y-8 min-w-0 pb-12">
       {/* Page Header */}
-      <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
+      <div className="text-center max-w-2xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
           <Zap className="w-4 h-4 text-indigo-600" />
           <span>Full Migration & Modernization</span>
@@ -444,7 +478,176 @@ export const RequestEnterprisePage: React.FC = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* ─── WORKFLOW STEP 1 & 2: Select Service Mode & Package ─── */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center">1</span>
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">Select Modernization Service & Package</h2>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 pl-8">
+            Choose your preferred delivery model and screen quota. ALSM generates a formal contract agreement immediately for your electronic signature and invoice payment.
+          </p>
+        </div>
+
+        {packageError && (
+          <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm rounded-xl flex items-start gap-2.5">
+            <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+            <span>{packageError}</span>
+          </div>
+        )}
+
+        {/* Service Delivery Mode Selector */}
+        <div className="space-y-3">
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+            Delivery Mode
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              {
+                mode: 'WE_CONVERT_FOR_YOU',
+                title: 'Managed Modernization Services',
+                desc: 'Turnkey legacy conversion managed directly by ALSM engineering team with quality SLA.',
+                badge: 'Recommended',
+              },
+              {
+                mode: 'HYBRID',
+                title: 'Hybrid Modernization SOW',
+                desc: 'Joint co-engineering with ALSM architects and your developer team.',
+                badge: 'Flexible',
+              },
+              {
+                mode: 'SELF_SERVICE',
+                title: 'Platform-Based Modernization',
+                desc: 'Independent usage of ALSM modernization pipeline with standard AI models.',
+                badge: 'Autonomous',
+              },
+            ].map((item) => (
+              <div
+                key={item.mode}
+                onClick={() => setSelectedServiceMode(item.mode as any)}
+                className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                  selectedServiceMode === item.mode
+                    ? 'border-blue-600 bg-blue-50/40 ring-2 ring-blue-500/20 shadow-xs'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-bold text-sm text-slate-900">{item.title}</span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                    {item.badge}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Modernization Packages Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          {/* Starter Package */}
+          <div className="rounded-xl border border-slate-200 p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Starter</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">100 Screens</span>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-slate-900">15,000,000 <span className="text-xs font-medium text-slate-500">VND</span></div>
+                <div className="text-xs text-slate-500">One-time / Monthly SOW</div>
+              </div>
+              <ul className="text-xs text-slate-600 space-y-2 pt-2 border-t border-slate-100">
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> 100 Screen quota</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> 10 Subprograms & copybooks</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> 10 GB Secure Workspace Storage</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> Partner Portal Web 3 Access</li>
+              </ul>
+            </div>
+            <Button
+              onClick={() => handleGenerateContract('STARTER')}
+              disabled={generatingTier !== null}
+              className="mt-5 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs"
+            >
+              {generatingTier === 'STARTER' ? (
+                <span className="flex items-center justify-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Contract...</span>
+              ) : (
+                <span className="flex items-center justify-center gap-1">Generate Contract <ArrowRight className="w-3.5 h-3.5" /></span>
+              )}
+            </Button>
+          </div>
+
+          {/* Growth Package */}
+          <div className="rounded-xl border-2 border-blue-600 p-5 bg-blue-50/20 flex flex-col justify-between shadow-xs relative">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
+              Most Popular
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Growth</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-800">500 Screens</span>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-slate-900">45,000,000 <span className="text-xs font-medium text-slate-500">VND</span></div>
+                <div className="text-xs text-slate-500">One-time / Monthly SOW</div>
+              </div>
+              <ul className="text-xs text-slate-600 space-y-2 pt-2 border-t border-slate-200">
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-600" /> 500 Screen quota</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-600" /> 50 Subprograms & copybooks</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-600" /> 50 GB Secure Workspace Storage</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-600" /> Priority Turnkey Delivery</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-blue-600" /> Partner Portal Web 3 Access</li>
+              </ul>
+            </div>
+            <Button
+              onClick={() => handleGenerateContract('GROWTH')}
+              disabled={generatingTier !== null}
+              className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs"
+            >
+              {generatingTier === 'GROWTH' ? (
+                <span className="flex items-center justify-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Contract...</span>
+              ) : (
+                <span className="flex items-center justify-center gap-1">Generate Contract <ArrowRight className="w-3.5 h-3.5" /></span>
+              )}
+            </Button>
+          </div>
+
+          {/* Enterprise Package */}
+          <div className="rounded-xl border border-slate-200 p-5 bg-white flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Enterprise</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">1,000 Screens</span>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-slate-900">85,000,000 <span className="text-xs font-medium text-slate-500">VND</span></div>
+                <div className="text-xs text-slate-500">One-time / Monthly SOW</div>
+              </div>
+              <ul className="text-xs text-slate-600 space-y-2 pt-2 border-t border-slate-100">
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> 1,000 Screen quota</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> 100 Subprograms & copybooks</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> 150 GB Secure Workspace Storage</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> Dedicated Solution Architect</li>
+                <li className="flex items-center gap-1.5"><Check className="w-3.5 h-3.5 text-emerald-600" /> Partner Portal Web 3 Access</li>
+              </ul>
+            </div>
+            <Button
+              onClick={() => handleGenerateContract('ENTERPRISE')}
+              disabled={generatingTier !== null}
+              className="mt-5 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs"
+            >
+              {generatingTier === 'ENTERPRISE' ? (
+                <span className="flex items-center justify-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Contract...</span>
+              ) : (
+                <span className="flex items-center justify-center gap-1">Generate Contract <ArrowRight className="w-3.5 h-3.5" /></span>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* ─── CUSTOM ENTERPRISE QUOTE REQUEST SECTION ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-4">
         {/* Left Column: Plan Benefits & Features */}
         <div className="lg:col-span-5 space-y-6">
           <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-6 sm:p-8 shadow-sm">
