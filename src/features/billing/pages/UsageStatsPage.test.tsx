@@ -75,6 +75,7 @@ describe('UsageStatsPage (UC-35)', () => {
     expect(screen.getByText('Starter')).toBeInTheDocument();
     expect(screen.getByText('STARTER')).toBeInTheDocument();
     expect(screen.getByText('Screens / Month')).toBeInTheDocument();
+    expect(screen.getByText('Programs')).toBeInTheDocument();
     expect(screen.getByText('Projects')).toBeInTheDocument();
     expect(screen.getByText('Storage')).toBeInTheDocument();
 
