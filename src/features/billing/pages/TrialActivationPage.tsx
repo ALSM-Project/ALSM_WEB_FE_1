@@ -16,7 +16,7 @@ export const TrialActivationPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // Gọi BE API: POST /billing/subscription/trial (ALSM-181)
+      // Call BE API: POST /billing/subscription/trial (ALSM-181)
       await billingService.activateTrial();
       setActivated(true);
       setTimeout(() => {
@@ -25,7 +25,7 @@ export const TrialActivationPage: React.FC = () => {
     } catch (err: unknown) {
       const msg =
         err instanceof Error ? err.message : 'Failed to activate trial. Please try again.';
-      // Nếu user đã có trial/subscription thì vẫn cho redirect
+      // If user already has trial/subscription, still allow redirect
       if (msg.toLowerCase().includes('conflict') || msg.toLowerCase().includes('already')) {
         setActivated(true);
         setTimeout(() => navigate(ROUTES.DASHBOARD), 1500);
@@ -45,6 +45,7 @@ export const TrialActivationPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Activate Your Trial</h1>
           <div>
             <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              Professional Trial — 0 VND Due Today
             </span>
           </div>
         </div>
