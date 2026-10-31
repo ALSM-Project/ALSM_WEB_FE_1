@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/api/apiClient';
+import { env } from '@/shared/constants/env';
 import {
   mockCurrentSubscription,
-  mockInvoices,
   mockQRDetails,
   mockSubscriptionPlans,
   mockUsageStats,
@@ -121,27 +121,97 @@ export class BillingService {
       if (query?.status && query.status !== 'ALL') params.append('status', query.status);
       if (query?.search) params.append('search', query.search);
       const queryStr = params.toString() ? `?${params.toString()}` : '';
-      const response = await apiClient.get<Invoice[] | { items: Invoice[] }>(`/billing/invoices${queryStr}`);
-      if (Array.isArray(response) && response.length > 0) return response;
-      if (response && typeof response === 'object' && 'items' in response && Array.isArray(response.items)) {
-        return response.items;
-      }
-      return mockInvoices;
+      const response = await apiClient.get<any>(`/billing/invoices${queryStr}`);
+      const rawItems: any[] = Array.isArray(response)
+        ? response
+        : (response && typeof response === 'object' && Array.isArray(response.items) ? response.items : []);
+
+      return rawItems.map((inv: any): Invoice => {
+        const amount = inv.amount ?? inv.amountVnd ?? inv.totalAmountVnd ?? 0;
+        const currency = inv.currency || (inv.amountVnd ? 'VND' : 'USD');
+        const rawItemsList = inv.items || inv.lineItems;
+        const items = Array.isArray(rawItemsList) && rawItemsList.length > 0
+          ? rawItemsList.map((it: any, idx: number) => ({
+              id: it.id || `item-${idx + 1}`,
+              description: it.description || it.name || 'Enterprise Service Deliverable',
+              quantity: it.quantity || 1,
+              unitPrice: it.unitPrice || it.amount || amount,
+              total: it.total || it.amount || (it.unitPrice ? it.unitPrice * (it.quantity || 1) : amount),
+            }))
+          : (inv.planName ? [
+              {
+                id: 'item-1',
+                description: inv.planName,
+                quantity: 1,
+                unitPrice: amount,
+                total: amount,
+              }
+            ] : []);
+
+        return {
+          id: inv.id || inv._id || inv.invoiceNumber,
+          invoiceNumber: inv.invoiceNumber || inv.invoice_number || inv.id,
+          status: (inv.status || 'PENDING').toLowerCase(),
+          currency,
+          amount,
+          date: inv.date || inv.issueDate || inv.billingPeriodStart || inv.createdAt || new Date().toISOString(),
+          issueDate: inv.issueDate || inv.date || inv.billingPeriodStart || inv.createdAt || new Date().toISOString(),
+          dueDate: inv.dueDate || inv.billingPeriodEnd,
+          paidAt: inv.paidAt || null,
+          organizationName: inv.organizationName,
+          customerEmail: inv.customerEmail,
+          subtotal: inv.subtotal || inv.subtotalVnd || (amount * 0.9),
+          tax: inv.tax || inv.taxAmountVnd || (amount * 0.1),
+          items,
+          downloadUrl: inv.downloadUrl || `/api/v1/billing/invoices/${inv.id || inv._id}/receipt.pdf`,
+        };
+      });
     } catch (err) {
-      console.warn('[BillingService] API GET /billing/invoices failed, using fallback mock data:', err);
-      return mockInvoices;
+      console.error('[BillingService] API GET /billing/invoices failed:', err);
+      return [];
     }
   }
 
   async getInvoiceById(id: string): Promise<Invoice> {
-    try {
-      return await apiClient.get<Invoice>(`/billing/invoices/${id}`);
-    } catch (err) {
-      console.warn(`[BillingService] API GET /billing/invoices/${id} failed, finding fallback:`, err);
-      const match = mockInvoices.find((i) => i.id === id || i.invoiceNumber === id);
-      if (match) return match;
-      throw err;
-    }
+    const inv = await apiClient.get<any>(`/billing/invoices/${id}`);
+    const amount = inv.amount ?? inv.amountVnd ?? inv.totalAmountVnd ?? 0;
+    const currency = inv.currency || (inv.amountVnd ? 'VND' : 'USD');
+    const rawItemsList = inv.items || inv.lineItems;
+    const items = Array.isArray(rawItemsList) && rawItemsList.length > 0
+      ? rawItemsList.map((it: any, idx: number) => ({
+          id: it.id || `item-${idx + 1}`,
+          description: it.description || it.name || 'Enterprise Service Deliverable',
+          quantity: it.quantity || 1,
+          unitPrice: it.unitPrice || it.amount || amount,
+          total: it.total || it.amount || (it.unitPrice ? it.unitPrice * (it.quantity || 1) : amount),
+        }))
+      : (inv.planName ? [
+          {
+            id: 'item-1',
+            description: inv.planName,
+            quantity: 1,
+            unitPrice: amount,
+            total: amount,
+          }
+        ] : []);
+
+    return {
+      id: inv.id || inv._id || inv.invoiceNumber,
+      invoiceNumber: inv.invoiceNumber || inv.invoice_number || inv.id,
+      status: (inv.status || 'PENDING').toLowerCase(),
+      currency,
+      amount,
+      date: inv.date || inv.issueDate || inv.billingPeriodStart || inv.createdAt || new Date().toISOString(),
+      issueDate: inv.issueDate || inv.date || inv.billingPeriodStart || inv.createdAt || new Date().toISOString(),
+      dueDate: inv.dueDate || inv.billingPeriodEnd,
+      paidAt: inv.paidAt || null,
+      organizationName: inv.organizationName,
+      customerEmail: inv.customerEmail,
+      subtotal: inv.subtotal || inv.subtotalVnd || (amount * 0.9),
+      tax: inv.tax || inv.taxAmountVnd || (amount * 0.1),
+      items,
+      downloadUrl: inv.downloadUrl || `/api/v1/billing/invoices/${inv.id || inv._id}/receipt.pdf`,
+    };
   }
 
   async downloadReceiptPdf(id: string): Promise<Blob> {
@@ -154,6 +224,119 @@ export class BillingService {
       console.warn(`[BillingService] Failed to download receipt for ${id}:`, err);
       return new Blob([`%PDF-1.4 simulated receipt for invoice ${id}`], { type: 'application/pdf' });
     }
+  }
+
+  // ─── Enterprise Contract & E-Sign & Web 3 Activation ─────
+
+  async getContracts(params?: {
+    tab?: string;
+    search?: string;
+    serviceMode?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    items: any[];
+    pagination?: {
+      total: number;
+      totalPages: number;
+      page: number;
+      limit: number;
+    };
+  }> {
+    const searchParams = new URLSearchParams();
+    if (params?.tab) searchParams.set('tab', params.tab);
+    if (params?.search) searchParams.set('search', params.search);
+    if (params?.serviceMode) searchParams.set('serviceMode', params.serviceMode);
+    if (params?.page) searchParams.set('page', params.page.toString());
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    const query = searchParams.toString();
+    const endpoint = `/enterprise-contracts${query ? `?${query}` : ''}`;
+    return apiClient.get(endpoint);
+  }
+
+  async getContractDetail(contractIdOrNumber: string): Promise<any> {
+    return apiClient.get(`/enterprise-contracts/${contractIdOrNumber}`);
+  }
+
+  async signCustomerContract(
+    contractId: string,
+    data: {
+      signerName: string;
+      signerTitle: string;
+      signerEmail: string;
+      authMethod?: string;
+      signatureImageUrl?: string;
+    },
+  ): Promise<any> {
+    return apiClient.post(`/enterprise-contracts/${contractId}/customer-sign`, data);
+  }
+
+  async getContractInvoice(contractIdOrNumber: string): Promise<any> {
+    return apiClient.get(`/enterprise-contracts/${contractIdOrNumber}/invoice`);
+  }
+
+  async submitContractPayment(
+    contractId: string,
+    data?: { transactionRef?: string; note?: string; paidAmount?: number },
+  ): Promise<any> {
+    return apiClient.post(`/enterprise-contracts/${contractId}/submit-payment`, data || {});
+  }
+
+  async confirmContractPayment(contractId: string, data?: { note?: string }): Promise<any> {
+    return apiClient.post(`/enterprise-contracts/${contractId}/confirm-payment`, data || {});
+  }
+
+  async generateContractFromPackage(data: {
+    serviceMode: 'SELF_SERVICE' | 'WE_CONVERT_FOR_YOU' | 'HYBRID';
+    packageTier: 'STARTER' | 'GROWTH' | 'ENTERPRISE' | 'CUSTOM';
+    organizationName?: string;
+    taxId?: string;
+    businessAddress?: string;
+    representativeName?: string;
+    representativeTitle?: string;
+    contactEmail?: string;
+    customScreensQuota?: number;
+  }): Promise<any> {
+    return apiClient.post('/enterprise-contracts/generate-from-package', data);
+  }
+
+  async simulateContractPayment(contractId: string): Promise<any> {
+    return apiClient.post(`/enterprise-contracts/${contractId}/simulate-payment`, {});
+  }
+
+  async downloadContractPdf(contractId: string, contractNumber: string): Promise<void> {
+    const apiBase = env.apiBaseUrl.replace(/\/+$/, '');
+    const url = `${apiBase}/api/v1/enterprise-contracts/${contractId}/pdf?download=true`;
+
+    try {
+      const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+      const response = await fetch(url, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `ALSM-Contract-${contractNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(downloadUrl);
+      document.body.removeChild(a);
+    } catch {
+      window.open(url, '_blank');
+    }
+  }
+
+  async getContractPreviewHtml(contractId: string): Promise<string> {
+    const apiBase = env.apiBaseUrl.replace(/\/+$/, '');
+    const url = `${apiBase}/api/v1/enterprise-contracts/${contractId}/pdf?format=html`;
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    const response = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!response.ok) throw new Error('Failed to load contract preview HTML');
+    return response.text();
   }
 
   // ─── Payment (QR) ────────────────────────────────────────
