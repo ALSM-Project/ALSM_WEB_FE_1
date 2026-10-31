@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Bell, Settings, ChevronDown, User, CreditCard, LogOut, BarChart3 } from 'lucide-react';
+import { Settings, ChevronDown, User, CreditCard, LogOut, BarChart3 } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
 import { Web1ThemeProvider, useWeb1Theme } from '@/context/Web1ThemeContext';
 import { ROUTES } from '@/shared/constants/routes';
 import { billingService } from '@/features/billing/services/billing.service';
+import { NotificationsBell } from '@/features/notifications/components/NotificationsBell';
 
 const getInitials = (name?: string) => {
   if (!name) return 'U';
@@ -120,16 +121,7 @@ export const AppLayoutContent: React.FC = () => {
           {/* Right: Notifications, Avatar, Upgrade Button */}
           <div className="flex items-center space-x-3 text-xs text-[#42526E] shrink-0">
             {/* Notifications with badge count */}
-            <button
-              type="button"
-              className="p-2 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-xl transition-colors relative"
-              title="Notifications"
-            >
-              <Bell className="w-4.5 h-4.5" />
-              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#0652CC] text-white text-[9px] font-extrabold flex items-center justify-center">
-                2
-              </span>
-            </button>
+            <NotificationsBell />
 
             {/* Account Settings button */}
             <button
