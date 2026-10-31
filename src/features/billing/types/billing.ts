@@ -46,6 +46,10 @@ export interface UsageStatistics {
     used: number;
     max: number;   // -1 = unlimited
   };
+  programs?: {
+    used: number;
+    max: number;   // -1 = unlimited
+  };
   projects: {
     used: number;
     max: number;   // -1 = unlimited
@@ -75,6 +79,8 @@ export interface InvoiceLineItem {
 
 export interface Invoice {
   id: string;
+  status?: string;
+  currency?: string;
   invoiceNumber?: string;
   date: string;
   issueDate?: string;
