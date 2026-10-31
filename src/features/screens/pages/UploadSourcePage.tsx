@@ -13,6 +13,9 @@ import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { PageHeader } from '@/shared/ui/PageHeader';
 
+/** Source types that are uploaded and listed as programs rather than screens. */
+const PROGRAM_TYPES = new Set(['COBOL', 'RPG']);
+
 export const UploadSourcePage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
@@ -44,16 +47,19 @@ export const UploadSourcePage: React.FC = () => {
     Promise.resolve(conversionService.getScreens(projectId))
       ?.then((screens) => {
         if (cancelled || !Array.isArray(screens)) return;
-        const loadedFiles: SourceFile[] = screens.map((s) => ({
-        id: s.id,
-        fileName: s.name,
-        sizeKb: s.sizeKb ?? 10,
-        uploadedAt: s.lastUpdated ?? 'Recently',
-        status: s.status, // Uses real status from API (Ready, Converted, Completed, Processing)
-        inputReference: s.inputReference,
-        screenId: s.id,
-      }));
-      setScreenFiles(loadedFiles);
+        // Programs (COBOL / RPG) and screens (BMS / DSPF) live on separate tabs, so each
+        // loaded item has to be filed under the tab it belongs to.
+        const toSourceFile = (s: (typeof screens)[number]): SourceFile => ({
+          id: s.id,
+          fileName: s.name,
+          sizeKb: s.sizeKb ?? 10,
+          uploadedAt: s.lastUpdated ?? 'Recently',
+          status: s.status, // Uses real status from API (Ready, Converted, Completed, Processing)
+          inputReference: s.inputReference,
+          screenId: s.id,
+        });
+        setScreenFiles(screens.filter((s) => !PROGRAM_TYPES.has(s.sourceType)).map(toSourceFile));
+        setProgramFiles(screens.filter((s) => PROGRAM_TYPES.has(s.sourceType)).map(toSourceFile));
     });
     return () => {
       cancelled = true;
