@@ -392,7 +392,9 @@ export const ConvertScreenPage: React.FC = () => {
               .filter((f: any) => f.kind === 'label' || f.kind === 'output')
               .map((f: any) => ({
                 ...f,
-                initial: f.initial || (f.name ? `[${f.name}]` : ''),
+                // In authentic BMS screen: only static unnamed labels show initial text.
+                // Named output fields (CURDATE, CURTIME, FNAME, TRNNAME, etc.) are blank on screen map.
+                initial: f.kind === 'label' && !f.name ? f.initial || '' : '',
                 color: (f.color || 'GREEN').toLowerCase(),
               })),
             inputs: raw.fields
