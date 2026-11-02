@@ -9,7 +9,7 @@ export interface SubscriptionPlan {
   tier: PlanTier;
   price: number;
   annualPrice?: number;
-  currency: string;
+  currency: 'VND';
   description: string;
   features: string[];
   maxScreens: number;
@@ -69,7 +69,7 @@ export interface Invoice {
   id: string;
   date: string;
   amount: number;
-  currency: string;
+  currency: 'VND';
   status: 'paid' | 'pending' | 'failed';
   downloadUrl?: string;
 }
@@ -77,7 +77,7 @@ export interface Invoice {
 export interface QRDetails {
   qrCode: string;
   amount: number;
-  currency: string;
+  currency: 'VND';
   expiresAt: string;
   orderId: string;
 }
@@ -98,7 +98,7 @@ export interface UpgradePreview {
   currentPlan: string;
   newPlan: string;
   proratedAmount: number;
-  currency: string;
+  currency: 'VND';
   nextBillingDate: string;
 }
 

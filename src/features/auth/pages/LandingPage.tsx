@@ -596,8 +596,8 @@ public class AccountBalanceService {
                 <div>|  ALSM FINANCIAL SYSTEM - CUSTOMER ACCOUNT MAINTENANCE       |</div>
                 <div>+-------------------------------------------------------------+</div>
                 <div className="pt-2">  CUSTOMER-ID : [ <span className="bg-emerald-900/60 px-1 text-white">84920194  </span> ]  STATUS: ACTIVE</div>
-                <div>  ACCOUNT-NO  : [ <span className="bg-emerald-900/60 px-1 text-white">ACCT-99201</span> ]  CURR  : USD</div>
-                <div>  BALANCE     : [ <span className="bg-emerald-900/60 px-1 text-white">$148,250.00</span> ]</div>
+                <div>  ACCOUNT-NO  : [ <span className="bg-emerald-900/60 px-1 text-white">ACCT-99201</span> ]  CURR  : VND</div>
+                <div>  BALANCE     : [ <span className="bg-emerald-900/60 px-1 text-white">148,250.00 VND</span> ]</div>
                 <div className="pt-3 text-emerald-600">  F3=EXIT  F12=CANCEL  F24=SUBMIT</div>
               </div>
             </div>
@@ -646,7 +646,7 @@ public class AccountBalanceService {
                 <div>
                   <label className="text-[11px] font-bold text-[#091E42] uppercase font-mono block mb-1">Current Balance</label>
                   <div className="text-xl font-bold text-[#0652CC] font-mono bg-[#E8F1FF] px-4 py-2.5 rounded-xl border border-[#0652CC]/20">
-                    $148,250.00 USD
+                    148,250.00 VND
                   </div>
                 </div>
 
