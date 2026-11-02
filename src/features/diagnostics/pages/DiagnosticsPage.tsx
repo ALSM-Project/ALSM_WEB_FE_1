@@ -178,7 +178,7 @@ export const DiagnosticsPage: React.FC = () => {
           <button
             onClick={() => setNotification(null)}
             className="text-slate-400 hover:text-slate-600 ml-4 p-1 rounded hover:bg-black/5 cursor-pointer flex items-center justify-center transition-colors"
-            aria-label="Đóng thông báo"
+            aria-label="Close notification"
           >
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -393,7 +393,7 @@ export const DiagnosticsPage: React.FC = () => {
                       )
                     }
                     className="flex items-center space-x-1.5 text-xs text-[#0652CC] hover:underline font-bold transition-colors cursor-pointer"
-                    aria-label="Sao chép bản vá mã nguồn"
+                    aria-label="Copy patch source code"
                   >
                     {copied ? (
                       <>
