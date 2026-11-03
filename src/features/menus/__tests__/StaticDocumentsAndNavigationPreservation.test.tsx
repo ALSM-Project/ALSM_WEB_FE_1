@@ -68,4 +68,57 @@ describe('Additive Menu Integration — Static Documents & Navigation Preservati
     expect(modGuideItem).toBeDefined();
     expect(contactItem).toBeDefined();
   });
+
+  it('does not re-inject deleted service items (such as Upgrade Plan) when dynamic menu provides service items', () => {
+    const dynamicBackendItemsWithDeletedUpgrade: MenuItem[] = [
+      {
+        id: 'web1_dashboard',
+        label: 'Dashboard',
+        icon: 'LayoutDashboard',
+        path: '/dashboard',
+        isVisible: true,
+        order: 1,
+        category: 'MAIN',
+      },
+      {
+        id: 'web1_group_service',
+        label: 'Service',
+        icon: 'Activity',
+        isVisible: true,
+        order: 2,
+        category: 'SERVICE',
+        children: [
+          {
+            id: 'web1_service_usage',
+            label: 'Service Usage & Quotas',
+            icon: 'Activity',
+            path: '/billing/usage',
+            isVisible: true,
+            order: 1,
+            category: 'SERVICE',
+          },
+          {
+            id: 'web1_contracts',
+            label: 'Contract & Subscription',
+            icon: 'FileText',
+            path: '/contracts',
+            isVisible: true,
+            order: 2,
+            category: 'SERVICE',
+          },
+        ],
+      },
+    ];
+
+    const merged = mergeDynamicAndStaticNavigation(dynamicBackendItemsWithDeletedUpgrade);
+
+    const upgradeItem = merged.find(
+      (i) =>
+        i.id === 'upgrade-plan' ||
+        i.path === '/billing/upgrade' ||
+        (i.children && i.children.some((c) => c.id === 'upgrade-plan' || c.path === '/billing/upgrade'))
+    );
+
+    expect(upgradeItem).toBeUndefined();
+  });
 });
