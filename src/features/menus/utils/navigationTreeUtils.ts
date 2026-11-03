@@ -1,7 +1,7 @@
 import type { MenuItem } from '../types/menu';
 
 export const DEFAULT_SIDEBAR_NAV: MenuItem[] = [
-  // MAIN SECTION
+  // WORKSPACE SECTION
   {
     id: 'dashboard',
     label: 'Dashboard',
@@ -9,7 +9,7 @@ export const DEFAULT_SIDEBAR_NAV: MenuItem[] = [
     path: '/dashboard',
     isVisible: true,
     order: 1,
-    category: 'MAIN',
+    category: 'WORKSPACE',
   },
   {
     id: 'projects',
@@ -18,73 +18,68 @@ export const DEFAULT_SIDEBAR_NAV: MenuItem[] = [
     path: '/projects',
     isVisible: true,
     order: 2,
-    category: 'MAIN',
-  },
-  {
-    id: 'screens',
-    label: 'Screens & Programs',
-    icon: 'Monitor',
-    path: '/projects/proj-acme/screens',
-    isVisible: true,
-    order: 3,
-    category: 'MAIN',
-  },
-  {
-    id: 'diagnostics',
-    label: 'Diagnostics',
-    icon: 'Activity',
-    path: '/projects/proj-acme/diagnostics',
-    isVisible: true,
-    order: 4,
-    category: 'MAIN',
+    category: 'WORKSPACE',
   },
 
-  // RESOURCES SECTION
+  // ORGANIZATION SECTION
   {
-    id: 'docs',
-    label: 'Documentation',
-    icon: 'BookOpen',
-    path: '/workspace/docs',
+    id: 'organization-profile',
+    label: 'Organization Profile',
+    icon: 'Building2',
+    path: '/organization/profile',
     isVisible: true,
-    order: 6,
-    category: 'RESOURCES',
+    order: 10,
+    category: 'ORGANIZATION',
   },
+
+  // CONTRACT & BILLING SECTION
   {
-    id: 'user-guide',
-    label: 'User Guide',
+    id: 'contract-subscription',
+    label: 'Enterprise Contracts',
     icon: 'FileText',
-    path: '/workspace/docs#how-it-works',
+    path: '/contracts',
     isVisible: true,
-    order: 7,
-    category: 'RESOURCES',
+    order: 20,
+    category: 'CONTRACT & BILLING',
   },
   {
-    id: 'modernization-guide',
-    label: 'Modernization Guide',
-    icon: 'HelpCircle',
-    path: '/workspace/docs#bms-dspf',
+    id: 'invoices',
+    label: 'Invoices & Payments',
+    icon: 'Receipt',
+    path: '/billing/invoices',
     isVisible: true,
-    order: 8,
-    category: 'RESOURCES',
+    order: 21,
+    category: 'CONTRACT & BILLING',
   },
   {
-    id: 'contact',
-    label: 'Contact & Upgrade',
-    icon: 'Mail',
+    id: 'service-usage',
+    label: 'Service Usage & Quotas',
+    icon: 'Activity',
+    path: '/billing/usage',
+    isVisible: true,
+    order: 22,
+    category: 'CONTRACT & BILLING',
+  },
+
+  // COLLABORATION SECTION
+  {
+    id: 'meeting-scheduler',
+    label: 'Meeting Scheduler',
+    icon: 'Calendar',
     path: '/workspace/contact',
     isVisible: true,
-    order: 9,
-    category: 'RESOURCES',
+    order: 30,
+    category: 'COLLABORATION',
   },
 
   // ACCOUNT SECTION
   {
     id: 'settings',
-    label: 'Account',
-    icon: 'Settings',
+    label: 'Profile & Security',
+    icon: 'ShieldCheck',
     path: '/account/profile',
     isVisible: true,
-    order: 9,
+    order: 40,
     category: 'ACCOUNT',
     children: [
       {
@@ -133,6 +128,44 @@ export const DEFAULT_SIDEBAR_NAV: MenuItem[] = [
         order: 5,
       },
     ],
+  },
+
+  // RESOURCES SECTION
+  {
+    id: 'docs',
+    label: 'Documentation',
+    icon: 'BookOpen',
+    path: '/workspace/docs',
+    isVisible: true,
+    order: 50,
+    category: 'RESOURCES',
+  },
+  {
+    id: 'user-guide',
+    label: 'User Guide',
+    icon: 'FileText',
+    path: '/workspace/docs#how-it-works',
+    isVisible: true,
+    order: 51,
+    category: 'RESOURCES',
+  },
+  {
+    id: 'modernization-guide',
+    label: 'Modernization Guide',
+    icon: 'HelpCircle',
+    path: '/workspace/docs#bms-dspf',
+    isVisible: true,
+    order: 52,
+    category: 'RESOURCES',
+  },
+  {
+    id: 'contact',
+    label: 'Contact & Upgrade',
+    icon: 'Mail',
+    path: '/workspace/contact',
+    isVisible: true,
+    order: 53,
+    category: 'RESOURCES',
   },
 ];
 
