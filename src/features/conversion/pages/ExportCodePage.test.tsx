@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ExportCodePage } from './ExportCodePage';
+import { exportService } from '../services/export.service';
 
 // conversionService.getScreens now hits the real backend — mock it here rather than
 // relying on a fake fallback in the service itself (that would just reintroduce the
@@ -122,5 +123,94 @@ describe('ExportCodePage', () => {
     downloadButtons.forEach((btn) => {
       expect(btn).not.toBeDisabled();
     });
+  });
+});
+
+// A selection made only of COBOL programs exports Java: the React scaffold options and
+// Vite/Tailwind files must not be offered.
+describe('ExportCodePage - COBOL to Java export', () => {
+  const cobolOnly: LegacyScreen[] = [
+    {
+      id: 'scr-cobol',
+      projectId: 'proj-acme',
+      name: 'MODEL09.cbl',
+      sourceType: 'COBOL',
+      status: 'Completed',
+      framework: 'React',
+      lastUpdated: '1 day ago',
+    },
+  ];
+
+  // What the backend returns for a Java-only Scaffold export: a Maven project around the real Java.
+  const scaffoldPreview = {
+    fileTree: [
+      {
+        path: 'project-root',
+        name: 'acme',
+        size: 'Root',
+        type: 'dir' as const,
+        children: [
+          {
+            path: 'pom.xml',
+            name: 'pom.xml',
+            size: '1.9 KB',
+            type: 'file' as const,
+            content:
+              '<parent><artifactId>spring-boot-starter-parent</artifactId><version>2.4.2</version></parent><java.version>11</java.version>',
+          },
+          { path: 'src/main/resources/application.yml', name: 'application.yml', size: '0.3 KB', type: 'file' as const, content: 'spring:' },
+        ],
+      },
+    ],
+    metrics: { totalFiles: 2, totalLoc: 3, estimatedSizeKb: 2, selectedScreensCount: 1 },
+  };
+
+  const renderJava = () => {
+    vi.spyOn(exportService, 'fetchExportPreviewFromApi').mockResolvedValue(scaffoldPreview);
+    mocks.getScreens.mockResolvedValueOnce(cobolOnly);
+    return render(
+      <MemoryRouter initialEntries={['/projects/proj-acme/export']}>
+        <Routes>
+          <Route path="/projects/:projectId/export" element={<ExportCodePage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
+
+  it('offers Spring Boot Batch and Java source formats with Java settings instead of React ones', async () => {
+    renderJava();
+
+    expect(await screen.findByText('Spring Boot Batch Project Scaffold')).toBeInTheDocument();
+    expect(screen.getByText('Standalone Java Source Files')).toBeInTheDocument();
+    expect(screen.getByLabelText('Target Framework Version')).toBeDisabled();
+    expect(screen.getByDisplayValue('Apache Maven 3.9+ (pom.xml pre-configured)')).toBeInTheDocument();
+    expect(screen.getByText(/Include JUnit 5 Automated Unit Tests/)).toBeInTheDocument();
+
+    expect(screen.queryByText(/Full Project Scaffold/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Tailwind/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/React 19/)).not.toBeInTheDocument();
+  });
+
+  it('shows the Maven project tree without any React files', async () => {
+    renderJava();
+    await screen.findByText('Spring Boot Batch Project Scaffold');
+
+    expect(await screen.findByText('pom.xml', {}, { timeout: 5000 })).toBeInTheDocument();
+    // The Java and Spring Boot versions shown are the ones the backend wrote into the pom.
+    expect(await screen.findByDisplayValue('Java 11 · Spring Boot 2.4')).toBeInTheDocument();
+    expect(screen.getByText('application.yml')).toBeInTheDocument();
+    expect(screen.queryByText('App.tsx')).not.toBeInTheDocument();
+    expect(screen.queryByText('vite.config.ts')).not.toBeInTheDocument();
+  });
+
+  it('asks the backend for the Scaffold or Standalone format and passes the JUnit and README choices', async () => {
+    renderJava();
+    await screen.findByText('Spring Boot Batch Project Scaffold');
+    await screen.findByText('pom.xml');
+    const call = () => (exportService.fetchExportPreviewFromApi as unknown as { mock: { calls: unknown[][] } }).mock.calls.at(-1)![0];
+    expect(call()).toMatchObject({ outputOption: 'scaffold', includeUnitTests: true, includeDocumentation: true });
+
+    fireEvent.click(screen.getByLabelText('Standalone Java Source Files'));
+    await vi.waitFor(() => expect(call()).toMatchObject({ outputOption: 'standalone' }));
   });
 });

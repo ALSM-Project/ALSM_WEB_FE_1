@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, CheckSquare, Square, Clock } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
+import { projectService } from '@/features/projects/services/project.service';
+import type { Project } from '@/features/projects/types/project';
 import { useBulkConvert } from '../queries/useBulkConvert';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
@@ -14,9 +16,24 @@ export const BulkConvertPage: React.FC = () => {
 
   const [screens, setScreens] = useState<LegacyScreen[]>([]);
   const [screensLoading, setScreensLoading] = useState(true);
+  const [project, setProject] = useState<Project | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [scheduleMode, setScheduleMode] = useState<'immediately' | 'later'>('immediately');
   const bulkConvert = useBulkConvert(projectId);
+
+  // The project decides what is being converted: COBOL programs to Java, or screens to a frontend.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.resolve(projectService.getProjectById(projectId))
+      .then((p) => {
+        if (!cancelled) setProject(p ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+  const isCobol = project?.conversionType === 'COBOL_TO_JAVA';
 
   useEffect(() => {
     let cancelled = false;
@@ -52,8 +69,14 @@ export const BulkConvertPage: React.FC = () => {
   return (
     <div className="space-y-6 py-2">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Bulk Convert Screens</h1>
-        <p className="text-slate-500 text-sm mt-1">Convert multiple legacy screens to modern frameworks simultaneously.</p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          {isCobol ? 'Bulk Convert Programs' : 'Bulk Convert Screens'}
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">
+          {isCobol
+            ? 'Compile and modernize multiple COBOL programs into Java Spring Boot components simultaneously.'
+            : 'Convert multiple legacy screens to modern frameworks simultaneously.'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -74,7 +97,7 @@ export const BulkConvertPage: React.FC = () => {
 
             {selectedIds.length > 0 && (
               <span className="text-xs text-brand-600 font-semibold">
-                {selectedIds.length} screens selected
+                {selectedIds.length} {isCobol ? 'programs' : 'screens'} selected
               </span>
             )}
           </div>
@@ -83,7 +106,7 @@ export const BulkConvertPage: React.FC = () => {
             {screensLoading ? (
               <div className="p-8 text-center text-sm text-slate-500">Loading screens…</div>
             ) : screens.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500">No screens available for this project.</div>
+              <div className="p-8 text-center text-sm text-slate-500">{isCobol ? 'No programs available for this project.' : 'No screens available for this project.'}</div>
             ) : (
               screens.map((screen) => {
                 const isSelected = selectedIds.includes(screen.id);
@@ -122,14 +145,18 @@ export const BulkConvertPage: React.FC = () => {
             <div className="bg-[#F7F9FC] p-4 rounded-xl border border-[#D9E2EC] space-y-3 text-xs">
               <div className="flex justify-between items-center font-medium">
                 <span className="text-[#6B778C]">Target Framework</span>
-                <span className="text-[#0652CC] font-bold">React 19 + TypeScript</span>
+                <span className="text-[#0652CC] font-bold">
+                  {isCobol ? 'Java 11 (Spring Boot 2.4 Batch)' : 'React 19 + TypeScript'}
+                </span>
               </div>
               <div className="flex justify-between items-center font-medium">
                 <span className="text-[#6B778C]">Conversion Engine</span>
-                <span className="text-[#091E42] font-semibold">ALSM Synthesis Pipeline</span>
+                <span className="text-[#091E42] font-semibold">
+                  {isCobol ? 'tool2java Deterministic Engine' : 'ALSM Synthesis Pipeline'}
+                </span>
               </div>
               <p className="text-[#0652CC] font-semibold pt-1 border-t border-[#E5EAF0]">
-                {selectedIds.length} screen(s) selected for bulk modernization synthesis.
+                {selectedIds.length} {isCobol ? 'program(s)' : 'screen(s)'} selected for bulk modernization synthesis.
               </p>
             </div>
 

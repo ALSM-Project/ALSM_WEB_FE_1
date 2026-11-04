@@ -45,8 +45,6 @@ export const TrialActivationPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Activate Your Trial</h1>
           <div>
             <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <Check className="w-4 h-4 text-emerald-600" />
-              <span>Professional Trial — $0 Due Today</span>
             </span>
           </div>
         </div>

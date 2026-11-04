@@ -120,3 +120,48 @@ describe('UploadSourcePage - real upload error surfacing', () => {
     expect(mocks.uploadSource).not.toHaveBeenCalled();
   });
 });
+
+// Bug: every loaded item was put in the screens list, so a COBOL_TO_JAVA project opened on
+// the Programs tab with nothing in it even though its programs were uploaded.
+describe('UploadSourcePage - loaded files go to the right tab', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const loaded = [
+    { id: 'p1', projectId: 'proj-acme', name: 'MODEL01.cbl', sourceType: 'COBOL', status: 'Completed', framework: 'Java (Spring Boot)', lastUpdated: 'now' },
+    { id: 'p2', projectId: 'proj-acme', name: 'PAYROLL.rpg', sourceType: 'RPG', status: 'Ready', framework: 'Java (Spring Boot)', lastUpdated: 'now' },
+    { id: 's1', projectId: 'proj-acme', name: 'LOGIN.bms', sourceType: 'BMS', status: 'Ready', framework: 'React', lastUpdated: 'now' },
+  ];
+
+  const renderPage = () =>
+    render(
+      <MemoryRouter initialEntries={['/projects/proj-acme/upload']}>
+        <Routes>
+          <Route path="/projects/:projectId/upload" element={<UploadSourcePage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+  it('lists uploaded COBOL programs at once when a COBOL to Java project opens on Programs', async () => {
+    mocks.getScreens.mockResolvedValue(loaded);
+    mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', name: 'Acme', conversionType: 'COBOL_TO_JAVA' });
+
+    renderPage();
+
+    expect(await screen.findByText('MODEL01.cbl')).toBeInTheDocument();
+    expect(screen.getByText('PAYROLL.rpg')).toBeInTheDocument();
+    expect(screen.queryByText('LOGIN.bms')).not.toBeInTheDocument();
+    expect(await screen.findByText('Programs (COBOL / RPG)')).toBeInTheDocument();
+  });
+
+  it('keeps BMS and DSPF screens on the Screens tab', async () => {
+    mocks.getScreens.mockResolvedValue(loaded);
+    mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', name: 'Acme', conversionType: 'BMS_DSPF_TO_FRONTEND' });
+
+    renderPage();
+
+    expect(await screen.findByText('LOGIN.bms')).toBeInTheDocument();
+    expect(screen.queryByText('MODEL01.cbl')).not.toBeInTheDocument();
+  });
+});
