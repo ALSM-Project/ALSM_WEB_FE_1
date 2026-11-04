@@ -83,7 +83,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/40 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
       style={{ zIndex: 999999 }}
       onClick={onClose}
     >
@@ -268,3 +268,4 @@ function extractApiErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default CreateProjectModal;
+
