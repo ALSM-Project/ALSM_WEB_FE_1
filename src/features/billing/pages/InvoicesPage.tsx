@@ -102,14 +102,14 @@ export const InvoicesPage: React.FC = () => {
       case 'PAID':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3.5 h-3.5" />
+            <CheckCircle2 className="w-4 h-4" />
             Paid
           </span>
         );
       case 'PENDING':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-            <Clock className="w-3.5 h-3.5" />
+            <Clock className="w-4 h-4" />
             Pending
           </span>
         );
@@ -117,14 +117,14 @@ export const InvoicesPage: React.FC = () => {
       case 'FAILED':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-            <AlertCircle className="w-3.5 h-3.5" />
+            <AlertCircle className="w-4 h-4" />
             {s === 'OVERDUE' ? 'Overdue' : 'Failed'}
           </span>
         );
       case 'CANCELLED':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-            <XCircle className="w-3.5 h-3.5" />
+            <XCircle className="w-4 h-4" />
             Cancelled
           </span>
         );
@@ -179,7 +179,7 @@ export const InvoicesPage: React.FC = () => {
             disabled={loading}
             className="flex items-center gap-1.5 text-xs text-[#091E42] border-[#D9E2EC] hover:bg-[#F7F9FC]"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-[#0652CC]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#0652CC]' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -333,7 +333,7 @@ export const InvoicesPage: React.FC = () => {
                       </td>
                       <td className="py-3.5 px-4 text-[#42526E]">
                         <div className="flex items-center gap-1.5">
-                          <Calendar className="w-3.5 h-3.5 text-[#6B778C]" />
+                          <Calendar className="w-4 h-4 text-[#6B778C]" />
                           <span>{formatDate(inv.issueDate || inv.date)}</span>
                         </div>
                       </td>
@@ -401,7 +401,7 @@ export const InvoicesPage: React.FC = () => {
         >
           <div className="space-y-6 text-xs text-[#091E42]">
             {/* Meta Information Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#F7F9FC] p-4 rounded-2xl border border-[#E5EAF0]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#F7F9FC] p-4 rounded-xl border border-[#E5EAF0]">
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-[#6B778C]">
                   <Building className="w-4 h-4 text-[#0652CC]" />

@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { HelpCircle, Layers, Calendar, Send, CheckCircle2, ArrowRight } from 'lucide-react';
-import { ROUTES } from '@/shared/constants/routes';
 import './ContactPage.css';
 
 export const ContactPage: React.FC = () => {
-  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -29,11 +26,22 @@ export const ContactPage: React.FC = () => {
     setSubmitted(true);
   };
 
+  const handleBookMeeting = () => {
+    setFormData((prev) => ({
+      ...prev,
+      subject: 'Schedule Enterprise Demo (Google Meet)',
+    }));
+    const nameInput = document.getElementById('name');
+    if (nameInput) {
+      nameInput.scrollIntoView({ behavior: 'smooth' });
+      nameInput.focus();
+    }
+  };
+
   return (
     <div className="alsm-contact-page">
       {/* ─── Hero Section ─── */}
       <div className="alsm-contact-hero">
-        <span className="alsm-contact-eyebrow">CONTACT</span>
         <h1 className="alsm-contact-title">Let's talk about your modernization journey.</h1>
         <p className="alsm-contact-subtitle">
           Have questions about ALSM or planning a legacy modernization project? Talk with our team.
@@ -78,8 +86,8 @@ export const ContactPage: React.FC = () => {
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div className="alsm-contact-info-text">
-                  <h3>Meeting</h3>
-                  <p>Schedule a 1-on-1 technical conversation with the ALSM engineering team.</p>
+                  <h3>Google Meet Demo</h3>
+                  <p>Schedule a live demonstration session with our Internal Sales engineering team.</p>
                 </div>
               </div>
             </div>
@@ -87,17 +95,17 @@ export const ContactPage: React.FC = () => {
             {/* Prefer a Meeting Card */}
             <div className="alsm-contact-meeting-card">
               <div>
-                <h3 className="alsm-contact-meeting-title">Prefer a meeting?</h3>
+                <h3 className="alsm-contact-meeting-title">Prefer a Live Demo?</h3>
                 <p className="alsm-contact-meeting-desc">
-                  Book a direct conversation with our enterprise modernization team to review your codebase.
+                  Schedule an online meeting room via Google Meet with our enterprise modernization team.
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => navigate(ROUTES.PUBLIC.DOCS)}
-                className="alsm-contact-meeting-btn"
+                onClick={handleBookMeeting}
+                className="alsm-contact-meeting-btn cursor-pointer"
               >
-                <span>Book a Meeting</span>
+                <span>Schedule a Demo</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -173,10 +181,12 @@ export const ContactPage: React.FC = () => {
                     className="alsm-contact-input"
                   >
                     <option value="General Inquiry">General Inquiry</option>
-                    <option value="BMS / DSPF Modernization">BMS / DSPF Modernization</option>
-                    <option value="COBOL Modernization">COBOL Modernization</option>
-                    <option value="Enterprise Proof of Concept">Enterprise Proof of Concept</option>
-                    <option value="Custom Pricing">Custom Pricing</option>
+                    <option value="Schedule Enterprise Demo (Google Meet)">Schedule Enterprise Demo (Google Meet)</option>
+                    <option value="Trial Review & Web 3 Upgrade Inquiry">Trial Review & Web 3 Upgrade Inquiry</option>
+                    <option value="BMS / DSPF Screen Modernization Scope">BMS / DSPF Screen Modernization Scope</option>
+                    <option value="COBOL to Java Spring Boot Modernization">COBOL to Java Spring Boot Modernization</option>
+                    <option value="Partner-Assisted Conversion (Managed Plan)">Partner-Assisted Conversion (Managed Plan)</option>
+                    <option value="Technical Support & Incident Escalation">Technical Support & Incident Escalation</option>
                   </select>
                 </div>
 

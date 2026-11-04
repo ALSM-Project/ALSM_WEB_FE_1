@@ -185,4 +185,22 @@ describe('AppProviders authentication bootstrap', () => {
       expect(mocks.handoff).toHaveBeenCalled();
     });
   });
+
+  it('redirects partner to web 3 portal when session restores', async () => {
+    mocks.getRefreshToken.mockReturnValue('existing-refresh-token');
+    mocks.refreshSession.mockResolvedValue({
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+    });
+    mocks.getCurrentUser.mockResolvedValue({
+      ...authenticatedUser,
+      roles: ['PARTNER'],
+    });
+
+    renderWithProviders();
+
+    await vi.waitFor(() => {
+      expect(mocks.handoff).toHaveBeenCalled();
+    });
+  });
 });

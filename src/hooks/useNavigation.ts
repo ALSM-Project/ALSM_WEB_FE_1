@@ -22,7 +22,7 @@ export function useNavigation() {
     trackMenuItemUsage: ctx.trackMenuItemUsage,
     pinMenuItem: ctx.pinMenuItem,
     unpinMenuItem: ctx.unpinMenuItem,
-    refreshNavigation: ctx.saveChanges,
+    refreshNavigation: ctx.refreshNavigation,
   };
 }
 

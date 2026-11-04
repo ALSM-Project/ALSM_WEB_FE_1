@@ -45,7 +45,7 @@ export const TrialActivationPage: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Activate Your Trial</h1>
           <div>
             <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
+              <Check className="w-4 h-4 text-emerald-600" />
               <span>Professional Trial — $0 Due Today</span>
             </span>
           </div>
@@ -91,7 +91,7 @@ export const TrialActivationPage: React.FC = () => {
             {/* Step 2 Node */}
             <div className="flex flex-col items-center text-center z-10 w-24">
               <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 text-slate-500 flex items-center justify-center text-xs">
-                <Mail className="w-3.5 h-3.5" />
+                <Mail className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold text-slate-500 mt-2">Day 12</span>
               <span className="text-[11px] text-slate-500 mt-0.5 leading-tight">Trial expiration reminder</span>
@@ -103,7 +103,7 @@ export const TrialActivationPage: React.FC = () => {
             {/* Step 3 Node */}
             <div className="flex flex-col items-center text-center z-10 w-24">
               <div className="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 text-slate-500 flex items-center justify-center text-xs">
-                <CreditCard className="w-3.5 h-3.5" />
+                <CreditCard className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold text-slate-500 mt-2">Day 14</span>
               <span className="text-[11px] text-slate-500 mt-0.5 leading-tight">Billing starts unless cancelled</span>
@@ -133,7 +133,7 @@ export const TrialActivationPage: React.FC = () => {
               Activate Free Trial
             </Button>
             <div className="flex items-center justify-center space-x-1.5 text-xs text-slate-400 font-medium">
-              <Lock className="w-3.5 h-3.5" />
+              <Lock className="w-4 h-4" />
               <span>No credit card required</span>
             </div>
           </div>

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Sparkles,
-  Layers,
+    Layers,
   Send,
   CheckCircle2,
   Mail,
@@ -78,7 +77,6 @@ export const WorkspaceContactPage: React.FC = () => {
         <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 max-w-2xl space-y-3">
           <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold text-amber-300 border border-white/10">
-            <Sparkles className="w-3.5 h-3.5" />
             <span>ALSM Platform Capacity & Upgrade</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
@@ -321,7 +319,7 @@ export const WorkspaceContactPage: React.FC = () => {
               className="inline-flex items-center space-x-1.5 text-xs font-bold text-[#0652CC] hover:underline"
             >
               <span>View Workspace Documentation</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>

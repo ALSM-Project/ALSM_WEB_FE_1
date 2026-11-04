@@ -68,7 +68,7 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8 text-xs py-1.5"
             />
-            <Search className="w-3.5 h-3.5 text-[#6B778C] absolute left-2.5 top-2.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#6B778C] absolute left-2.5 top-2.5 pointer-events-none" />
           </div>
 
           <div>
@@ -93,9 +93,9 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
                   <DynamicIcon name={page.icon} className="w-4 h-4" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-[#091E42] group-hover:text-[#0652CC]">
+                  <h3 className="text-xs font-bold text-[#091E42] group-hover:text-[#0652CC]">
                     {page.label}
-                  </h4>
+                  </h3>
                   <span className="text-[10px] text-[#6B778C]">{page.module}</span>
                 </div>
               </div>

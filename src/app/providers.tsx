@@ -22,7 +22,7 @@ import { NavigationProvider } from '@/context/NavigationContext';
 /**
  * Check if a user is an internal staff, sales, or platform admin.
  */
-function isUserStaffOrAdmin(u: User | null | undefined): boolean {
+export function isUserStaffOrAdmin(u: User | null | undefined): boolean {
   if (!u) return false;
   const roles = (u.roles || []).map((r) => String(r).toUpperCase());
   const role = (u.role || '').toUpperCase();
@@ -35,7 +35,6 @@ function isUserStaffOrAdmin(u: User | null | undefined): boolean {
     'INTERNAL_SALES',
     'INTERNAL_SUPPORT',
     'SALES_REP',
-    'PARTNER',
   ];
 
   return Boolean(
@@ -46,13 +45,23 @@ function isUserStaffOrAdmin(u: User | null | undefined): boolean {
 }
 
 /**
+ * Check if a user is an external partner organization representative.
+ */
+export function isUserPartner(u: User | null | undefined): boolean {
+  if (!u) return false;
+  const roles = (u.roles || []).map((r) => String(r).toUpperCase());
+  const role = (u.role || '').toUpperCase();
+  return role === 'PARTNER' || roles.includes('PARTNER');
+}
+
+/**
  * Determine target portal URL for token handoff.
  * Supports:
  * 1. returnTo query param (e.g. from Web 3 http://localhost:3003/auth/callback)
  * 2. PARTNER role default -> Web 3 (VITE_WEB3_PORTAL_URL || http://localhost:3003/auth/callback)
  * 3. Staff/Admin roles -> Web 2 Staff Portal (VITE_STAFF_PORTAL_URL || http://localhost:3002/auth/callback)
  */
-function getTargetHandoffUrl(u: User | null | undefined): string | null {
+export function getTargetHandoffUrl(u: User | null | undefined): string | null {
   if (!u) return null;
 
   // 1. Check if returnTo query parameter is in URL
@@ -69,9 +78,7 @@ function getTargetHandoffUrl(u: User | null | undefined): string | null {
   }
 
   // 2. PARTNER role -> redirect to Web 3
-  const role = (u.role || "").toUpperCase();
-  const roles = (u.roles || []).map((r) => String(r).toUpperCase());
-  if (role === "PARTNER" || roles.includes("PARTNER")) {
+  if (isUserPartner(u)) {
     const web3Url = import.meta.env.VITE_WEB3_PORTAL_URL || "http://localhost:3003";
     return `${web3Url}/auth/callback`;
   }
@@ -86,17 +93,24 @@ function getTargetHandoffUrl(u: User | null | undefined): string | null {
 }
 
 /**
- * Redirect internal staff/sales/admin user from FE1 to FE2 Staff Portal with tokens in URL.
+ * Redirect user from FE1 to target portal (FE2 or FE3) with token handoff.
  * Clears FE1 tokens so that on any back-navigation FE1 won't loop.
+ * For Web 3, passes tokens in URL hash fragment so secrets never enter query strings or server logs.
  */
-function redirectAdminToStaffPortal(targetUrl?: string | null): void {
+export function redirectUserToPortal(targetUrl?: string | null): void {
   const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || "http://localhost:3002";
   const target = targetUrl || `${staffUrl}/auth/callback`;
   void tokenStore.handoff(({ accessToken, refreshToken }) => {
-    const separator = target.includes("?") ? "&" : "?";
-    window.location.href = `${target}${separator}access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+    if (target.includes('3003') || target.includes('web3')) {
+      window.location.href = `${target}#access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+    } else {
+      const separator = target.includes("?") ? "&" : "?";
+      window.location.href = `${target}${separator}access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
+    }
   });
 }
+
+const redirectAdminToStaffPortal = redirectUserToPortal;
 
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -192,8 +206,9 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
   const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<User | null> => {
     const loggedInUser = await authService.loginWithGoogle(idToken);
 
-    if (isUserStaffOrAdmin(loggedInUser)) {
-      redirectAdminToStaffPortal();
+    const targetHandoff = getTargetHandoffUrl(loggedInUser);
+    if (targetHandoff) {
+      redirectUserToPortal(targetHandoff);
       return loggedInUser;
     }
 
@@ -203,6 +218,13 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
 
   const handleLogout = useCallback(async () => {
     try {
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id?.disableAutoSelect) {
+        try {
+          (window as any).google.accounts.id.disableAutoSelect();
+        } catch {
+          // ignore
+        }
+      }
       await authService.logout();
       setUser(null);
     } catch (error) {
@@ -215,7 +237,8 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const me = await authService.getCurrentUser();
       setUser(me);
-      if (isUserStaffOrAdmin(me)) redirectAdminToStaffPortal();
+      const targetHandoff = getTargetHandoffUrl(me);
+      if (targetHandoff) redirectUserToPortal(targetHandoff);
       return me;
     } catch {
       return null;

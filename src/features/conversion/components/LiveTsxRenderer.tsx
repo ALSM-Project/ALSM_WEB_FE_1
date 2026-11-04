@@ -401,7 +401,7 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
               onClick={onEditMapping}
               className="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-xs px-2.5 py-1 rounded font-semibold flex items-center space-x-1 transition-colors"
             >
-              <Sliders className="w-3.5 h-3.5 text-amber-400" />
+              <Sliders className="w-4 h-4 text-amber-400" />
               <span>Edit Mapping</span>
             </button>
           )}
@@ -410,7 +410,7 @@ export const LiveTsxRenderer: React.FC<LiveTsxRendererProps> = ({
             className="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 border border-slate-600 text-xs px-2.5 py-1 rounded flex items-center space-x-1 transition-colors"
             title="Reset Inputs"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-4 h-4" />
             <span>Reset</span>
           </button>
         </div>

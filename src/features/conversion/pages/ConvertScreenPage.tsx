@@ -10,6 +10,7 @@ import {
   Save,
   CheckCircle2,
   Sparkles,
+  Check,
 } from 'lucide-react';
 import { conversionKeys } from '../queries/conversionKeys';
 import { validationKeys } from '../queries/validationKeys';
@@ -558,7 +559,7 @@ export const ConvertScreenPage: React.FC = () => {
             label: isValidationActive
               ? 'Validation (Running...)'
               : allResolved
-                ? 'Validation (All Resolved ✓)'
+                ? 'Validation (All Resolved)'
                 : isValidationCompleted && pendingFindings.length > 0
                   ? `Validation (${pendingFindings.length})`
                   : 'Validation',
@@ -757,7 +758,7 @@ export const ConvertScreenPage: React.FC = () => {
                   disabled={saveLoading}
                   className="text-xs font-semibold px-3 py-1.5 text-slate-700 hover:bg-slate-50"
                 >
-                  <Save className="w-3.5 h-3.5 mr-1.5" />
+                  <Save className="w-4 h-4 mr-1.5" />
                   Save Code
                 </Button>
                 <Button
@@ -940,7 +941,7 @@ export const ConvertScreenPage: React.FC = () => {
                   disabled={Boolean(applyingFixId) || reviewFinding.isPending}
                   className="text-xs font-semibold px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white space-x-1.5"
                 >
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <Sparkles className="w-4 h-4" />
                   <span>Accept All AI Fixes ({findings.filter((f) => f.suggestion && f.status !== ValidationFindingStatus.RESOLVED).length})</span>
                 </Button>
               )}
@@ -1007,8 +1008,8 @@ export const ConvertScreenPage: React.FC = () => {
             <div className="border border-emerald-200 bg-emerald-50/60 rounded-xl p-6 text-xs text-emerald-900 space-y-4 shadow-sm">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
-                    ✓
+                  <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+                    <Check className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-emerald-950">
@@ -1196,7 +1197,7 @@ export const ConvertScreenPage: React.FC = () => {
                             onClick={() => handleAcceptAiFix(f)}
                             className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all disabled:opacity-50"
                           >
-                            <Sparkles className="w-3.5 h-3.5" />
+                            <Sparkles className="w-4 h-4" />
                             <span>{applyingFixId === f.id ? 'Applying Fix...' : 'Accept AI Fix'}</span>
                           </button>
                         )}
@@ -1261,7 +1262,7 @@ export const ConvertScreenPage: React.FC = () => {
         </Button>
         <div className="flex space-x-3">
           <Button variant="outline" onClick={() => navigate(mappingRoute)} className="space-x-1.5 text-xs font-semibold">
-            <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+            <RefreshCw className="w-4 h-4 text-slate-600" />
             <span>{isCobol ? 'Edit Method Mapping' : 'Edit & Re-convert'}</span>
           </Button>
           <Button
@@ -1269,7 +1270,7 @@ export const ConvertScreenPage: React.FC = () => {
             disabled={!isCompleted}
             className="space-x-1.5 text-xs font-semibold"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-4 h-4" />
             <span>Download Code (.zip)</span>
           </Button>
         </div>

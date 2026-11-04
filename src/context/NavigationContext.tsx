@@ -9,7 +9,185 @@ import {
 } from '@/features/menus/utils/navigationTreeUtils';
 import { apiClient } from '@/services/api/apiClient';
 
-const LOCAL_STORAGE_KEY = 'alsm_workspace_navigation_tree_v7';
+export interface BackendNavItem {
+  id: string;
+  key: string;
+  application: string;
+  label: string;
+  type: string;
+  icon: string;
+  route: string | null;
+  parentId: string | null;
+  order: number;
+  visibility: boolean;
+  status: string;
+  requiredPermissions: string[];
+  openInNewTab?: boolean;
+  hideParentLabel?: boolean;
+  children?: BackendNavItem[];
+}
+
+/**
+ * Authoritative static Document navigation items (PoC / Web 1 baseline).
+ * These must be permanently preserved and additive, never replaced or hidden.
+ */
+export const STATIC_RESOURCE_DOCS: MenuItem[] = [
+  {
+    id: 'docs',
+    label: 'Documentation',
+    icon: 'BookOpen',
+    path: '/workspace/docs',
+    isVisible: true,
+    order: 60,
+    category: 'RESOURCES',
+  },
+  {
+    id: 'user-guide',
+    label: 'User Guide',
+    icon: 'FileText',
+    path: '/workspace/docs#how-it-works',
+    isVisible: true,
+    order: 61,
+    category: 'RESOURCES',
+  },
+  {
+    id: 'modernization-guide',
+    label: 'Modernization Guide',
+    icon: 'HelpCircle',
+    path: '/workspace/docs#bms-dspf',
+    isVisible: true,
+    order: 62,
+    category: 'RESOURCES',
+  },
+  {
+    id: 'contact',
+    label: 'Contact & Upgrade',
+    icon: 'Mail',
+    path: '/workspace/contact',
+    isVisible: true,
+    order: 63,
+    category: 'RESOURCES',
+  },
+];
+
+/**
+ * Authoritative static Account navigation items.
+ */
+export const STATIC_ACCOUNT_SETTINGS: MenuItem[] = [
+  {
+    id: 'settings',
+    label: 'Account',
+    icon: 'Settings',
+    path: '/account/profile',
+    isVisible: true,
+    order: 70,
+    category: 'ACCOUNT',
+    children: [
+      {
+        id: 'account-profile',
+        label: 'Profile Info',
+        icon: 'User',
+        path: '/account/profile',
+        parentId: 'settings',
+        isVisible: true,
+        order: 1,
+      },
+      {
+        id: 'account-preferences',
+        label: 'Preferences',
+        icon: 'Sliders',
+        path: '/account/preferences',
+        parentId: 'settings',
+        isVisible: true,
+        order: 2,
+      },
+      {
+        id: 'security-password',
+        label: 'Change Password',
+        icon: 'KeyRound',
+        path: '/account/security/password',
+        parentId: 'settings',
+        isVisible: true,
+        order: 3,
+      },
+      {
+        id: 'security-2fa',
+        label: 'Two-Factor Auth',
+        icon: 'ShieldAlert',
+        path: '/account/security/2fa',
+        parentId: 'settings',
+        isVisible: true,
+        order: 4,
+      },
+      {
+        id: 'security-sessions',
+        label: 'Active Sessions',
+        icon: 'Smartphone',
+        path: '/account/security/sessions',
+        parentId: 'settings',
+        isVisible: true,
+        order: 5,
+      },
+    ],
+  },
+];
+
+/**
+ * Additive merge strategy: Preserves all static Documents and static Account entries,
+ * merging dynamic backend items seamlessly without replacing or dropping static navigation.
+ */
+export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuItem[] {
+  if (!Array.isArray(dynamicItems) || dynamicItems.length === 0) {
+    return [...DEFAULT_SIDEBAR_NAV];
+  }
+
+  const dynamicIds = new Set<string>();
+  const dynamicPaths = new Set<string>();
+
+  const collectIdentifiers = (items: MenuItem[]) => {
+    for (const item of items) {
+      if (item.id) dynamicIds.add(item.id.toLowerCase());
+      if (item.path) dynamicPaths.add(item.path.toLowerCase());
+      if (item.children) collectIdentifiers(item.children);
+    }
+  };
+  collectIdentifiers(dynamicItems);
+
+  // 1. Start with dynamic items
+  const merged: MenuItem[] = [...dynamicItems];
+
+  // 2. Add static Document entries if not explicitly overridden by dynamic items
+  for (const doc of STATIC_RESOURCE_DOCS) {
+    const hasDuplicate =
+      dynamicIds.has(doc.id.toLowerCase()) ||
+      (doc.path && dynamicPaths.has(doc.path.toLowerCase()));
+    if (!hasDuplicate) {
+      merged.push({ ...doc });
+    }
+  }
+
+  // 3. Add static Account entries if not explicitly provided by dynamic backend items
+  const hasDynamicAccount = dynamicItems.some(
+    (item) =>
+      item.category === 'ACCOUNT' ||
+      item.id === 'settings' ||
+      item.id.toLowerCase().includes('account') ||
+      item.label.toLowerCase() === 'account'
+  );
+
+  if (!hasDynamicAccount) {
+    for (const acc of STATIC_ACCOUNT_SETTINGS) {
+      const hasDuplicate =
+        dynamicIds.has(acc.id.toLowerCase()) ||
+        (acc.path && dynamicPaths.has(acc.path.toLowerCase()));
+      if (!hasDuplicate) {
+        merged.push({ ...acc });
+      }
+    }
+  }
+
+  return merged;
+}
 
 export interface NavigationContextType {
   sidebarNav: MenuItem[];
@@ -29,70 +207,69 @@ export interface NavigationContextType {
   trackMenuItemUsage: (itemId: string) => Promise<void>;
   pinMenuItem: (itemId: string) => Promise<void>;
   unpinMenuItem: (itemId: string) => Promise<void>;
+  refreshNavigation: () => Promise<void>;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
-function filterForbiddenItems(items: MenuItem[]): MenuItem[] {
-  const forbidden = ['billing', 'subscription', 'usage', 'pricing', 'payment', 'plan'];
-  return items
-    .filter((item) => {
-      const label = item.label.toLowerCase();
-      const id = item.id.toLowerCase();
-      const path = (item.path || '').toLowerCase();
-      return !forbidden.some((term) => label.includes(term) || id.includes(term) || path.includes(term));
-    })
-    .map((item) => {
-      let path = item.path;
-      if (item.id === 'docs' && path === '/docs') path = '/workspace/docs';
-      if ((item.id === 'poc-guide' || item.id === 'user-guide') && (path === '/docs#how-it-works' || path === '/workspace/docs#how-it-works')) path = '/workspace/docs#how-it-works';
-      if (item.id === 'modernization-guide' && (path === '/docs#bms-dspf' || path === '/workspace/docs#bms-dspf')) path = '/workspace/docs#bms-dspf';
-      return {
-        ...item,
-        path,
-        children: item.children ? filterForbiddenItems(item.children) : undefined,
-      };
-    });
-}
-
-function loadInitialTree(): MenuItem[] {
-  try {
-    // Purge old legacy storage keys if present
-    localStorage.removeItem('alsm_navigation_tree_v1');
-    localStorage.removeItem('alsm_poc_navigation_tree_v2');
-    localStorage.removeItem('alsm_poc_navigation_tree_v3');
-    localStorage.removeItem('alsm_workspace_navigation_tree_v5');
-
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const sanitized = filterForbiddenItems(parsed);
-        if (sanitized.length > 0) {
-          return sanitized;
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Failed to load navigation tree from storage:', e);
+function mapBackendNodeToMenuItem(node: BackendNavItem): MenuItem {
+  let category: 'MAIN' | 'RESOURCES' | 'ACCOUNT' | undefined;
+  const k = (node.key || '').toLowerCase();
+  const id = (node.id || '').toLowerCase();
+  if (k.includes('resource') || id.includes('resource') || id.includes('docs') || id.includes('guide') || id.includes('contact')) {
+    category = 'RESOURCES';
+  } else if (k.includes('account') || id.includes('account') || id.includes('security') || id.includes('settings')) {
+    category = 'ACCOUNT';
+  } else {
+    category = 'MAIN';
   }
-  return DEFAULT_SIDEBAR_NAV;
+
+  return {
+    id: node.id,
+    label: node.label,
+    icon: node.icon || 'FileText',
+    path: node.route || undefined,
+    parentId: node.parentId || undefined,
+    order: node.order,
+    isVisible: node.visibility !== false && node.status !== 'INACTIVE',
+    target: node.openInNewTab ? '_blank' : '_self',
+    category,
+    children:
+      node.children && node.children.length > 0
+        ? node.children.map(mapBackendNodeToMenuItem)
+        : undefined,
+  };
 }
 
 export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [sidebarNav, setSidebarNav] = useState<MenuItem[]>(loadInitialTree);
+  const [sidebarNav, setSidebarNav] = useState<MenuItem[]>(() =>
+    mergeDynamicAndStaticNavigation(DEFAULT_SIDEBAR_NAV)
+  );
   const [selectedItemId, setSelectedItemId] = useState<string | null>('dashboard');
   const [isDirty, setIsDirty] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // Sync tree to localStorage on changes
-  useEffect(() => {
+  const fetchRemoteNavigation = useCallback(async () => {
     try {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sidebarNav));
+      setLoading(true);
+      const res = await apiClient.get<BackendNavItem[]>('/navigation?application=WEB_1');
+      if (Array.isArray(res) && res.length > 0) {
+        const mapped = res.map(mapBackendNodeToMenuItem);
+        setSidebarNav(mergeDynamicAndStaticNavigation(mapped));
+      } else {
+        setSidebarNav(mergeDynamicAndStaticNavigation([]));
+      }
     } catch (e) {
-      console.error('Failed to persist navigation tree:', e);
+      console.warn('Could not fetch remote navigation for WEB_1, using fallback:', e);
+      setSidebarNav(mergeDynamicAndStaticNavigation([]));
+    } finally {
+      setLoading(false);
     }
-  }, [sidebarNav]);
+  }, []);
+
+  useEffect(() => {
+    fetchRemoteNavigation();
+  }, [fetchRemoteNavigation]);
 
   const addItem = useCallback((itemData: Partial<MenuItem>, parentId?: string | null): MenuItem => {
     const newId = itemData.id || `menu-${Date.now()}`;
@@ -235,9 +412,9 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   const resetToDefault = useCallback(() => {
-    setSidebarNav(DEFAULT_SIDEBAR_NAV);
+    setSidebarNav(mergeDynamicAndStaticNavigation(DEFAULT_SIDEBAR_NAV));
     setSelectedItemId('dashboard');
-    setIsDirty(true);
+    setIsDirty(false);
   }, []);
 
   const saveChanges = useCallback(async () => {
@@ -246,7 +423,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       await apiClient.post('/menus/save', { sidebarNav });
       setIsDirty(false);
     } catch (e) {
-      console.warn('Backend menu save failed, saved locally:', e);
+      console.warn('Backend menu save failed:', e);
       setIsDirty(false);
     } finally {
       setLoading(false);
@@ -256,7 +433,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const trackMenuItemUsage = useCallback(async (itemId: string) => {
     try {
       await apiClient.post(`/menus/track/${itemId}`, { action: 'click' });
-    } catch (err) {
+    } catch {
       // ignore
     }
   }, []);
@@ -306,6 +483,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         trackMenuItemUsage,
         pinMenuItem,
         unpinMenuItem,
+        refreshNavigation: fetchRemoteNavigation,
       }}
     >
       {children}
@@ -313,34 +491,10 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
-const defaultContextValue: NavigationContextType = {
-  sidebarNav: DEFAULT_SIDEBAR_NAV,
-  navigation: {
-    topNav: [],
-    sidebarNav: DEFAULT_SIDEBAR_NAV,
-    secondaryNav: {},
-    contextualNav: [],
-    personalization: { pinnedItems: [], recentItems: [], suggestedItems: [] },
-    metadata: { totalItems: DEFAULT_SIDEBAR_NAV.length, isDefault: true, lastUpdated: new Date().toISOString() },
-  },
-  loading: false,
-  selectedItemId: null,
-  setSelectedItemId: () => {},
-  addItem: () => ({ id: '', label: '', icon: '', path: '', isVisible: true, order: 0 }),
-  updateItem: () => {},
-  deleteItem: () => ({ success: false }),
-  moveItem: () => ({ success: false }),
-  reorderSibling: () => {},
-  duplicateItem: () => null,
-  resetToDefault: () => {},
-  saveChanges: async () => {},
-  isDirty: false,
-  trackMenuItemUsage: async () => {},
-  pinMenuItem: async () => {},
-  unpinMenuItem: async () => {},
-};
-
 export const useNavigationContext = (): NavigationContextType => {
   const context = useContext(NavigationContext);
-  return context || defaultContextValue;
+  if (!context) {
+    throw new Error('useNavigationContext must be used within NavigationProvider');
+  }
+  return context;
 };

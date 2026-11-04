@@ -178,7 +178,7 @@ export const InitialQualityReviewPage: React.FC = () => {
           </p>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={() => refetchJob()} className="space-x-1.5">
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
               <span>Refresh Status</span>
             </Button>
             <Button onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}>
@@ -230,7 +230,7 @@ export const InitialQualityReviewPage: React.FC = () => {
             onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
             className="space-x-1.5 text-xs font-semibold"
           >
-            <Sliders className="w-3.5 h-3.5" />
+            <Sliders className="w-4 h-4" />
             <span>Edit Mapping</span>
           </Button>
           <Button
@@ -239,7 +239,7 @@ export const InitialQualityReviewPage: React.FC = () => {
             onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId))}
             className="space-x-1.5 text-xs font-semibold"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-4 h-4" />
             <span>Re-convert Screen</span>
           </Button>
         </div>
@@ -464,7 +464,7 @@ export const InitialQualityReviewPage: React.FC = () => {
           onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}
           className="space-x-1.5 text-xs font-semibold"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>Back to Result Inspection</span>
         </Button>
 

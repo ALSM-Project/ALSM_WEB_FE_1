@@ -96,7 +96,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               className="flex items-center space-x-1.5 px-3 py-1 rounded bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold transition-colors shadow-sm"
               title="Save TSX code"
             >
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-4 h-4" />
               <span>Save Code</span>
             </button>
           )}
@@ -107,7 +107,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 hover:text-amber-200 border border-slate-700 transition-colors"
               title="Reset code back to the initial conversion output"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-4 h-4" />
               <span>Reset</span>
             </button>
           )}
@@ -116,7 +116,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             onClick={handleCopy}
             className="flex items-center space-x-1 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-colors"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>
         </div>

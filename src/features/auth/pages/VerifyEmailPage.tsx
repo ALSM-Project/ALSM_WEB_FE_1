@@ -158,7 +158,7 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
 
           <Link to={ROUTES.PUBLIC.LOGIN} className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 font-medium text-xs pt-1">
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4" />
             Back to Sign In
           </Link>
         </div>

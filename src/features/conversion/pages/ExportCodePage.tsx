@@ -578,7 +578,7 @@ export const ExportCodePage: React.FC = () => {
       </div>
 
       {/* Sticky Bottom Action Bar (matching the design system shown in Image 2) */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 py-3.5 px-6 shadow-lg">
+      <div style={{ left: 'var(--sidebar-width, 15rem)' }} className="fixed bottom-0 right-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 py-3.5 px-6 lg:px-8 shadow-lg transition-[left] duration-300">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center space-x-2 text-xs text-slate-600">
             <span className="w-2 h-2 rounded-full bg-blue-600"></span>

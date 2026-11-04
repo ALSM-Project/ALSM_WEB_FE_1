@@ -305,7 +305,7 @@ export class ExportService {
                 size: '0.3 KB',
                 type: 'file',
                 language: 'css',
-                content: `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\nbody {\n  margin: 0;\n  font-family: Inter, system-ui, -apple-system, sans-serif;\n}`,
+                content: `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\nbody {\n  margin: 0;\n  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}`,
               },
             ],
           },

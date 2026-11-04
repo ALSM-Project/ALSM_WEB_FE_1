@@ -3,123 +3,56 @@
 @tailwind utilities;
 
 :root {
-  /* Core Brand Colors */
-  --alsm-primary: #0652CC;
-  --alsm-electric: #0655FF;
-  --alsm-soft-blue: #E8F1FF;
+  /* Layout Sizing Tokens */
+  --app-header-height: 64px;
 
-  /* Dark Navy Palette */
-  --alsm-navy: #091E42;
-  --alsm-deep-navy: #020817;
-
-  /* Background & Surfaces */
-  --alsm-background: #F7F9FC;
+  /* Page & Base Surface */
+  --alsm-bg: #F8FAFC;
   --alsm-surface: #FFFFFF;
+  --alsm-border: #E2E8F0;
+  --alsm-input-border: #CBD5E1;
+  --alsm-text: #0F172A;
+  --alsm-text-muted: #475569;
 
-  /* Typography Colors */
-  --alsm-text-primary: #091E42;
-  --alsm-text-secondary: #42526E;
-  --alsm-text-muted: #6B778C;
+  /* Primary Brand Action (Single Blue Action) */
+  --alsm-primary: #2563EB;
+  --alsm-primary-hover: #1D4ED8;
+  --alsm-primary-soft: rgba(37, 99, 235, 0.12);
+  --alsm-focus-ring: rgba(37, 99, 235, 0.2);
 
-  /* Borders */
-  --alsm-border: #D9E2EC;
-  --alsm-border-subtle: #E5EAF0;
+  /* Left Showcase Panel (Deep Navy with Subtle Tone Gradient) */
+  --alsm-panel-bg-top: #0B1B3A;
+  --alsm-panel-bg-bottom: #0F172A;
+  --alsm-panel-border: rgba(255, 255, 255, 0.08);
+  --alsm-panel-box-bg: rgba(255, 255, 255, 0.05);
+  --alsm-panel-text: #F8FAFC;
+  --alsm-panel-muted: #CBD5E1;
 
-  /* Semantic Colors */
-  --alsm-success: #10B981;
-  --alsm-success-bg: #ECFDF5;
-  --alsm-warning: #F59E0B;
-  --alsm-warning-bg: #FFFBEB;
-  --alsm-error: #EF4444;
-  --alsm-error-bg: #FEF2F2;
-  --alsm-info: #3B82F6;
-  --alsm-info-bg: #EFF6FF;
+  /* Accent (Single Deliberate Accent: Cyan) */
+  --alsm-accent: #22D3EE;
 
-  /* Border Radii */
-  --alsm-radius-card: 12px;
-  --alsm-radius-input: 8px;
-  --alsm-radius-button: 8px;
-  --alsm-radius-badge: 9999px;
+  /* Feedback */
+  --alsm-danger: #B91C1C;
+  --alsm-success: #15803D;
 
-  /* Enterprise Shadows */
-  --alsm-shadow-sm: 0 1px 2px 0 rgba(9, 30, 66, 0.05);
-  --alsm-shadow-md: 0 4px 12px -2px rgba(9, 30, 66, 0.08), 0 2px 4px -1px rgba(9, 30, 66, 0.04);
-  --alsm-shadow-lg: 0 12px 24px -4px rgba(9, 30, 66, 0.12), 0 4px 6px -2px rgba(9, 30, 66, 0.04);
-
-  /* Legacy Backward Compatibility Mappings */
-  --color-background: var(--alsm-background);
-  --color-surface: var(--alsm-surface);
-  --color-text-primary: var(--alsm-text-primary);
-  --color-text-secondary: var(--alsm-text-secondary);
-  --color-primary-blue: var(--alsm-primary);
-  --color-electric-blue: var(--alsm-electric);
-  --color-soft-blue: var(--alsm-soft-blue);
-  --color-cyan: #22D3EE;
-  --color-violet: #8B5CF6;
-  --color-border: var(--alsm-border);
-  --color-dark-section: var(--alsm-deep-navy);
-  --color-dark-surface: var(--alsm-navy);
-
-  --sans: Inter, system-ui, -apple-system, sans-serif;
-  --mono: 'JetBrains Mono', Consolas, monospace;
-
-  font-family: var(--sans);
   color-scheme: light;
-  color: var(--alsm-text-secondary);
-  background: var(--alsm-background);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   margin: 0;
-  background-color: var(--color-background);
-  color: var(--color-text-secondary);
+  background-color: var(--alsm-bg);
+  color: var(--alsm-text);
   overflow-x: hidden;
 }
 
-p {
-  margin: 0;
-}
-
-code {
-  font-family: var(--mono);
-}
-
-/* Fan card transformation animations */
-.fan-card {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 20px 40px rgba(9, 30, 66, 0.1);
-}
-.fan-card:hover {
-  transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 12px)) scale(1.05) !important;
-  z-index: 40 !important;
-  box-shadow: 0 30px 60px rgba(6, 82, 204, 0.25) !important;
-}
-
-/* Reviews Marquee */
-.reviews-track {
-  animation: marquee 35s linear infinite;
-}
-.reviews-marquee:hover .reviews-track {
-  animation-play-state: paused;
-}
-
-/* FAQ Accordion Smooth Expansion */
-.faq-answer {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 250ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease;
-  opacity: 0;
-}
-.faq-answer > div {
-  overflow: hidden;
-}
-.faq-open {
-  grid-template-rows: 1fr;
-  opacity: 1;
+/* Override Browser Autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: #0F172A !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* Custom Scrollbars */
@@ -128,13 +61,52 @@ code {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #091E42;
+  background: var(--alsm-panel-bg-bottom);
 }
 ::-webkit-scrollbar-thumb {
-  background: #0652CC;
+  background: var(--alsm-border);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0655FF;
+  background: var(--alsm-primary);
 }
 
+/* Typography pairing */
+header,
+header button,
+header input,
+header a,
+aside,
+main,
+nav {
+  transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+}
+
+h1, h2, h3, h4, h5, h6,
+aside,
+aside a,
+aside button,
+aside span,
+aside p,
+nav,
+nav a,
+nav button,
+header,
+header button,
+header input,
+header a,
+button,
+.font-heading {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+p,
+.font-body {
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: 'JetBrains Mono', Consolas, monospace !important;
+}

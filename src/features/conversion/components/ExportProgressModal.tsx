@@ -166,7 +166,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
             {/* Next Steps Guide */}
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
-                <Terminal className="w-3.5 h-3.5 text-slate-500" />
+                <Terminal className="w-4 h-4 text-slate-500" />
                 <span>Next steps to run your code</span>
               </div>
               <div className="bg-slate-950 text-slate-200 p-3.5 rounded-xl font-mono text-xs space-y-1.5 border border-slate-800 shadow-inner">
@@ -188,7 +188,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                 onClick={onDownloadAgain}
                 className="space-x-1.5 text-xs font-semibold"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-4 h-4" />
                 <span>Download Again</span>
               </Button>
 
@@ -197,7 +197,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                 className="space-x-1.5 text-xs font-semibold"
               >
                 <span>Back to Screens</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>

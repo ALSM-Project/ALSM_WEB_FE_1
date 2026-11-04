@@ -433,7 +433,7 @@ export const RequestEnterprisePage: React.FC = () => {
       {/* Page Header */}
       <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-          <Zap className="w-3.5 h-3.5 text-indigo-600" />
+          <Zap className="w-4 h-4 text-indigo-600" />
           <span>Full Migration & Modernization</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">

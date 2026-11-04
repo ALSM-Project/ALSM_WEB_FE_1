@@ -66,7 +66,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
         style={{ marginLeft: `${depth * 20}px` }}
       >
         <div className="flex items-center space-x-2.5 truncate">
-          <GripVertical className="w-3.5 h-3.5 text-[#94A3B8] cursor-grab shrink-0 opacity-40 group-hover:opacity-100" />
+          <GripVertical className="w-4 h-4 text-[#94A3B8] cursor-grab shrink-0 opacity-40 group-hover:opacity-100" />
 
           <DynamicIcon
             name={item.icon}
@@ -87,9 +87,9 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
               className="p-1 text-[#6B778C] hover:text-[#091E42] rounded-md hover:bg-black/5"
             >
               {effectiveExpanded ? (
-                <ChevronDown className="w-3.5 h-3.5" />
+                <ChevronDown className="w-4 h-4" />
               ) : (
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               )}
             </button>
           )}
@@ -105,7 +105,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
               className="p-1 text-[#6B778C] hover:text-[#091E42] rounded-md hover:bg-black/5"
               title="More Actions"
             >
-              <MoreVertical className="w-3.5 h-3.5" />
+              <MoreVertical className="w-4 h-4" />
             </button>
 
             {showDropdownActions && (
@@ -121,7 +121,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                   }}
                   className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2 text-[#0652CC]"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-4 h-4" />
                   <span>Add Child</span>
                 </button>
                 <button
@@ -132,7 +132,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                   }}
                   className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2"
                 >
-                  <Copy className="w-3.5 h-3.5 text-[#6B778C]" />
+                  <Copy className="w-4 h-4 text-[#6B778C]" />
                   <span>Duplicate</span>
                 </button>
                 <button
@@ -143,7 +143,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                   }}
                   className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2"
                 >
-                  <ArrowUp className="w-3.5 h-3.5 text-[#6B778C]" />
+                  <ArrowUp className="w-4 h-4 text-[#6B778C]" />
                   <span>Move Up</span>
                 </button>
                 <button
@@ -154,7 +154,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                   }}
                   className="w-full text-left px-3 py-1.5 hover:bg-[#F7F9FC] flex items-center space-x-2"
                 >
-                  <ArrowDown className="w-3.5 h-3.5 text-[#6B778C]" />
+                  <ArrowDown className="w-4 h-4 text-[#6B778C]" />
                   <span>Move Down</span>
                 </button>
 
@@ -176,7 +176,7 @@ export const MenuTreeItem: React.FC<MenuTreeItemProps> = ({
                     isParentWithChildren ? 'Cannot delete a menu item with children.' : undefined
                   }
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                   <span>Delete</span>
                 </button>
               </div>

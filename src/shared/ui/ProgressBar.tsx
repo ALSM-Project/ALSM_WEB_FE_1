@@ -33,8 +33,8 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className="w-full flex items-center space-x-3">
       <div className={`w-full bg-slate-200 rounded-full overflow-hidden ${heights[size]}`}>
         <div
-          className={`h-full transition-all duration-500 rounded-full ${colors[color]}`}
-          style={{ width: `${clamped}%` }}
+          className={`h-full w-full rounded-full transition-transform duration-500 origin-left ease-out ${colors[color]}`}
+          style={{ transform: `scaleX(${clamped / 100})` }}
         />
       </div>
       {showPercentage && <span className="text-xs font-mono font-medium text-slate-600 min-w-[36px] text-right">{clamped}%</span>}

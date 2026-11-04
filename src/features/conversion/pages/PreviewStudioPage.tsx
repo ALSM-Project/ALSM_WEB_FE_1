@@ -116,7 +116,7 @@ export const PreviewStudioPage: React.FC = () => {
               http://localhost:3000/{screenName.toLowerCase().replace(/\.(bms|dspf|cob|cbl)$/i, '')}
             </div>
             <button className="text-slate-400 hover:text-slate-700">
-              <RefreshCcw className="w-3.5 h-3.5" />
+              <RefreshCcw className="w-4 h-4" />
             </button>
           </div>
 

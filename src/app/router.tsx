@@ -9,7 +9,13 @@ import { GuestRoute, ProtectedRoute, RoleGuard, PasswordCallbackPage } from './g
 import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage, VerifyEmailPage } from '@/features/auth';
 import { DocsPage, WorkspaceDocsPage } from '@/features/docs';
 
-import { ChangePasswordPage, TwoFactorAuthenticationPage, ActiveSessionsPage } from '@/features/account';
+import {
+  ProfileInfoPage,
+  PreferencesPage,
+  ChangePasswordPage,
+  TwoFactorAuthenticationPage,
+  ActiveSessionsPage,
+} from '@/features/account';
 import {
   ModernizationDashboardPage,
   ProjectsListPage,
@@ -80,6 +86,10 @@ export const router = createBrowserRouter([
           {
             element: <AccountSettingsLayout />,
             children: [
+              { path: '/account', element: <Navigate to="/account/profile" replace /> },
+              { path: '/account/profile', element: <ProfileInfoPage /> },
+              { path: '/account/preferences', element: <PreferencesPage /> },
+              { path: '/account/security', element: <Navigate to="/account/security/password" replace /> },
               { path: '/account/security/password', element: <ChangePasswordPage /> },
               { path: '/account/security/2fa', element: <TwoFactorAuthenticationPage /> },
               { path: '/account/security/sessions', element: <ActiveSessionsPage /> },

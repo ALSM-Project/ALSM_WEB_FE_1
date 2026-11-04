@@ -35,21 +35,21 @@ const TreeItem: React.FC<TreeItemProps> = ({
 
   const getFileIcon = (name: string) => {
     if (name.endsWith('.tsx') || name.endsWith('.ts')) {
-      return <FileCode className="w-3.5 h-3.5 text-cyan-400 shrink-0" />;
+      return <FileCode className="w-4 h-4 text-cyan-400 shrink-0" />;
     }
     if (name.endsWith('.java')) {
-      return <FileCode className="w-3.5 h-3.5 text-orange-400 shrink-0" />;
+      return <FileCode className="w-4 h-4 text-orange-400 shrink-0" />;
     }
     if (name.endsWith('.json') || name.endsWith('.js')) {
-      return <FileText className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+      return <FileText className="w-4 h-4 text-amber-400 shrink-0" />;
     }
     if (name.endsWith('.md')) {
-      return <FileText className="w-3.5 h-3.5 text-emerald-400 shrink-0" />;
+      return <FileText className="w-4 h-4 text-emerald-400 shrink-0" />;
     }
     if (name.endsWith('.css')) {
-      return <File className="w-3.5 h-3.5 text-sky-400 shrink-0" />;
+      return <File className="w-4 h-4 text-sky-400 shrink-0" />;
     }
-    return <File className="w-3.5 h-3.5 text-slate-400 shrink-0" />;
+    return <File className="w-4 h-4 text-slate-400 shrink-0" />;
   };
 
   if (item.type === 'dir') {
@@ -68,9 +68,9 @@ const TreeItem: React.FC<TreeItemProps> = ({
             )}
           </span>
           {isOpen ? (
-            <FolderOpen className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <FolderOpen className="w-4 h-4 text-amber-400 shrink-0" />
           ) : (
-            <Folder className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <Folder className="w-4 h-4 text-amber-400 shrink-0" />
           )}
           <span className="font-semibold text-slate-200">{item.name}/</span>
           <span className="text-[10px] text-slate-500 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">

@@ -138,12 +138,12 @@ export const ScreensListPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setStatusFilter('ALL')}
-          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-[#0652CC] ${
+          className={`text-left bg-white border p-4 rounded-xl flex items-center space-x-4 cursor-pointer transition-colors hover:border-[#0652CC] ${
             statusFilter === 'ALL' ? 'border-[#0652CC] ring-2 ring-blue-100 bg-blue-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to view all assets"
         >
-          <div className="p-3 bg-[#E8F1FF] text-[#0652CC] rounded-xl border border-blue-100 shrink-0">
+          <div className="w-11 h-11 bg-[#E8F1FF] text-[#0652CC] rounded-xl flex items-center justify-center shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div>
@@ -158,12 +158,12 @@ export const ScreensListPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setStatusFilter('COMPLETED')}
-          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-emerald-500 ${
+          className={`text-left bg-white border p-4 rounded-xl flex items-center space-x-4 cursor-pointer transition-colors hover:border-emerald-500 ${
             statusFilter === 'COMPLETED' ? 'border-emerald-500 ring-2 ring-emerald-100 bg-emerald-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to filter by Converted status"
         >
-          <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shrink-0">
+          <div className="w-11 h-11 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
@@ -176,12 +176,12 @@ export const ScreensListPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setStatusFilter('REVIEW REQUIRED')}
-          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-amber-500 ${
+          className={`text-left bg-white border p-4 rounded-xl flex items-center space-x-4 cursor-pointer transition-colors hover:border-amber-500 ${
             statusFilter === 'REVIEW REQUIRED' ? 'border-amber-500 ring-2 ring-amber-100 bg-amber-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to filter by Review Required status"
         >
-          <div className="p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 shrink-0">
+          <div className="w-11 h-11 bg-amber-50 text-amber-700 rounded-xl flex items-center justify-center shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
@@ -193,10 +193,10 @@ export const ScreensListPage: React.FC = () => {
         {/* 4. Failed Card -> Direct Link to Diagnostics */}
         <Link
           to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
-          className="bg-white border border-[#D9E2EC] p-4 rounded-2xl flex items-center space-x-4 shadow-2xs hover:border-rose-400 hover:shadow-xs transition-all cursor-pointer group"
+          className="bg-white border border-[#D9E2EC] p-4 rounded-xl flex items-center space-x-4 hover:border-rose-400 transition-colors cursor-pointer group"
           title="Click to view Diagnostics & Error Logs"
         >
-          <div className="p-3 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 group-hover:scale-105 transition-transform shrink-0">
+          <div className="w-11 h-11 bg-rose-50 text-rose-700 rounded-xl flex items-center justify-center shrink-0">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
@@ -216,15 +216,15 @@ export const ScreensListPage: React.FC = () => {
       />
 
       {/* Filter Row */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between bg-white p-4 rounded-2xl border border-[#D9E2EC] shadow-2xs">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between bg-white p-4 rounded-xl border border-[#D9E2EC]">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B778C]" />
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
           <input
             type="text"
             placeholder={`Search ${activeTab === 'screens' ? 'legacy screens' : 'COBOL programs'} by name...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0652CC] text-[#091E42] placeholder-[#6B778C]"
+            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0652CC] text-[#091E42] placeholder-slate-400"
           />
         </div>
 
@@ -245,8 +245,7 @@ export const ScreensListPage: React.FC = () => {
       </div>
 
       {/* Enterprise Data Table with Exact 5 Columns & Width Proportions */}
-      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-[#D9E2EC] rounded-xl p-3 sm:p-4 overflow-x-auto">
           <table className="w-full min-w-[950px] text-left text-xs table-fixed">
             <colgroup>
               <col className="w-[24%]" />
@@ -255,7 +254,7 @@ export const ScreensListPage: React.FC = () => {
               <col className="w-[18%]" />
               <col className="w-[28%]" />
             </colgroup>
-            <thead className="bg-[#F7F9FC] text-[#42526E] font-bold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
+            <thead className="text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-[#E5EAF0]">
               <tr>
                 <th className="py-3.5 px-4">{activeTab === 'screens' ? 'SCREEN NAME' : 'PROGRAM NAME'}</th>
                 <th className="py-3.5 px-4">LEGACY SOURCE TYPE</th>
@@ -300,7 +299,7 @@ export const ScreensListPage: React.FC = () => {
                   </td>
 
                   {/* 4. LAST UPDATED (18%) */}
-                  <td className="py-3.5 px-4 text-xs text-[#6B778C] truncate">
+                  <td className="py-3.5 px-4 text-xs text-slate-500 truncate">
                     {item.lastUpdated}
                   </td>
 
@@ -311,18 +310,18 @@ export const ScreensListPage: React.FC = () => {
                         <>
                           <Link
                             to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
-                            className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-md transition-colors"
                           >
-                            <Stethoscope className="w-3.5 h-3.5" />
+                            <Stethoscope className="w-4 h-4" />
                             <span>Diagnostics</span>
                           </Link>
                           {PROGRAM_SOURCE_TYPES.has(item.sourceType) && (
                             <button
                               onClick={() => setDependencyModalScreenId(item.id)}
-                              className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] hover:bg-slate-100 transition-colors"
+                              className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
                               title="View copybook dependency diagnostics"
                             >
-                              <GitBranch className="w-3.5 h-3.5" />
+                              <GitBranch className="w-4 h-4" />
                               <span className="hidden sm:inline">Dependencies</span>
                             </button>
                           )}
@@ -331,28 +330,28 @@ export const ScreensListPage: React.FC = () => {
                         <>
                           <Link
                             to={ROUTES.PROJECTS.MAPPING(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
                             title="Inspect Field Mapping"
                           >
-                            <Code2 className="w-3.5 h-3.5" />
+                            <Code2 className="w-4 h-4" />
                             <span>Mapping</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.CONVERT(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-100 bg-[#E8F1FF] px-2.5 py-1 rounded-md transition-colors"
                             title="Algorithm Conversion Engine"
                           >
-                            <Play className="w-3.5 h-3.5" />
+                            <Play className="w-4 h-4" />
                             <span>Convert</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.RESULT(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded-md transition-colors"
                             title="View Modernized Output"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="w-4 h-4" />
                             <span>Result</span>
                           </Link>
                         </>
@@ -360,10 +359,10 @@ export const ScreensListPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget(item); }}
-                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition-colors"
+                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 px-2 py-1 rounded-md transition-colors"
                         title="Delete this screen"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -371,17 +370,17 @@ export const ScreensListPage: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
+      </div>
 
-        {/* Server-Side Style Pagination Footer */}
-        <div className="bg-[#F7F9FC] px-4 py-3 border-t border-[#D9E2EC] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6B778C] font-medium">
+      {/* Standalone Pagination Footer outside table card */}
+      <div className="px-2 pt-3 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-600 font-medium">
           <div className="flex items-center space-x-3">
             <span>
               Showing {totalCount === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, totalCount)} of {totalCount}{' '}
               {activeTab === 'screens' ? 'legacy screens' : 'COBOL programs'}
             </span>
             <div className="flex items-center space-x-1.5">
-              <span className="text-[11px] text-[#42526E]">Per page:</span>
+              <span className="text-xs text-slate-600 font-medium">Per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -435,7 +434,6 @@ export const ScreensListPage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
       <DependencyDiagnosticsModal
         isOpen={dependencyModalScreenId !== null}
@@ -450,7 +448,7 @@ export const ScreensListPage: React.FC = () => {
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] transition-opacity"
             onClick={() => !isDeleting && setDeleteTarget(null)}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-auto space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-auto space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center space-x-3">
               <div className="p-2.5 bg-rose-50 rounded-xl border border-rose-200">
                 <Trash2 className="w-5 h-5 text-rose-600" />
@@ -478,7 +476,7 @@ export const ScreensListPage: React.FC = () => {
                 isLoading={isDeleting}
                 className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold space-x-1.5"
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 className="w-4 h-4" />
                 <span>Delete Screen</span>
               </Button>
             </div>

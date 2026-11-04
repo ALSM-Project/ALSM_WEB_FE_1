@@ -295,7 +295,7 @@ export const UploadSourcePage: React.FC = () => {
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleFileDrop}
-        className="bg-white border-2 border-dashed border-slate-300 hover:border-brand-600 rounded-2xl p-8 lg:p-12 text-center transition-all cursor-pointer group shadow-sm"
+        className="bg-white border-2 border-dashed border-slate-300 hover:border-brand-600 rounded-xl p-8 lg:p-12 text-center transition-all cursor-pointer group shadow-sm"
       >
         <input
           type="file"
@@ -354,12 +354,12 @@ export const UploadSourcePage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-[#D9E2EC] rounded-xl overflow-hidden">
         <div className="p-4 border-b border-[#D9E2EC] flex justify-between items-center bg-[#F7F9FC]">
           <h3 className="text-sm font-bold text-[#091E42]">Uploaded Files ({files.length})</h3>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto p-3 sm:p-4">
           <table className="w-full min-w-[850px] text-left text-xs table-fixed">
             <colgroup>
               <col className="w-[30%]" />
@@ -368,7 +368,7 @@ export const UploadSourcePage: React.FC = () => {
               <col className="w-[14%]" />
               <col className="w-[24%]" />
             </colgroup>
-            <thead className="bg-[#F7F9FC] text-[#42526E] font-bold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
+            <thead className="text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-[#D9E2EC]">
               <tr>
                 <th className="py-3.5 px-4">FILE NAME</th>
                 <th className="py-3.5 px-4">SIZE</th>
@@ -414,38 +414,38 @@ export const UploadSourcePage: React.FC = () => {
                         <>
                           <Link
                             to={ROUTES.PROJECTS.MAPPING(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
                             title="Inspect Field Mapping"
                           >
-                            <Code2 className="w-3.5 h-3.5" />
+                            <Code2 className="w-4 h-4" />
                             <span>Mapping</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.CONVERT(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-100 bg-[#E8F1FF] px-2.5 py-1 rounded-md transition-colors"
                             title="Run Conversion Algorithm"
                           >
-                            <Play className="w-3.5 h-3.5" />
+                            <Play className="w-4 h-4" />
                             <span>Convert</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.RESULT(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded-md transition-colors"
                             title="View Modernized Output"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="w-4 h-4" />
                             <span>Result</span>
                           </Link>
                         </>
                       )}
                       <button
                         onClick={() => handleRemove(file.id)}
-                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition-colors"
+                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 px-2 py-1 rounded-md transition-colors"
                         title="Remove file"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -454,16 +454,17 @@ export const UploadSourcePage: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Server-Side Style Pagination Footer */}
-        <div className="bg-[#F7F9FC] px-4 py-3 border-t border-[#D9E2EC] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6B778C] font-medium">
+      {/* Standalone Pagination Footer outside table card */}
+      <div className="px-2 pt-3 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-600 font-medium">
           <div className="flex items-center space-x-3">
             <span>
               Showing {totalCount === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, totalCount)} of {totalCount}{' '}
               uploaded {activeTab === 'screens' ? 'screens' : 'programs'}
             </span>
             <div className="flex items-center space-x-1.5">
-              <span className="text-[11px] text-[#42526E]">Per page:</span>
+              <span className="text-xs text-slate-600">Per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -516,7 +517,6 @@ export const UploadSourcePage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
       {readyCount > 0 && (
         <div className="bg-[#ECFDF3] border border-[#ABEFC6] p-4 rounded-xl flex items-center justify-between text-xs text-[#079455] font-medium">

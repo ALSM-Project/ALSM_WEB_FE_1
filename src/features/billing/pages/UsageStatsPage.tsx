@@ -8,8 +8,7 @@ import {
   HardDrive,
   Monitor,
   RefreshCw,
-  Sparkles,
-  Zap,
+    Zap,
 } from 'lucide-react';
 import { useUsageStats } from '../queries/useUsageStats';
 import { ROUTES } from '@/shared/constants/routes';
@@ -94,8 +93,8 @@ const QuotaCard: React.FC<QuotaCardProps> = ({ label, icon, used, max, unit = ''
       </div>
 
       {isUnlimited ? (
-        <div className="h-2 rounded-full bg-indigo-100 overflow-hidden">
-          <div className="h-full w-full bg-gradient-to-r from-indigo-400 to-indigo-500 rounded-full" />
+        <div className="h-2 rounded-full bg-blue-100 overflow-hidden">
+          <div className="h-full w-full bg-blue-600 rounded-full" />
         </div>
       ) : (
         <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -188,7 +187,7 @@ export const UsageStatsPage: React.FC = () => {
               onClick={() => refetch()}
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-rose-700 hover:text-rose-800"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
               Try again
             </button>
           </div>
@@ -210,7 +209,6 @@ export const UsageStatsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#0652CC]" />
             Service Usage
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -223,7 +221,7 @@ export const UsageStatsPage: React.FC = () => {
           disabled={isFetching}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-60 transition-colors"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>
@@ -252,7 +250,7 @@ export const UsageStatsPage: React.FC = () => {
             onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0652CC] text-white text-xs font-bold hover:bg-[#0448b3] transition-colors shadow-sm"
           >
-            <Zap className="w-3.5 h-3.5" />
+            <Zap className="w-4 h-4" />
             Upgrade Plan
           </button>
         )}

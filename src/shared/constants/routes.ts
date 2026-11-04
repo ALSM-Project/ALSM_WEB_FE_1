@@ -12,6 +12,8 @@ export const ROUTES = {
   },
   DASHBOARD: '/dashboard',
   ACCOUNT: {
+    PROFILE: '/account/profile',
+    PREFERENCES: '/account/preferences',
     PASSWORD: '/account/security/password',
     TWO_FACTOR: '/account/security/2fa',
     SESSIONS: '/account/security/sessions',

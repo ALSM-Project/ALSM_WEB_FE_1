@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Bell, Settings, ChevronDown, User, CreditCard, LogOut, BarChart3, FileText } from 'lucide-react';
+import { Bell, Settings, ChevronDown, User, CreditCard, LogOut, BarChart3, FileText, Search } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
@@ -20,7 +20,7 @@ export const AppLayoutContent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-  const { theme } = useWeb1Theme();
+  useWeb1Theme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -80,8 +80,13 @@ export const AppLayoutContent: React.FC = () => {
 
   return (
     <div
-      className="min-h-screen flex font-sans transition-colors"
-      style={{ backgroundColor: theme.colors.background.main, color: theme.colors.text.primary }}
+      className="min-h-screen flex font-sans transition-colors bg-[#F8FAFC]"
+      style={{
+        backgroundColor: '#F8FAFC',
+        color: '#0F172A',
+        '--sidebar-width': sidebarCollapsed ? '4rem' : '15rem',
+        '--app-header-height': '64px',
+      } as React.CSSProperties}
     >
       {/* Dynamic Dark Navy Sidebar */}
       <Sidebar
@@ -93,7 +98,14 @@ export const AppLayoutContent: React.FC = () => {
       {/* Main Container (Header + Content Area, NO FOOTER) */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header matching PoC design */}
-        <header className="sticky top-0 z-40 bg-white border-b border-[#E5EAF0] px-6 lg:px-8 py-3 flex items-center justify-between shadow-2xs gap-4">
+        <header
+          className="sticky top-0 z-40 bg-white border-b border-[#E2E8F0] px-6 lg:px-8 flex items-center justify-between shadow-2xs gap-4 box-border h-[var(--app-header-height,64px)] min-h-[var(--app-header-height,64px)]"
+          style={{
+            height: 'var(--app-header-height, 64px)',
+            minHeight: 'var(--app-header-height, 64px)',
+            boxSizing: 'border-box',
+          }}
+        >
           {/* Left: Dynamic Breadcrumb */}
           <div className="flex items-center space-x-2 shrink-0 min-w-0">
             <Breadcrumb />
@@ -101,32 +113,30 @@ export const AppLayoutContent: React.FC = () => {
 
           {/* Center: HorizonX-inspired Prominent Global Search */}
           <div className="hidden md:flex items-center justify-center flex-1 max-w-md mx-4">
-            <div className="w-full relative flex items-center bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl px-3.5 py-1.5 text-xs text-[#6B778C] focus-within:bg-white focus-within:border-[#0652CC] focus-within:ring-2 focus-within:ring-[#0652CC]/20 transition-all">
-              <svg className="w-4 h-4 text-[#6B778C] mr-2 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.3-4.3" />
-              </svg>
+            <div className="w-full relative flex items-center bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-lg px-3 py-1.5 text-xs text-[#64748B] focus-within:bg-white focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/15 transition-all">
+              <Search className="w-4 h-4 text-[#64748B] mr-2 shrink-0" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Search projects, screens, commands..."
-                className="w-full bg-transparent border-none p-0 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none"
+                className="w-full bg-transparent border-none p-0 text-xs text-[#0F172A] placeholder-[#64748B] focus:outline-none"
               />
-              <kbd className="hidden lg:inline-flex items-center bg-white border border-[#D9E2EC] rounded px-1.5 py-0.5 text-[10px] font-mono text-[#091E42] shadow-2xs shrink-0 ml-2">
+              <kbd className="hidden lg:inline-flex items-center bg-white border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[10px] font-mono text-[#64748B] shadow-2xs shrink-0 ml-2">
                 Ctrl K
               </kbd>
             </div>
           </div>
 
           {/* Right: Notifications, Avatar, Upgrade Button */}
-          <div className="flex items-center space-x-3 text-xs text-[#42526E] shrink-0">
+          <div className="flex items-center space-x-3 text-xs text-[#475569] shrink-0">
             {/* Notifications with badge count */}
             <button
               type="button"
-              className="p-2 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-xl transition-colors relative"
+              className="p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-lg transition-colors relative cursor-pointer"
               title="Notifications"
+              aria-label="Xem thông báo hệ thống"
             >
-              <Bell className="w-4.5 h-4.5" />
-              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#0652CC] text-white text-[9px] font-extrabold flex items-center justify-center">
+              <Bell className="w-4.5 h-4.5" aria-hidden="true" />
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-[#2563EB] text-white text-[9px] font-extrabold flex items-center justify-center">
                 2
               </span>
             </button>
@@ -135,23 +145,25 @@ export const AppLayoutContent: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate(ROUTES.ACCOUNT.PASSWORD)}
-              className="p-2 text-[#42526E] hover:text-[#0652CC] hover:bg-[#F7F9FC] rounded-xl transition-colors"
+              className="p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-lg transition-colors cursor-pointer"
               title="Account Settings"
+              aria-label="Cài đặt tài khoản"
             >
-              <Settings className="w-4.5 h-4.5" />
+              <Settings className="w-4.5 h-4.5" aria-hidden="true" />
             </button>
 
             {/* User Profile Avatar & Dropdown */}
-            <div className="relative border-l border-[#E5EAF0] pl-3">
+            <div className="relative border-l border-[#E2E8F0] pl-3">
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center space-x-2 p-1 rounded-xl hover:bg-[#F7F9FC] transition-colors"
+                className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+                aria-label="Menu tài khoản người dùng"
               >
-                <div className="w-7 h-7 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+                <div className="w-7 h-7 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] font-bold flex items-center justify-center text-xs shadow-2xs">
                   {getInitials(user?.fullName)}
                 </div>
-                <span className="hidden sm:inline font-semibold text-[#091E42]">{user?.fullName || 'User'}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#6B778C]" />
+                <span className="hidden sm:inline font-semibold text-[#0F172A]">{user?.fullName || 'User'}</span>
+                <ChevronDown className="w-3.5 h-3.5 text-[#64748B]" aria-hidden="true" />
               </button>
 
               {profileOpen && (
@@ -168,7 +180,7 @@ export const AppLayoutContent: React.FC = () => {
                       }}
                       className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
                     >
-                      <BarChart3 className="w-3.5 h-3.5 text-emerald-500" />
+                      <BarChart3 className="w-4 h-4 text-emerald-500" />
                       <span>Service Usage</span>
                     </button>
                   ) : isEnterpriseSuspended ? (
@@ -179,7 +191,7 @@ export const AppLayoutContent: React.FC = () => {
                       }}
                       className="w-full text-left px-3.5 py-2 text-rose-700 hover:bg-rose-50 font-medium transition-colors flex items-center space-x-2"
                     >
-                      <CreditCard className="w-3.5 h-3.5 text-rose-500" />
+                      <CreditCard className="w-4 h-4 text-rose-500" />
                       <span>Enterprise Access Suspended</span>
                     </button>
                   ) : (
@@ -190,7 +202,7 @@ export const AppLayoutContent: React.FC = () => {
                       }}
                       className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
                     >
-                      <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                      <CreditCard className="w-4 h-4 text-slate-400" />
                       <span>Contact & Upgrade</span>
                     </button>
                   )}
@@ -199,7 +211,7 @@ export const AppLayoutContent: React.FC = () => {
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center space-x-2 px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors"
                   >
-                    <User className="w-3.5 h-3.5 text-slate-400" />
+                    <User className="w-4 h-4 text-slate-400" />
                     <span>Account Settings</span>
                   </Link>
                   <Link
@@ -207,7 +219,7 @@ export const AppLayoutContent: React.FC = () => {
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center space-x-2 px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors"
                   >
-                    <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                    <CreditCard className="w-4 h-4 text-slate-400" />
                     <span>Subscription</span>
                   </Link>
                   <Link
@@ -215,14 +227,14 @@ export const AppLayoutContent: React.FC = () => {
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center space-x-2 px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors"
                   >
-                    <FileText className="w-3.5 h-3.5 text-slate-400" />
+                    <FileText className="w-4 h-4 text-slate-400" />
                     <span>Invoices & Billing</span>
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left flex items-center space-x-2 px-3.5 py-2 text-rose-600 hover:bg-rose-50 font-medium transition-colors border-t border-[#E5EAF0]"
+                    className="w-full text-left flex items-center space-x-2 px-3.5 py-2 text-rose-600 hover:bg-rose-50 font-medium transition-colors border-t border-[#E2E8F0]"
                   >
-                    <LogOut className="w-3.5 h-3.5" />
+                    <LogOut className="w-4 h-4" />
                     <span>Sign Out</span>
                   </button>
                 </div>
@@ -234,7 +246,7 @@ export const AppLayoutContent: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}
-                className="px-3 py-1.5 bg-[#0652CC] hover:bg-[#0655FF] text-white rounded-lg text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+                className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 Upgrade
               </button>

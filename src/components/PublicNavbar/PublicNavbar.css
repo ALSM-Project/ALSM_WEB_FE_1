@@ -1,7 +1,6 @@
 /* ================================================
    ALSM Public Navbar – Premium Enterprise SaaS
    ================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 /* ─── Layout ─── */
 .alsm-header {
@@ -18,7 +17,7 @@
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid #D9E2EC;
   transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
 }
 .alsm-logo-image {
   height: 100px;
@@ -28,7 +27,7 @@
 }
 .alsm-header.scrolled {
   background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 1px 20px rgba(9, 30, 66, 0.06);
+  box-shadow: 0 1px 20px rgba(0, 0, 0, 0.05);
   border-bottom-color: transparent;
 }
 
@@ -271,7 +270,7 @@
   text-decoration: none;
   border: none;
   cursor: pointer;
-  transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
   position: relative;
   overflow: hidden;
@@ -280,7 +279,7 @@
 .alsm-cta-btn:hover {
   background: #0652CC;
   transform: scale(1.02);
-  box-shadow: 0 4px 16px rgba(6, 82, 204, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .alsm-cta-rollover {
@@ -318,7 +317,7 @@
   background: #ffffff;
   border: 1px solid #D9E2EC;
   border-radius: 18px;
-  box-shadow: 0 16px 48px rgba(9, 30, 66, 0.08), 0 4px 16px rgba(9, 30, 66, 0.03);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.03);
   padding: 24px;
   min-width: 520px;
   opacity: 0;
@@ -345,7 +344,7 @@
   border-radius: 16px;
   background: #ffffff;
   border: 1px solid #D9E2EC;
-  box-shadow: 0 12px 36px rgba(9, 30, 66, 0.07), 0 4px 12px rgba(9, 30, 66, 0.03);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03);
   padding: 22px;
 }
 
@@ -588,13 +587,11 @@
   list-style: none;
   margin: 0;
   padding: 0 0 0 20px;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  display: none;
 }
 
 .alsm-mobile-sub-list.expanded {
-  max-height: 600px;
+  display: block;
 }
 
 .alsm-mobile-sub-link {

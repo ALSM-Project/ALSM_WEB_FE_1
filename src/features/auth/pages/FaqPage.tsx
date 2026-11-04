@@ -170,7 +170,6 @@ export const FaqPage: React.FC = () => {
     <div className="alsm-faq-page">
       {/* ─── Hero Section ─── */}
       <div className="alsm-faq-hero">
-        <span className="alsm-faq-eyebrow">SUPPORT</span>
         <h1 className="alsm-faq-title">Frequently asked questions</h1>
         <p className="alsm-faq-subtitle">
           Everything you need to know about ALSM and legacy modernization.
@@ -205,9 +204,7 @@ export const FaqPage: React.FC = () => {
           return (
             <div key={categoryName} className="mb-8">
               {selectedCategory === 'ALL' && (
-                <div className="alsm-faq-section-header">
-                  <span>{categoryName}</span>
-                </div>
+                <h2 className="alsm-faq-section-header">{categoryName}</h2>
               )}
 
               <div className="alsm-faq-list">

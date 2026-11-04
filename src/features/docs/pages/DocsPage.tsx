@@ -102,6 +102,38 @@ export const DocsPage: React.FC = () => {
     }
   }, [location.hash]);
 
+  useEffect(() => {
+    const sectionIds = [
+      'introduction',
+      'getting-started',
+      'how-it-works',
+      'bms-dspf',
+      'cobol',
+      'ai-validation',
+    ];
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: '-10% 0px -70% 0px',
+        threshold: 0,
+      }
+    );
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   const bmsSnippet = `* BMS Screen Definition Sample (ACCTMAP.bms)
 ACCTMAP  DFHMSD TYPE=&SYSPARM,MODE=INOUT,LANG=COBOL,    X
               CTRL=FREEKB,STORAGE=AUTO,TIOAPFX=YES
@@ -214,7 +246,6 @@ public class AccountProcessorService {
 
           {/* Header */}
           <header className="alsm-docs-header">
-            <span className="alsm-docs-eyebrow">DOCUMENTATION</span>
             <h1 className="alsm-docs-h1">ALSM Documentation</h1>
             <p className="alsm-docs-subtitle">
               Learn how ALSM analyzes, modernizes, validates, and exports legacy application components.
@@ -231,7 +262,7 @@ public class AccountProcessorService {
               {PIPELINE_STEPS.map((s) => (
                 <div key={s.step} className="alsm-docs-step-card">
                   <span className="alsm-docs-step-num">{s.step}</span>
-                  <h4 className="alsm-docs-step-name">{s.name}</h4>
+                  <div className="alsm-docs-step-name">{s.name}</div>
                   <p className="alsm-docs-step-desc">{s.desc}</p>
                 </div>
               ))}
@@ -408,26 +439,70 @@ public class AccountProcessorService {
         </main>
 
         {/* ─── Right On-This-Page TOC ─── */}
-        <aside className="alsm-docs-toc">
+        <aside className="alsm-docs-toc" aria-label="Table of contents">
           <div className="alsm-docs-toc-title">ON THIS PAGE</div>
-          <a href="#introduction" className="alsm-docs-toc-link">
-            Introduction
-          </a>
-          <a href="#getting-started" className="alsm-docs-toc-link">
-            Getting Started
-          </a>
-          <a href="#how-it-works" className="alsm-docs-toc-link">
-            How ALSM Works
-          </a>
-          <a href="#bms-dspf" className="alsm-docs-toc-link">
-            BMS / DSPF Modernization
-          </a>
-          <a href="#cobol" className="alsm-docs-toc-link">
-            COBOL Modernization
-          </a>
-          <a href="#ai-validation" className="alsm-docs-toc-link">
-            AI-Assisted Validation
-          </a>
+          <nav className="alsm-docs-toc-nav">
+            <a
+              href="#introduction"
+              className={`alsm-docs-toc-link ${activeId === 'introduction' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('introduction');
+              }}
+            >
+              Introduction
+            </a>
+            <a
+              href="#getting-started"
+              className={`alsm-docs-toc-link ${activeId === 'getting-started' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('getting-started');
+              }}
+            >
+              Getting Started
+            </a>
+            <a
+              href="#how-it-works"
+              className={`alsm-docs-toc-link ${activeId === 'how-it-works' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('how-it-works');
+              }}
+            >
+              How ALSM Works
+            </a>
+            <a
+              href="#bms-dspf"
+              className={`alsm-docs-toc-link ${activeId === 'bms-dspf' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('bms-dspf');
+              }}
+            >
+              BMS / DSPF Modernization
+            </a>
+            <a
+              href="#cobol"
+              className={`alsm-docs-toc-link ${activeId === 'cobol' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('cobol');
+              }}
+            >
+              COBOL Modernization
+            </a>
+            <a
+              href="#ai-validation"
+              className={`alsm-docs-toc-link ${activeId === 'ai-validation' ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection('ai-validation');
+              }}
+            >
+              AI-Assisted Validation
+            </a>
+          </nav>
         </aside>
       </div>
     </div>

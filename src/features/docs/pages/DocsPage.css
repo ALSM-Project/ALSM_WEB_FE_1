@@ -12,9 +12,10 @@
 .alsm-docs-layout {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 32px 24px;
   display: flex;
-  gap: 24px;
+  justify-content: center;
+  gap: 36px;
 }
 
 @media (min-width: 1280px) {
@@ -27,16 +28,20 @@
 
 /* ─── Left Sidebar Navigation ─── */
 .alsm-docs-sidebar {
-  width: 230px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 88px;
-  height: calc(100vh - 110px);
-  overflow-y: auto;
-  padding-right: 12px;
+  width: 220px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .alsm-docs-sidebar {
+    position: sticky;
+    top: 96px;
+    height: fit-content;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+  }
 }
 
 .alsm-docs-sidebar::-webkit-scrollbar {
@@ -59,7 +64,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #42526E;
+  color: #334155;
   margin-bottom: 8px;
   padding-left: 10px;
 }
@@ -71,7 +76,7 @@
   padding: 8px 12px;
   font-size: 13.5px;
   font-weight: 500;
-  color: #42526E;
+  color: #334155;
   text-decoration: none;
   border-radius: 8px;
   border-left: 2px solid transparent;
@@ -156,6 +161,7 @@
 }
 
 .alsm-docs-h1 {
+  text-wrap: balance;
   font-size: 36px;
   font-weight: 800;
   color: #091E42;
@@ -164,10 +170,13 @@
 }
 
 .alsm-docs-subtitle {
+  max-width: 58ch;
+  text-wrap: pretty;
   font-size: 16px;
-  color: #42526E;
+  color: #334155;
   line-height: 1.5;
-  max-width: 720px;
+  max-width: 58ch;
+  text-wrap: pretty;
 }
 
 /* ─── Featured Visual Block ─── */
@@ -197,9 +206,7 @@
 .alsm-docs-visual-title {
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #22D3EE;
+  text-transform: none;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -236,15 +243,15 @@
 
 .alsm-docs-step-card:hover {
   transform: translateY(-2px);
-  border-color: #22D3EE;
+  border-color: #93C5FD;
   background: rgba(34, 211, 238, 0.06);
 }
 
 .alsm-docs-step-num {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  color: #8B5CF6;
-  background: rgba(139, 92, 246, 0.15);
+  color: #3B82F6;
+  background: rgba(59, 130, 246, 0.15);
   padding: 2px 6px;
   border-radius: 4px;
   display: inline-block;
@@ -259,7 +266,8 @@
 }
 
 .alsm-docs-step-desc {
-  font-size: 11px;
+  font-size: 12px;
+  font-size: 12px;
   color: #94A3B8;
   line-height: 1.3;
 }
@@ -271,6 +279,7 @@
 }
 
 .alsm-docs-h2 {
+  text-wrap: balance;
   font-size: 26px;
   font-weight: 800;
   color: #091E42;
@@ -284,6 +293,7 @@
 }
 
 .alsm-docs-h3 {
+  text-wrap: balance;
   font-size: 18px;
   font-weight: 700;
   color: #091E42;
@@ -292,8 +302,10 @@
 }
 
 .alsm-docs-p {
+  max-width: 65ch;
+  text-wrap: pretty;
   font-size: 15px;
-  color: #42526E;
+  color: #334155;
   line-height: 1.65;
   margin-bottom: 16px;
 }
@@ -302,12 +314,14 @@
   list-style: disc;
   padding-left: 24px;
   margin-bottom: 20px;
-  color: #42526E;
+  color: #334155;
   font-size: 14.5px;
   line-height: 1.6;
 }
 
 .alsm-docs-ul li {
+  max-width: 65ch;
+  text-wrap: pretty;
   margin-bottom: 6px;
 }
 
@@ -341,7 +355,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #22D3EE;
+  color: #93C5FD;
   font-family: monospace;
 }
 
@@ -374,13 +388,7 @@
 
 /* ─── Right On-This-Page TOC ─── */
 .alsm-docs-toc {
-  width: 190px;
-  flex-shrink: 0;
-  position: sticky;
-  top: 88px;
-  height: calc(100vh - 110px);
-  padding-left: 16px;
-  border-left: 1px solid #D9E2EC;
+  width: 220px;
   display: none;
 }
 
@@ -388,7 +396,13 @@
   .alsm-docs-toc {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    position: sticky;
+    top: 96px;
+    height: fit-content;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-left: 18px;
+    border-left: 1px solid #E2E8F0;
   }
 }
 
@@ -396,20 +410,37 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: #42526E;
-  margin-bottom: 4px;
+  letter-spacing: 0.08em;
+  color: #475569;
+  margin-bottom: 12px;
+}
+
+.alsm-docs-toc-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .alsm-docs-toc-link {
-  font-size: 12.5px;
-  color: #42526E;
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #475569;
+  font-weight: 500;
   text-decoration: none;
-  line-height: 1.4;
-  transition: color 0.15s ease;
-  padding: 3px 0;
+  padding: 6px 0 6px 14px;
+  margin-left: -19px;
+  border-left: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .alsm-docs-toc-link:hover {
+  color: #0F172A;
+  border-left-color: #CBD5E1;
+}
+
+.alsm-docs-toc-link.active {
   color: #0652CC;
+  font-weight: 600;
+  border-left-color: #0652CC;
 }

@@ -8,8 +8,7 @@ import {
   X,
   Monitor,
   Code2,
-  Sparkles,
-  Activity,
+    Activity,
   FolderKanban,
   Workflow,
   ArrowRight,
@@ -68,7 +67,7 @@ const PLATFORM_SECTIONS: DropdownSection[] = [
         label: 'AI Validation',
         description: 'AI-assisted validation of generated modernization output.',
         to: ROUTES.PROJECTS.NEW,
-        icon: Sparkles,
+        icon: Shield,
       },
       {
         label: 'Diagnostics',
@@ -151,7 +150,7 @@ const TOOLS_SECTIONS: DropdownSection[] = [
         label: 'AI Validation',
         description: 'Review AI-assisted validation.',
         to: ROUTES.PROJECTS.NEW,
-        icon: Sparkles,
+        icon: Shield,
       },
       {
         label: 'Diagnostics',
@@ -398,7 +397,7 @@ export const PublicNavbar: React.FC = () => {
                     <span className="hidden sm:inline font-semibold text-xs text-[#091E42] max-w-[120px] truncate">
                       {user?.fullName || 'Account'}
                     </span>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                    <ChevronDown className="w-4 h-4 text-slate-500" aria-hidden="true" />
                   </button>
 
                   {profileOpen && (
