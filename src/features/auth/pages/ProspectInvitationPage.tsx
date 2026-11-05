@@ -27,7 +27,11 @@ export const ProspectInvitationPage: React.FC = () => {
     if (!invitationToken) return;
     let active = true;
     prospectInvitationService.resolve(invitationToken)
-      .then((result) => { if (active) setInvitation(result); })
+      .then((result) => {
+        if (!active) return;
+        setInvitation(result);
+        setEmailForVerification(result.recipientEmail);
+      })
       .catch(() => { if (active) setError('This invitation is invalid, expired, revoked, or already used. Ask the ALSM contact to send a new invitation.'); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -53,6 +57,9 @@ export const ProspectInvitationPage: React.FC = () => {
     setMessage('');
     if (!fullName.trim() || fullName.trim().length < 2) return setError('Enter your full name.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailForVerification.trim())) return setError('Enter the email address that received this invitation.');
+    if (emailForVerification.trim().toLowerCase() !== invitation?.recipientEmail.trim().toLowerCase()) {
+      return setError('Use the email address shown on this invitation.');
+    }
     if (password.length < 8) return setError('Password must contain at least 8 characters.');
 
     setSubmitting(true);
@@ -99,7 +106,7 @@ export const ProspectInvitationPage: React.FC = () => {
           <>
             <form className="space-y-3" onSubmit={register}>
               <Input label="FULL NAME" value={fullName} onChange={(event) => setFullName(event.target.value)} icon={<User className="h-4 w-4 text-slate-400" />} required />
-              <Input label="INVITED EMAIL (FOR VERIFICATION)" type="email" value={emailForVerification} onChange={(event) => setEmailForVerification(event.target.value)} icon={<Mail className="h-4 w-4 text-slate-400" />} required />
+              <Input label="INVITED EMAIL (FOR VERIFICATION)" type="email" value={emailForVerification} readOnly icon={<Mail className="h-4 w-4 text-slate-400" />} required />
               <PasswordInput label="PASSWORD" value={password} onChange={(event) => setPassword(event.target.value)} icon={<Lock className="h-4 w-4 text-slate-400" />} />
               <p className="text-xs text-slate-500">The invitation token is sent only in API request bodies and kept in the URL fragment, not in query parameters. If you already have an account, sign in below instead.</p>
               <Button type="submit" className="w-full" isLoading={submitting}>Create ALSM account</Button>
