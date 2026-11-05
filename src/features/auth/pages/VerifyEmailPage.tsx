@@ -28,6 +28,29 @@ export const VerifyEmailPage: React.FC = () => {
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
+  const invitationLoginLocation = invitationToken
+    ? {
+        pathname: ROUTES.PUBLIC.LOGIN,
+        hash: `#invite=${encodeURIComponent(invitationToken)}`,
+      }
+    : ROUTES.PUBLIC.LOGIN;
+  const invitationLoginState = invitationToken
+    ? { returnTo: `/prospect-invitation#token=${encodeURIComponent(invitationToken)}` }
+    : undefined;
+
+  useEffect(() => {
+    if (!invitationToken || emailParam || stateEmail) return;
+    let active = true;
+    prospectInvitationService.resolve(invitationToken)
+      .then((invitation) => {
+        if (active) setEmail(invitation.recipientEmail);
+      })
+      .catch(() => {
+        if (active) setError('This invitation is no longer available. Ask the ALSM contact to send a new invitation.');
+      });
+    return () => { active = false; };
+  }, [invitationToken, emailParam, stateEmail]);
+
   // Cooldown timer for resend button
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -100,7 +123,9 @@ export const VerifyEmailPage: React.FC = () => {
     setResending(true);
     try {
       await resendVerification(finalEmail);
-      setSuccess(`A new verification email has been sent to ${finalEmail}.`);
+      setSuccess(invitationToken
+        ? `If ${finalEmail} still needs verification, a new email was requested. Already verified accounts do not receive another code; sign in below to accept the invitation.`
+        : `If ${finalEmail} still needs verification, a new verification email was requested.`);
       setCooldown(60);
     } catch (err) {
       setError(toErrorMessage(err));
@@ -114,7 +139,9 @@ export const VerifyEmailPage: React.FC = () => {
       variant="register"
       eyebrow="ENTERPRISE MODERNIZATION PLATFORM"
       headline="Verify Your Email Address"
-      description="We sent a 6-digit verification code to your email. Enter the code below to activate your account."
+      description={invitationToken
+        ? 'New accounts need email verification. If you already have an ALSM account, sign in and accept the invitation instead.'
+        : 'Enter the verification code from your email to activate your account.'}
     >
       <div className="space-y-4 h-full flex flex-col justify-between">
         <div>
@@ -123,7 +150,9 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#091E42] tracking-tight">Check Your Inbox</h2>
           <p className="text-slate-500 text-xs mt-1">
-            We sent a verification code to <span className="font-semibold text-slate-700">{email || 'your email'}</span>.
+            {invitationToken
+              ? <>A code is only sent for an unverified account. The invited email is <span className="font-semibold text-slate-700">{email || 'being checked'}</span>.</>
+              : <>A verification code was requested for <span className="font-semibold text-slate-700">{email || 'your email'}</span>.</>}
           </p>
         </div>
 
@@ -143,6 +172,20 @@ export const VerifyEmailPage: React.FC = () => {
           <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50 p-4">
             <p className="text-sm text-blue-900">Your ALSM account is signed in. Accept the invitation to finish linking it to the customer record.</p>
             <Button type="button" className="w-full" isLoading={loading} onClick={handleAcceptInvitation}>Accept ALSM invitation</Button>
+          </div>
+        )}
+
+        {!isAuthenticated && invitationToken && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-900">
+            Already have an ALSM account?{' '}
+            <Link
+              to={invitationLoginLocation}
+              state={invitationLoginState}
+              className="font-semibold text-[#0652CC] hover:underline"
+            >
+              Sign in and accept this invitation
+            </Link>
+            . Verified accounts will not receive another verification code.
           </div>
         )}
 
@@ -188,7 +231,7 @@ export const VerifyEmailPage: React.FC = () => {
             </button>
           </div>
 
-          <Link to={ROUTES.PUBLIC.LOGIN} className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 font-medium text-xs pt-1">
+          <Link to={invitationLoginLocation} state={invitationLoginState} className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 font-medium text-xs pt-1">
             <ArrowLeft className="w-3.5 h-3.5" />
             Back to Sign In
           </Link>
