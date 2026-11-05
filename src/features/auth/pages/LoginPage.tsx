@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Mail } from 'lucide-react';
-import { useAuth } from '@/app/providers';
+import { isUserStaffOrAdmin, useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
 import { Input, PasswordInput } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
@@ -37,11 +37,10 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const user = await login({ email: email.trim(), password });
-      if (user) {
-        // Admin users are already being redirected to FE2 by AppProviders.
-        // For non-admin users, navigate within FE1.
+      if (user && !isUserStaffOrAdmin(user)) {
+        // Internal users are redirected to FE2 by AppProviders.
         navigate(getRedirectTarget(), { replace: true });
-      } else {
+      } else if (!user) {
         setError('Unable to retrieve account information. Please try again.');
       }
     } catch (err: any) {
@@ -62,10 +61,9 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const user = await loginWithGoogle(idToken);
-      if (user) {
-        // Admin users are already being redirected to FE2 by AppProviders.
+      if (user && !isUserStaffOrAdmin(user)) {
         navigate(getRedirectTarget(), { replace: true });
-      } else {
+      } else if (!user) {
         setError('Google sign-in failed. Please try again.');
       }
     } catch (err) {

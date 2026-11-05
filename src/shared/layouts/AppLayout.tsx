@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
-import { Settings, ChevronDown, User, CreditCard, LogOut, BarChart3 } from 'lucide-react';
+import { Settings, ChevronDown, User, CreditCard, LogOut, BarChart3, FileText } from 'lucide-react';
 import { Breadcrumb } from '@/shared/navigation/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 import { useAuth } from '@/app/providers';
@@ -120,6 +120,10 @@ export const AppLayoutContent: React.FC = () => {
 
           {/* Right: Notifications, Avatar, Upgrade Button */}
           <div className="flex items-center space-x-3 text-xs text-[#42526E] shrink-0">
+            <Link to="/contracts" className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 font-semibold text-[#0652CC] hover:bg-[#F7F9FC]" title="My contracts">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">My contracts</span>
+            </Link>
             {/* Notifications with badge count */}
             <NotificationsBell />
 

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, ShieldCheck, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
@@ -7,29 +7,26 @@ import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { ApiError } from '@/services/api/apiError';
 import { AuthLayout } from '../components/AuthLayout';
+import { prospectInvitationService } from '../services/prospectInvitation.service';
 
 export const VerifyEmailPage: React.FC = () => {
-  const { verifyEmail, resendVerification } = useAuth();
+  const { verifyEmail, resendVerification, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const emailParam = searchParams.get('email') || '';
   const tokenParam = searchParams.get('token') || '';
+  const invitationToken = new URLSearchParams(location.hash.replace(/^#/, '')).get('invite') || '';
+  const stateEmail = (location.state as { email?: string } | null)?.email || '';
 
-  const [email, setEmail] = useState(emailParam);
+  const [email, setEmail] = useState(emailParam || stateEmail);
   const [code, setCode] = useState(tokenParam);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-
-  // Auto-verify if token is provided in URL
-  useEffect(() => {
-    if (tokenParam && emailParam) {
-      handleVerify(tokenParam, emailParam);
-    }
-  }, [tokenParam, emailParam]);
 
   // Cooldown timer for resend button
   useEffect(() => {
@@ -38,9 +35,9 @@ export const VerifyEmailPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  const handleVerify = async (codeToVerify?: string, emailToVerify?: string) => {
-    const finalCode = (codeToVerify || code).trim();
-    const finalEmail = (emailToVerify || email).trim();
+  const handleVerify = useCallback(async (codeToVerify: string, emailToVerify: string) => {
+    const finalCode = codeToVerify.trim();
+    const finalEmail = emailToVerify.trim();
     setError('');
     setSuccess('');
 
@@ -50,7 +47,12 @@ export const VerifyEmailPage: React.FC = () => {
     setLoading(true);
     try {
       await verifyEmail(finalEmail, finalCode);
-      setSuccess('Email verified successfully! Redirecting to dashboard...');
+      if (invitationToken) {
+        await prospectInvitationService.accept(invitationToken);
+        setSuccess('Email verified and ALSM invitation accepted. Redirecting to your workspace...');
+      } else {
+        setSuccess('Email verified successfully! Redirecting to dashboard...');
+      }
       setTimeout(() => {
         navigate(ROUTES.DASHBOARD, { replace: true });
       }, 1200);
@@ -59,11 +61,33 @@ export const VerifyEmailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [verifyEmail, invitationToken, navigate]);
+
+  // Auto-verify if token is provided in URL
+  useEffect(() => {
+    if (!tokenParam || !emailParam) return;
+    const timer = window.setTimeout(() => void handleVerify(tokenParam, emailParam), 0);
+    return () => window.clearTimeout(timer);
+  }, [tokenParam, emailParam, handleVerify]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleVerify();
+    void handleVerify(code, email);
+  };
+
+  const handleAcceptInvitation = async () => {
+    if (!invitationToken || loading || success) return;
+    setError('');
+    setLoading(true);
+    try {
+      await prospectInvitationService.accept(invitationToken);
+      setSuccess('ALSM invitation accepted. Redirecting to your workspace...');
+      setTimeout(() => navigate(ROUTES.DASHBOARD, { replace: true }), 1200);
+    } catch (err) {
+      setError(toErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResend = async () => {
@@ -115,7 +139,14 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        {isAuthenticated && invitationToken && (
+          <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm text-blue-900">Your ALSM account is signed in. Accept the invitation to finish linking it to the customer record.</p>
+            <Button type="button" className="w-full" isLoading={loading} onClick={handleAcceptInvitation}>Accept ALSM invitation</Button>
+          </div>
+        )}
+
+        {!isAuthenticated && <form onSubmit={handleSubmit} className="space-y-3">
           <Input
             label="WORK EMAIL"
             type="email"
@@ -141,7 +172,7 @@ export const VerifyEmailPage: React.FC = () => {
           >
             Verify Email & Continue
           </Button>
-        </form>
+        </form>}
 
         <div className="pt-2 border-t border-[#D9E2EC] flex flex-col items-center space-y-2 text-xs text-slate-500">
           <div className="flex items-center space-x-1">

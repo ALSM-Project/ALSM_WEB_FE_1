@@ -22,7 +22,7 @@ import { NavigationProvider } from '@/context/NavigationContext';
 /**
  * Check if a user is an internal staff, sales, or platform admin.
  */
-function isUserStaffOrAdmin(u: User | null | undefined): boolean {
+export function isUserStaffOrAdmin(u: User | null | undefined): boolean {
   if (!u) return false;
   const roles = (u.roles || []).map((r) => String(r).toUpperCase());
   const role = (u.role || '').toUpperCase();
