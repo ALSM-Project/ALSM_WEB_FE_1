@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Code2, Stethoscope, Trash2, GitBranch } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
+import { projectService } from '@/features/projects/services/project.service';
+import type { Project } from '@/features/projects/types/project';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
-import { Tabs } from '@/shared/ui/Tabs';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -17,16 +18,37 @@ export const ScreensListPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState('screens');
+  const [project, setProject] = useState<Project | null>(null);
   const [allAssets, setAllAssets] = useState<LegacyScreen[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dependencyModalScreenId, setDependencyModalScreenId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LegacyScreen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (projectId) {
+      projectService.getProjectById(projectId).then((p) => {
+        if (p) setProject(p);
+      });
+    }
+  }, [projectId]);
 
   const loadScreens = useCallback(() => {
-    conversionService.getScreens(projectId).then((data) => setAllAssets(data));
+    setLoading(true);
+    setLoadError(null);
+    conversionService.getScreens(projectId)
+      .then((data) => {
+        setAllAssets(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        setLoadError(err?.message || 'Failed to load project assets');
+        setLoading(false);
+      });
   }, [projectId]);
 
   useEffect(() => {
@@ -36,19 +58,33 @@ export const ScreensListPage: React.FC = () => {
   const handleDeleteScreen = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
-    const ok = await conversionService.deleteScreen(projectId, deleteTarget.id);
-    setIsDeleting(false);
-    if (ok) {
-      setAllAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+    setDeleteError(null);
+    try {
+      const ok = await conversionService.deleteScreen(projectId, deleteTarget.id);
+      setIsDeleting(false);
+      if (ok) {
+        setAllAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+        setDeleteTarget(null);
+      } else {
+        setDeleteError(`Failed to delete ${isProgramProject ? 'program' : 'screen'}. Please try again.`);
+      }
+    } catch {
+      setIsDeleting(false);
+      setDeleteError(`Failed to delete ${isProgramProject ? 'program' : 'screen'}. Please try again.`);
     }
-    setDeleteTarget(null);
   };
 
-  // Screens (BMS/DSPF/TXT) vs Programs (COBOL/RPG) share the same real data source
-  // (whatever was uploaded, plus the app's baseline demo screens) — split by sourceType
-  // instead of keeping a second, disconnected hardcoded list.
+  // Screens (BMS/DSPF/TXT) vs Programs (COBOL/RPG) split by sourceType
   const screens = allAssets.filter((a) => !PROGRAM_SOURCE_TYPES.has(a.sourceType));
   const programs = allAssets.filter((a) => PROGRAM_SOURCE_TYPES.has(a.sourceType));
+
+  // A project is dedicated either to screens OR to programs
+  const isProgramProject =
+    project?.conversionType === 'COBOL_TO_JAVA' ||
+    (allAssets.length > 0 && allAssets.every((a) => PROGRAM_SOURCE_TYPES.has(a.sourceType))) ||
+    (programs.length > 0 && screens.length === 0);
+
+  const activeTab = isProgramProject ? 'programs' : 'screens';
 
   const applyFilters = (items: LegacyScreen[]) =>
     items.filter((item) => {
@@ -65,8 +101,8 @@ export const ScreensListPage: React.FC = () => {
 
   const filteredScreens = applyFilters(screens);
   const filteredPrograms = applyFilters(programs);
-  const activeList = activeTab === 'screens' ? filteredScreens : filteredPrograms;
-  const activeFullList = activeTab === 'screens' ? screens : programs;
+  const activeList = isProgramProject ? (filteredPrograms.length > 0 ? filteredPrograms : applyFilters(allAssets)) : (filteredScreens.length > 0 ? filteredScreens : applyFilters(allAssets));
+  const activeFullList = isProgramProject ? (programs.length > 0 ? programs : allAssets) : (screens.length > 0 ? screens : allAssets);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -94,8 +130,12 @@ export const ScreensListPage: React.FC = () => {
     <div className="space-y-6">
       {/* Reusable Standard PageHeader */}
       <PageHeader
-        title="Screens & Programs Workspace"
-        subtitle="Analyze, convert, validate, and inspect legacy screen mapsets and COBOL business logic programs."
+        title={isProgramProject ? 'Programs Workspace' : 'Screens Workspace'}
+        subtitle={
+          isProgramProject
+            ? 'Analyze, convert, validate, and inspect COBOL business logic programs.'
+            : 'Analyze, convert, validate, and inspect legacy screen mapsets.'
+        }
         actions={
           <div className="flex items-center space-x-3 shrink-0">
             <Button
@@ -116,6 +156,16 @@ export const ScreensListPage: React.FC = () => {
           </div>
         }
       />
+
+      {loadError && (
+        <div className="bg-rose-50 border border-rose-200 rounded-xl p-6 text-center space-y-3">
+          <p className="text-sm font-bold text-rose-900">Failed to load project assets</p>
+          <p className="text-xs text-rose-700">{loadError}</p>
+          <Button onClick={loadScreens} size="sm" variant="outline" className="text-xs">
+            Retry
+          </Button>
+        </div>
+      )}
 
       {/* Modernization Workflow Step Banner */}
       <ModernizationWorkflow
@@ -206,15 +256,6 @@ export const ScreensListPage: React.FC = () => {
         </Link>
       </div>
 
-      <Tabs
-        tabs={[
-          { id: 'screens', label: 'Legacy Screens (BMS/DSPF)', count: screens.length },
-          { id: 'programs', label: 'COBOL Programs (Logic)', count: programs.length },
-        ]}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-      />
-
       {/* Filter Row */}
       <div className="flex flex-col sm:flex-row gap-3 justify-between bg-white p-4 rounded-xl border border-[#D9E2EC]">
         <div className="relative flex-1">
@@ -230,6 +271,7 @@ export const ScreensListPage: React.FC = () => {
 
         <div className="flex space-x-3">
           <select
+            aria-label="Filter by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
@@ -264,15 +306,24 @@ export const ScreensListPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5EAF0]">
-              {paginatedList.length === 0 && (
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="py-8 px-4 text-center text-slate-500">
+                    <div className="inline-flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
+                      <span>Loading assets...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedList.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 px-4 text-center text-slate-500">
                     No {activeTab === 'screens' ? 'screens' : 'programs'} match your filters yet. Upload a
                     source file to get started.
                   </td>
                 </tr>
-              )}
-              {paginatedList.map((item) => (
+              ) : (
+                paginatedList.map((item) => (
                 <tr
                   key={item.id}
                   onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, item.id))}
@@ -358,6 +409,7 @@ export const ScreensListPage: React.FC = () => {
                       )}
                       <button
                         type="button"
+                        aria-label={`Delete ${item.name}`}
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget(item); }}
                         className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 px-2 py-1 rounded-md transition-colors"
                         title="Delete this screen"
@@ -367,7 +419,7 @@ export const ScreensListPage: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
       </div>
@@ -454,7 +506,7 @@ export const ScreensListPage: React.FC = () => {
                 <Trash2 className="w-5 h-5 text-rose-600" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Delete Screen</h3>
+                <h3 className="text-base font-bold text-slate-900">Delete {isProgramProject ? 'Program' : 'Screen'}</h3>
                 <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
               </div>
             </div>
@@ -462,6 +514,9 @@ export const ScreensListPage: React.FC = () => {
               Are you sure you want to delete <strong className="font-mono text-rose-700">{deleteTarget.name}</strong>?
               All associated conversion results and data will be permanently removed.
             </p>
+            {deleteError && (
+              <p className="text-xs text-rose-600 font-medium">{deleteError}</p>
+            )}
             <div className="flex justify-end space-x-3 pt-2">
               <Button
                 variant="outline"
@@ -477,7 +532,7 @@ export const ScreensListPage: React.FC = () => {
                 className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold space-x-1.5"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Delete Screen</span>
+                <span>Delete {isProgramProject ? 'Program' : 'Screen'}</span>
               </Button>
             </div>
           </div>
