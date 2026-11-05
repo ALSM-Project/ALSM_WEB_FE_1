@@ -120,7 +120,7 @@ export const ProjectsListPage: React.FC = () => {
           filteredProjects.map((p) => (
             <div
               key={p.id}
-              onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
+              onClick={() => navigate(ROUTES.PROJECTS.UPLOAD(p.id))}
               className="bg-white border border-[#D9E2EC] hover:border-[#0652CC] rounded-xl p-6 shadow-2xs hover:shadow-md transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-6 cursor-pointer group"
             >
               <div className="space-y-2 max-w-2xl">
@@ -156,7 +156,7 @@ export const ProjectsListPage: React.FC = () => {
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(ROUTES.PROJECTS.SCREENS(p.id));
+                    navigate(ROUTES.PROJECTS.UPLOAD(p.id));
                   }}
                   className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs font-bold space-x-1.5 shadow-2xs"
                 >
