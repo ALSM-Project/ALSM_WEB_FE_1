@@ -81,6 +81,20 @@ describe('RequestEnterprisePage', () => {
     expect(screen.getByLabelText(/Work Email/i)).toHaveValue('alice@test.com');
   });
 
+  it('shows validation errors and does not send invalid or over-limit data', async () => {
+    vi.mocked(billingService.getMyQuoteRequest).mockResolvedValue(null);
+    renderComponent();
+
+    await screen.findByRole('heading', { name: /Upgrade to Enterprise Full Migration/i });
+    fireEvent.change(screen.getByLabelText(/Contact Name/i), { target: { value: 'A' } });
+    fireEvent.change(screen.getByLabelText(/Project Scope & Requirements/i), { target: { value: 'x'.repeat(1001) } });
+    fireEvent.click(screen.getByRole('button', { name: /Submit Enterprise Quote Request/i }));
+
+    expect(await screen.findByText('Full name must be at least 2 characters')).toBeInTheDocument();
+    expect(screen.getByText('Message must not exceed 1000 characters')).toBeInTheDocument();
+    expect(billingService.requestEnterpriseQuote).not.toHaveBeenCalled();
+  });
+
   it('submits quote request successfully and displays quote confirmation', async () => {
     vi.mocked(billingService.getMyQuoteRequest).mockResolvedValue(null);
     vi.mocked(billingService.requestEnterpriseQuote).mockResolvedValue({
@@ -137,5 +151,17 @@ describe('RequestEnterprisePage', () => {
         screen.getByText('You already have an open Enterprise quote request. Our team is processing it.')
       ).toBeInTheDocument();
     });
+  });
+
+  it('shows a retry message when the request dependency fails', async () => {
+    vi.mocked(billingService.getMyQuoteRequest).mockResolvedValue(null);
+    vi.mocked(billingService.requestEnterpriseQuote).mockRejectedValue(new Error('Network unavailable'));
+    renderComponent();
+
+    await screen.findByRole('heading', { name: /Upgrade to Enterprise Full Migration/i });
+    fireEvent.click(screen.getByRole('button', { name: /Submit Enterprise Quote Request/i }));
+
+    expect(await screen.findByText('Network unavailable')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Submit Enterprise Quote Request/i })).toBeEnabled();
   });
 });
