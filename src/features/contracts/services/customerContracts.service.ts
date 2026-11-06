@@ -79,4 +79,11 @@ export const customerContractsService = {
     apiClient.post<CustomerContractDetail>(`/customer/contracts/${encodeURIComponent(contractId)}/demo-signing/start`, {}),
   completeDemoSigning: (contractId: string, acknowledged: boolean) =>
     apiClient.post<CustomerContractDetail>(`/customer/contracts/${encodeURIComponent(contractId)}/demo-signing/complete`, { acknowledged }),
+  startSigning: (contractId: string) =>
+    apiClient.post<{
+      envelopeReference: string;
+      contractId: string;
+      status: string;
+      signerSessions?: Array<{ signerId: string; url: string; expiresAt: string }>;
+    }>(`/customer/contracts/${encodeURIComponent(contractId)}/signing/initiate`, {}),
 };

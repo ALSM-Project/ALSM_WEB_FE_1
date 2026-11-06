@@ -16,6 +16,8 @@ export const CustomerContractsPage: React.FC = () => {
   const [decisionLoading, setDecisionLoading] = useState(false);
   const [demoSigningLoading, setDemoSigningLoading] = useState(false);
   const [demoAcknowledged, setDemoAcknowledged] = useState(false);
+  const [realSigningLoading, setRealSigningLoading] = useState(false);
+  const [signingFeedback, setSigningFeedback] = useState('');
   const [decisionReason, setDecisionReason] = useState('');
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [error, setError] = useState('');
@@ -51,6 +53,28 @@ export const CustomerContractsPage: React.FC = () => {
   }, [selected?.contract.id]);
 
   useEffect(() => { void loadContracts(); }, [loadContracts]);
+
+  useEffect(() => {
+    if (!selected) return;
+    const isPending = [
+      'CUSTOMER_SIGNING_IN_PROGRESS',
+      'CUSTOMER_PARTIALLY_SIGNED',
+      'PROVIDER_COMPLETED_EVIDENCE_PENDING',
+    ].includes(selected.contract.lifecycleStatus);
+
+    if (!isPending) return;
+
+    const timer = setInterval(() => {
+      void customerContractsService.get(selected.contract.id).then((fresh) => {
+        setSelected(fresh);
+        if (fresh.contract.lifecycleStatus === 'COMPLETED') {
+          void loadContracts();
+        }
+      }).catch(() => {});
+    }, 8000);
+
+    return () => clearInterval(timer);
+  }, [selected?.contract.id, selected?.contract.lifecycleStatus, loadContracts]);
 
   const openContract = async (contractId: string) => {
     if (detailLoading || selected?.contract.id === contractId) return;
@@ -169,6 +193,29 @@ export const CustomerContractsPage: React.FC = () => {
       setError('The demo confirmation could not be completed. Refresh the contract to check its current status.');
     } finally {
       setDemoSigningLoading(false);
+    }
+  };
+
+  const startRealSigning = async () => {
+    if (!selected || realSigningLoading) return;
+    setRealSigningLoading(true);
+    setError('');
+    setSigningFeedback('');
+    try {
+      const res = await customerContractsService.startSigning(selected.contract.id);
+      if (res.signerSessions?.[0]?.url) {
+        window.open(res.signerSessions[0].url, '_blank', 'noopener,noreferrer');
+        setSigningFeedback('Trang ký điện tử đã được mở trong tab mới. Sau khi hoàn tất ký, quay lại đây để tải hồ sơ.');
+      } else {
+        setSigningFeedback('Yêu cầu ký trực tuyến đã được gửi. Bạn sẽ nhận được tin nhắn SMS OTP từ VNPT để hoàn tất ký kết.');
+      }
+      const updated = await customerContractsService.get(selected.contract.id);
+      setSelected(updated);
+      setContracts(await customerContractsService.list());
+    } catch {
+      setError('Không thể khởi tạo luồng ký trực tuyến. Vui lòng kiểm tra lại điều kiện ký hoặc liên hệ hỗ trợ ALSM.');
+    } finally {
+      setRealSigningLoading(false);
     }
   };
 
@@ -339,6 +386,38 @@ export const CustomerContractsPage: React.FC = () => {
                             {demoSigningLoading ? 'Starting demo…' : 'Start demo signing'}
                           </button>
                         )}
+                        {!selected.demoNotice && !selected.signedPdfAvailable && selected.signingReadiness?.canStart && (
+                          <button
+                            type="button"
+                            onClick={() => void startRealSigning()}
+                            disabled={realSigningLoading}
+                            className="ml-2 mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            <ShieldCheck className="h-4 w-4" />
+                            {realSigningLoading ? 'Đang khởi tạo luồng ký...' : 'Ký hợp đồng trực tuyến'}
+                          </button>
+                        )}
+                        {signingFeedback && (
+                          <p className="mt-2 text-xs font-medium text-blue-800">{signingFeedback}</p>
+                        )}
+                        {selected.contract.lifecycleStatus === 'PROVIDER_COMPLETED_EVIDENCE_PENDING' && (
+                          <div className="mt-4 flex items-center gap-3 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
+                            <RefreshCw className="h-5 w-5 animate-spin text-emerald-600" />
+                            <div>
+                              <p className="font-semibold">Đã hoàn thành ký kết trên hệ thống VNPT!</p>
+                              <p className="text-xs text-emerald-700">Hệ thống đang tải và kiểm tra xác thực hồ sơ bằng chứng số. Trạng thái sẽ tự động cập nhật.</p>
+                            </div>
+                          </div>
+                        )}
+                        {selected.contract.lifecycleStatus === 'CUSTOMER_SIGNING_IN_PROGRESS' && (
+                          <div className="mt-4 flex items-center gap-3 rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-900">
+                            <ShieldCheck className="h-5 w-5 text-blue-600" />
+                            <div>
+                              <p className="font-semibold">Tiến trình ký trực tuyến đang hoạt động</p>
+                              <p className="text-xs text-blue-700">{signingFeedback || 'Vui lòng kiểm tra mã xác thực OTP gửi qua số điện thoại để hoàn tất chữ ký điện tử.'}</p>
+                            </div>
+                          </div>
+                        )}
                         {selected.demoSigningStatus === 'SENT' && !selected.demoSigningExpired && (
                           <div className="mt-4 rounded-lg border border-amber-400 bg-white p-4">
                             <p className="font-semibold text-amber-950">Demo signing session is ready</p>
@@ -352,7 +431,7 @@ export const CustomerContractsPage: React.FC = () => {
                             </button>
                           </div>
                         )}
-                        {!selected.demoSigningAvailable && selected.demoSigningStatus !== 'SENT' && (
+                        {!selected.demoSigningAvailable && selected.demoSigningStatus !== 'SENT' && !selected.signingReadiness?.canStart && (
                           <button type="button" disabled className="mt-3 cursor-not-allowed rounded-lg bg-slate-300 px-4 py-2 text-sm font-semibold text-slate-600" title={selected.signingBlockedReason || 'Signing is not enabled'}>
                             {selected.demoNotice ? 'Demo signing not ready' : 'Online signing unavailable'}
                           </button>
