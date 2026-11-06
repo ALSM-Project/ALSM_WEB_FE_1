@@ -35,6 +35,44 @@
   --alsm-danger: #B91C1C;
   --alsm-success: #15803D;
 
+  /* Corporate Enterprise Design System (ALSM Web2 Admin Inheritance - Meridian ERP Reference) */
+  --alsm-sidebar-bg: #14263F;
+  --alsm-sidebar-hover: #203954;
+  --alsm-sidebar-active: #29466A;
+  --alsm-workspace-bg: #EEF1F6;
+  --alsm-header-bg: #FFFFFF;
+  --alsm-card-bg: #FFFFFF;
+  --alsm-corporate-primary: #244A70;
+  --alsm-corporate-primary-hover: #1B3856;
+  --alsm-corporate-primary-active: #13283E;
+  --alsm-text-primary: #17263A;
+  --alsm-text-secondary: #8491A3;
+  --alsm-corporate-border: #DCE3EC;
+  --alsm-border-subtle: #E8EDF4;
+
+  /* Web2 Enterprise Status Colors */
+  --alsm-success-bg: #F0FDF4;
+  --alsm-success-border: #BBF7D0;
+  --alsm-warning: #B45309;
+  --alsm-warning-bg: #FFFBEB;
+  --alsm-warning-border: #FDE68A;
+  --alsm-error: #B91C1C;
+  --alsm-error-bg: #FEF2F2;
+  --alsm-error-border: #FECACA;
+  --alsm-info: #1D4ED8;
+  --alsm-info-bg: #EFF6FF;
+  --alsm-info-border: #BFDBFE;
+
+  /* Web2 Consistent Enterprise Dimensions & Shadows */
+  --alsm-radius-card: 8px;
+  --alsm-radius-input: 6px;
+  --alsm-radius-button: 6px;
+  --alsm-radius-badge: 4px;
+
+  --alsm-shadow-xs: 0 1px 2px 0 rgba(23, 38, 58, 0.05);
+  --alsm-shadow-sm: 0 1px 3px 0 rgba(23, 38, 58, 0.07), 0 1px 2px -1px rgba(23, 38, 58, 0.04);
+  --alsm-shadow-md: 0 4px 6px -1px rgba(23, 38, 58, 0.08), 0 2px 4px -2px rgba(23, 38, 58, 0.05);
+
   color-scheme: light;
 }
 
@@ -57,18 +95,18 @@ input:-webkit-autofill:active {
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--alsm-panel-bg-bottom);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--alsm-border);
+  background: var(--alsm-corporate-border, #DCE3EC);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--alsm-primary);
+  background: var(--alsm-text-secondary, #8491A3);
 }
 
 /* Typography pairing */
