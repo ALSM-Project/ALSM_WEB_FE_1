@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, Download, FileText, RefreshCw, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Download, FileText, RefreshCw, ShieldCheck, Smartphone } from 'lucide-react';
 import { customerContractsService, type CustomerContractDetail, type CustomerContractListItem } from '../services/customerContracts.service';
+import { PhoneVerificationModal } from '../components/PhoneVerificationModal';
 
 const formatVnd = (value: number) => new Intl.NumberFormat('vi-VN', {
   style: 'currency', currency: 'VND', maximumFractionDigits: 0,
@@ -16,6 +17,7 @@ export const CustomerContractsPage: React.FC = () => {
   const [demoSigningLoading, setDemoSigningLoading] = useState(false);
   const [demoAcknowledged, setDemoAcknowledged] = useState(false);
   const [decisionReason, setDecisionReason] = useState('');
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [error, setError] = useState('');
 
   const loadContracts = useCallback(async () => {
@@ -270,25 +272,51 @@ export const CustomerContractsPage: React.FC = () => {
                       ? selected.demoNotice ? 'The simulated PDF and demo evidence are available from the private archive.' : 'A provider-confirmed signed PDF is available from the verified evidence archive.'
                       : `${selected.canonicalPdfAvailable ? 'The unsigned canonical PDF is the immutable version prepared for the signing flow.' : 'The canonical PDF is not ready yet.'} ${selected.signingBlockedReason || 'Online signing has not been enabled for this contract.'}`}</p>
                     {selected.signingReadiness && !selected.signedPdfAvailable && (
-                      <ul className="mt-3 grid gap-1 text-xs sm:grid-cols-2" aria-label="Online signing readiness">
-                        {selected.signingReadiness.checks.map((check) => (
-                          <li key={check.code} className="flex items-center gap-2">
-                            <span aria-hidden="true" className={check.status === 'READY' ? 'text-emerald-700' : check.status === 'PENDING' ? 'text-amber-700' : 'text-rose-700'}>
-                              {check.status === 'READY' ? '✓' : check.status === 'PENDING' ? '○' : '×'}
-                            </span>
-                            <span>{({
-                              INTERNAL_APPROVAL: 'Internal approval',
-                              APPROVED_TEMPLATE_VERSION: 'Approved contract template version',
-                              CANONICAL_PDF: 'Immutable unsigned PDF',
-                              SIGNER_IDENTITY_VERIFICATION: selected.demoNotice ? 'Demo account confirmation' : 'Verified signer identity method',
-                              SIGNING_PROVIDER: selected.demoNotice ? 'Local demo signing adapter' : 'Approved signing provider',
-                              SIGNING_ORCHESTRATION: selected.demoNotice ? 'Demo signing session and completion record' : 'Signing session and provider callback workflow',
-                              FINAL_EVIDENCE_ARCHIVE: selected.demoNotice ? 'Encrypted demo evidence archive' : 'Final signed evidence archive',
-                            } as Record<string, string>)[check.code] || check.code.replace(/_/g, ' ')}</span>
-                            <span className="text-amber-900">{check.status === 'READY' ? 'Ready' : check.status === 'PENDING' ? 'Pending' : 'Blocked'}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <>
+                        {!selected.demoNotice && selected.signingReadiness.checks.some((c) => c.code === 'SIGNER_IDENTITY_VERIFICATION' && c.status === 'BLOCKED') && (
+                          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+                            <div className="flex items-center gap-2">
+                              <Smartphone className="h-4 w-4 shrink-0 text-blue-600" />
+                              <span>Bạn chưa xác minh số điện thoại người ký. Cần xác minh số điện thoại để đủ điều kiện ký trực tuyến.</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setPhoneModalOpen(true)}
+                              className="shrink-0 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700"
+                            >
+                              Xác minh ngay
+                            </button>
+                          </div>
+                        )}
+                        <ul className="mt-3 grid gap-1 text-xs sm:grid-cols-2" aria-label="Online signing readiness">
+                          {selected.signingReadiness.checks.map((check) => (
+                            <li key={check.code} className="flex items-center gap-2">
+                              <span aria-hidden="true" className={check.status === 'READY' ? 'text-emerald-700' : check.status === 'PENDING' ? 'text-amber-700' : 'text-rose-700'}>
+                                {check.status === 'READY' ? '✓' : check.status === 'PENDING' ? '○' : '×'}
+                              </span>
+                              <span>{({
+                                INTERNAL_APPROVAL: 'Internal approval',
+                                APPROVED_TEMPLATE_VERSION: 'Approved contract template version',
+                                CANONICAL_PDF: 'Immutable unsigned PDF',
+                                SIGNER_IDENTITY_VERIFICATION: selected.demoNotice ? 'Demo account confirmation' : 'Verified signer identity method',
+                                SIGNING_PROVIDER: selected.demoNotice ? 'Local demo signing adapter' : 'Approved signing provider',
+                                SIGNING_ORCHESTRATION: selected.demoNotice ? 'Demo signing session and completion record' : 'Signing session and provider callback workflow',
+                                FINAL_EVIDENCE_ARCHIVE: selected.demoNotice ? 'Encrypted demo evidence archive' : 'Final signed evidence archive',
+                              } as Record<string, string>)[check.code] || check.code.replace(/_/g, ' ')}</span>
+                              <span className="text-amber-900">{check.status === 'READY' ? 'Ready' : check.status === 'PENDING' ? 'Pending' : 'Blocked'}</span>
+                              {check.code === 'SIGNER_IDENTITY_VERIFICATION' && check.status === 'BLOCKED' && !selected.demoNotice && (
+                                <button
+                                  type="button"
+                                  onClick={() => setPhoneModalOpen(true)}
+                                  className="ml-1 font-semibold text-blue-600 underline hover:text-blue-800"
+                                >
+                                  (xác minh)
+                                </button>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </>
                     )}
                     {!selected.signedPdfAvailable && (
                       <button type="button" onClick={() => void downloadCanonicalPdf()} disabled={!selected.canonicalPdfAvailable || downloadLoading} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-amber-400 bg-white px-4 py-2 text-sm font-semibold text-amber-950 disabled:cursor-not-allowed disabled:opacity-50">
@@ -353,6 +381,15 @@ export const CustomerContractsPage: React.FC = () => {
           ) : <section className="rounded-xl border bg-white p-8 text-sm text-slate-600">Select a contract to review.</section>}
         </div>
       )}
+
+      <PhoneVerificationModal
+        isOpen={phoneModalOpen}
+        onClose={() => setPhoneModalOpen(false)}
+        onSuccess={() => {
+          if (selected) void openContract(selected.contract.id);
+          else void loadContracts();
+        }}
+      />
     </main>
   );
 };
