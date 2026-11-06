@@ -11,8 +11,10 @@ export const ROUTES = {
     RESET_PASSWORD: '/reset-password',
   },
   DASHBOARD: '/dashboard',
+  CONTRACTS: '/contracts',
   ACCOUNT: {
     PROFILE: '/account/profile',
+    CONTRACTS: '/account/contracts',
     PREFERENCES: '/account/preferences',
     PASSWORD: '/account/security/password',
     TWO_FACTOR: '/account/security/2fa',
