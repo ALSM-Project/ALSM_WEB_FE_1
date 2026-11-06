@@ -78,6 +78,10 @@ export const mockUsageStats: UsageStatistics = {
     used: 45,
     max: 500,
   },
+  programs: {
+    used: 2,
+    max: 50,
+  },
   projects: {
     used: 3,
     max: 20,
