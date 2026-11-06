@@ -9,6 +9,7 @@ import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';
 import { StatusBadge } from '@/shared/ui/Badge';
+import { conversionTargetFor } from '../utils/conversionTarget';
 
 export const BulkConvertPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
@@ -60,9 +61,18 @@ export const BulkConvertPage: React.FC = () => {
     );
   };
 
+  const target = conversionTargetFor(
+    screens.filter((s) => selectedIds.includes(s.id)),
+    isCobol,
+  );
+
   const handleStartConversion = () => {
     bulkConvert.mutate(selectedIds, {
-      onSuccess: () => navigate(ROUTES.PROJECTS.SCREENS(projectId)),
+      // The list page follows the files sent here (Ready -> Processing -> Completed) on its own.
+      onSuccess: () =>
+        navigate(ROUTES.PROJECTS.SCREENS(projectId), {
+          state: { startPolling: true, screenIds: selectedIds },
+        }),
     });
   };
 
@@ -143,16 +153,16 @@ export const BulkConvertPage: React.FC = () => {
             <h3 className="text-xs font-bold text-[#42526E] uppercase tracking-wider">Conversion Settings</h3>
 
             <div className="bg-[#F7F9FC] p-4 rounded-xl border border-[#D9E2EC] space-y-3 text-xs">
-              <div className="flex justify-between items-center font-medium">
+              <div className="flex justify-between items-start gap-4 font-medium">
                 <span className="text-[#6B778C]">Target Framework</span>
-                <span className="text-[#0652CC] font-bold">
-                  {isCobol ? 'Java 11 (Spring Boot 2.4 Batch)' : 'React 19 + TypeScript'}
+                <span className="text-[#0652CC] font-bold text-right">
+                  {target.framework}
                 </span>
               </div>
-              <div className="flex justify-between items-center font-medium">
+              <div className="flex justify-between items-start gap-4 font-medium">
                 <span className="text-[#6B778C]">Conversion Engine</span>
-                <span className="text-[#091E42] font-semibold">
-                  {isCobol ? 'tool2java Deterministic Engine' : 'ALSM Synthesis Pipeline'}
+                <span className="text-[#091E42] font-semibold text-right">
+                  {target.engine}
                 </span>
               </div>
               <p className="text-[#0652CC] font-semibold pt-1 border-t border-[#E5EAF0]">

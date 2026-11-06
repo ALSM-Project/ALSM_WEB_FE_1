@@ -1,37 +1,149 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Code2, Stethoscope, Trash2, GitBranch } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
+import { useBulkConvert } from '@/features/conversion/queries/useBulkConvert';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { Tabs } from '@/shared/ui/Tabs';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
+import { Modal } from '@/shared/ui/Modal';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { DependencyDiagnosticsModal } from '../components/DependencyDiagnosticsModal';
+import {
+  POLL_INTERVAL_MS,
+  isActiveStatus,
+  reconcileTracked,
+  sameScreens,
+  shouldPoll,
+  trackConversions,
+  withQueuedStatus,
+  type TrackedConversions,
+} from '../utils/conversionPolling';
 
 const PROGRAM_SOURCE_TYPES = new Set(['COBOL', 'RPG']);
+
+/** What the bulk-convert page passes when it hands over to this page after starting a batch. */
+export interface ScreensListLocationState {
+  startPolling?: boolean;
+  screenIds?: string[];
+}
 
 export const ScreensListPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState('screens');
-  const [allAssets, setAllAssets] = useState<LegacyScreen[]>([]);
+  const [fetchedAssets, setFetchedAssets] = useState<LegacyScreen[]>([]);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+  // Screens sent to the conversion queue from this page (or the bulk-convert page): the backend
+  // keeps them "Ready" until a worker takes them, so they are watched and shown as queued.
+  const [tracked, setTracked] = useState<TrackedConversions>({});
+  const allAssets = React.useMemo(
+    () => withQueuedStatus(fetchedAssets, tracked, Date.now()),
+    [fetchedAssets, tracked],
+  );
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dependencyModalScreenId, setDependencyModalScreenId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LegacyScreen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // A refresh that is still in flight when the next one is due, or that answers after the project
+  // changed, must not be applied on top of newer data.
+  const loadSequence = useRef(0);
+  const loading = useRef(false);
+
   const loadScreens = useCallback(() => {
-    conversionService.getScreens(projectId).then((data) => setAllAssets(data));
+    if (loading.current) return;
+    loading.current = true;
+    const sequence = ++loadSequence.current;
+    conversionService
+      .getScreens(projectId)
+      .then((data) => {
+        if (sequence !== loadSequence.current) return;
+        // Same list as before: keep the state, so the table is not re-rendered for nothing.
+        setFetchedAssets((prev) => (sameScreens(prev, data) ? prev : data));
+        setAssetsLoaded(true);
+      })
+      .catch(() => {
+        // A failed background refresh keeps what is on screen; the next tick tries again.
+      })
+      .finally(() => {
+        loading.current = false;
+      });
   }, [projectId]);
 
   useEffect(() => {
+    // Another project: its list starts empty and nothing of the previous one is tracked.
+    setFetchedAssets([]);
+    setAssetsLoaded(false);
+    setTracked({});
+    loading.current = false;
     loadScreens();
+    return () => {
+      // Plain counters, not DOM nodes: a late answer for the old project is thrown away.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      loadSequence.current++;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      loading.current = false;
+    };
   }, [loadScreens]);
+
+  // Coming from the bulk-convert page: watch the screens it just sent.
+  useEffect(() => {
+    const state = location.state as ScreensListLocationState | null;
+    if (!state?.startPolling) return;
+    setTracked((prev) => trackConversions(prev, state.screenIds ?? [], [], Date.now()));
+    // Consumed: a reload of the page must not start watching again.
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Stop watching the screens that are done.
+  useEffect(() => {
+    if (!assetsLoaded) return;
+    setTracked((prev) => reconcileTracked(prev, fetchedAssets, Date.now()));
+  }, [fetchedAssets, assetsLoaded]);
+
+  // Refresh every 3 s while something is converting or waiting in the queue, and only then:
+  // the interval is cleared when everything is done, the project changes or the page closes.
+  const polling = assetsLoaded && shouldPoll(fetchedAssets, tracked);
+  useEffect(() => {
+    if (!polling) return;
+    const timer = setInterval(() => {
+      if (!document.hidden) loadScreens();
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [polling, loadScreens]);
+
+  // ---- Bulk Convert of the COBOL programs, straight from this page ----
+  const bulkConvert = useBulkConvert(projectId);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    },
+    [],
+  );
+
+  const showToast = (message: string) => {
+    setToast(message);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 6000);
+  };
+
+  const closeBulkConfirm = () => {
+    if (bulkConvert.isPending) return;
+    bulkConvert.reset();
+    setBulkConfirmOpen(false);
+  };
 
   const handleDeleteScreen = async () => {
     if (!deleteTarget) return;
@@ -39,7 +151,7 @@ export const ScreensListPage: React.FC = () => {
     const ok = await conversionService.deleteScreen(projectId, deleteTarget.id);
     setIsDeleting(false);
     if (ok) {
-      setAllAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+      setFetchedAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
     }
     setDeleteTarget(null);
   };
@@ -58,6 +170,7 @@ export const ScreensListPage: React.FC = () => {
       const matchesStatus =
         statusFilter === 'ALL' ||
         itemStatus === targetFilter ||
+        (targetFilter === 'PROCESSING' && itemStatus === 'QUEUED') ||
         (targetFilter === 'COMPLETED' && (itemStatus === 'CONVERTED' || itemStatus === 'COMPLETED')) ||
         (targetFilter === 'CONVERTED' && (itemStatus === 'CONVERTED' || itemStatus === 'COMPLETED'));
       return matchesSearch && matchesStatus;
@@ -81,6 +194,33 @@ export const ScreensListPage: React.FC = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedList = activeList.slice(startIndex, startIndex + pageSize);
 
+  // Programs still to convert: everything not completed (a failed or reviewed one is converted
+  // again), except what is already running or waiting in the queue.
+  const pendingPrograms = programs.filter(
+    (p) => !isActiveStatus(p.status) && !['completed', 'converted'].includes(p.status.toLowerCase()),
+  );
+
+  const handleBulkConvertClick = () => {
+    if (activeTab === 'programs') setBulkConfirmOpen(true);
+    else navigate(ROUTES.PROJECTS.BULK_CONVERT(projectId));
+  };
+
+  const handleConfirmBulkConvert = () => {
+    const ids = pendingPrograms.map((p) => p.id);
+    if (ids.length === 0) return;
+    bulkConvert.mutate(ids, {
+      onSuccess: (jobs) => {
+        const startedIds = jobs.map((job) => job.screenId).filter((id): id is string => Boolean(id));
+        const sent = startedIds.length > 0 ? startedIds : ids;
+        // From now on they show as Queued, and the list follows them until each one is done.
+        setTracked((prev) => trackConversions(prev, sent, fetchedAssets, Date.now()));
+        setBulkConfirmOpen(false);
+        showToast(`Bulk conversion started for ${sent.length} program${sent.length === 1 ? '' : 's'}`);
+        loadScreens();
+      },
+    });
+  };
+
   const metrics = {
     total: activeFullList.length,
     converted: activeFullList.filter(
@@ -100,7 +240,7 @@ export const ScreensListPage: React.FC = () => {
           <div className="flex items-center space-x-3 shrink-0">
             <Button
               variant="secondary"
-              onClick={() => navigate(ROUTES.PROJECTS.BULK_CONVERT(projectId))}
+              onClick={handleBulkConvertClick}
               className="space-x-1.5 text-xs font-semibold"
             >
               <Play className="w-4 h-4 text-[#0652CC]" />
@@ -116,6 +256,26 @@ export const ScreensListPage: React.FC = () => {
           </div>
         }
       />
+
+      {toast && (
+        <div
+          role="status"
+          className="p-4 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-800 flex items-center justify-between"
+        >
+          <div className="flex items-center space-x-2 text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+            <span>{toast}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setToast(null)}
+            aria-label="Dismiss"
+            className="text-xs font-bold text-slate-400 hover:text-slate-600 ml-4 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Modernization Workflow Step Banner */}
       <ModernizationWorkflow
@@ -436,6 +596,48 @@ export const ScreensListPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      <Modal isOpen={bulkConfirmOpen} onClose={closeBulkConfirm} title="Bulk Convert" maxWidth="md">
+        <div className="p-6 space-y-4">
+          <p className="text-sm text-[#091E42]">
+            {pendingPrograms.length > 0
+              ? `Convert all pending COBOL programs (${pendingPrograms.length} programs)?`
+              : 'There are no pending COBOL programs to convert.'}
+          </p>
+          <p className="text-xs text-[#6B778C]">
+            They are put in the queue and converted a few at a time; this page follows their progress.
+          </p>
+          {bulkConvert.isError && (
+            <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">
+              {bulkConvert.error instanceof Error
+                ? bulkConvert.error.message
+                : 'Could not start the bulk conversion. Please try again.'}
+            </p>
+          )}
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={closeBulkConfirm} disabled={bulkConvert.isPending} className="text-xs font-semibold">
+              Cancel
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => navigate(ROUTES.PROJECTS.BULK_CONVERT(projectId))}
+              disabled={bulkConvert.isPending}
+              className="text-xs font-semibold"
+            >
+              Choose programs…
+            </Button>
+            <Button
+              onClick={handleConfirmBulkConvert}
+              isLoading={bulkConvert.isPending}
+              disabled={pendingPrograms.length === 0}
+              className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs font-bold space-x-1.5"
+            >
+              <Play className="w-3.5 h-3.5" />
+              <span>Convert {pendingPrograms.length} programs</span>
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       <DependencyDiagnosticsModal
         isOpen={dependencyModalScreenId !== null}
