@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Code2, Stethoscope, Trash2, GitBranch } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import type { LegacyScreen } from '../types/screen';
@@ -10,28 +10,112 @@ import { Button } from '@/shared/ui/Button';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { DependencyDiagnosticsModal } from '../components/DependencyDiagnosticsModal';
+import {
+  POLL_INTERVAL_MS,
+  reconcileTracked,
+  sameScreens,
+  shouldPoll,
+  trackConversions,
+  withQueuedStatus,
+  type TrackedConversions,
+} from '../utils/conversionPolling';
 
 const PROGRAM_SOURCE_TYPES = new Set(['COBOL', 'RPG']);
+
+/** What the bulk-convert page passes when it hands over to this page after starting a batch. */
+export interface ScreensListLocationState {
+  startPolling?: boolean;
+  screenIds?: string[];
+}
 
 export const ScreensListPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState('screens');
-  const [allAssets, setAllAssets] = useState<LegacyScreen[]>([]);
+  const [fetchedAssets, setFetchedAssets] = useState<LegacyScreen[]>([]);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
+  // Screens sent to the conversion queue from this page (or the bulk-convert page): the backend
+  // keeps them "Ready" until a worker takes them, so they are watched and shown as queued.
+  const [tracked, setTracked] = useState<TrackedConversions>({});
+  const allAssets = React.useMemo(
+    () => withQueuedStatus(fetchedAssets, tracked, Date.now()),
+    [fetchedAssets, tracked],
+  );
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [dependencyModalScreenId, setDependencyModalScreenId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LegacyScreen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // A refresh that is still in flight when the next one is due, or that answers after the project
+  // changed, must not be applied on top of newer data.
+  const loadSequence = useRef(0);
+  const loading = useRef(false);
+
   const loadScreens = useCallback(() => {
-    conversionService.getScreens(projectId).then((data) => setAllAssets(data));
+    if (loading.current) return;
+    loading.current = true;
+    const sequence = ++loadSequence.current;
+    conversionService
+      .getScreens(projectId)
+      .then((data) => {
+        if (sequence !== loadSequence.current) return;
+        // Same list as before: keep the state, so the table is not re-rendered for nothing.
+        setFetchedAssets((prev) => (sameScreens(prev, data) ? prev : data));
+        setAssetsLoaded(true);
+      })
+      .catch(() => {
+        // A failed background refresh keeps what is on screen; the next tick tries again.
+      })
+      .finally(() => {
+        loading.current = false;
+      });
   }, [projectId]);
 
   useEffect(() => {
+    // Another project: its list starts empty and nothing of the previous one is tracked.
+    setFetchedAssets([]);
+    setAssetsLoaded(false);
+    setTracked({});
+    loading.current = false;
     loadScreens();
+    return () => {
+      // Plain counters, not DOM nodes: a late answer for the old project is thrown away.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      loadSequence.current++;
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      loading.current = false;
+    };
   }, [loadScreens]);
+
+  // Coming from the bulk-convert page: watch the screens it just sent.
+  useEffect(() => {
+    const state = location.state as ScreensListLocationState | null;
+    if (!state?.startPolling) return;
+    setTracked((prev) => trackConversions(prev, state.screenIds ?? [], [], Date.now()));
+    // Consumed: a reload of the page must not start watching again.
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Stop watching the screens that are done.
+  useEffect(() => {
+    if (!assetsLoaded) return;
+    setTracked((prev) => reconcileTracked(prev, fetchedAssets, Date.now()));
+  }, [fetchedAssets, assetsLoaded]);
+
+  // Refresh every 3 s while something is converting or waiting in the queue, and only then:
+  // the interval is cleared when everything is done, the project changes or the page closes.
+  const polling = assetsLoaded && shouldPoll(fetchedAssets, tracked);
+  useEffect(() => {
+    if (!polling) return;
+    const timer = setInterval(() => {
+      if (!document.hidden) loadScreens();
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [polling, loadScreens]);
 
   const handleDeleteScreen = async () => {
     if (!deleteTarget) return;
@@ -39,7 +123,7 @@ export const ScreensListPage: React.FC = () => {
     const ok = await conversionService.deleteScreen(projectId, deleteTarget.id);
     setIsDeleting(false);
     if (ok) {
-      setAllAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
+      setFetchedAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
     }
     setDeleteTarget(null);
   };
@@ -58,6 +142,7 @@ export const ScreensListPage: React.FC = () => {
       const matchesStatus =
         statusFilter === 'ALL' ||
         itemStatus === targetFilter ||
+        (targetFilter === 'PROCESSING' && itemStatus === 'QUEUED') ||
         (targetFilter === 'COMPLETED' && (itemStatus === 'CONVERTED' || itemStatus === 'COMPLETED')) ||
         (targetFilter === 'CONVERTED' && (itemStatus === 'CONVERTED' || itemStatus === 'COMPLETED'));
       return matchesSearch && matchesStatus;
