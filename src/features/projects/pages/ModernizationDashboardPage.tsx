@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, ArrowRight, Upload, FolderKanban } from 'lucide-react';
+import { Plus, ArrowRight, Upload, FolderKanban, FileText, FileCheck2 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { StatusBadge, Button } from '@/shared/ui';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
@@ -65,11 +65,20 @@ export const ModernizationDashboardPage: React.FC = () => {
             <Upload className="w-4 h-4" />
             <span>Upload Legacy File</span>
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => navigate('/contracts')}
+            className="bg-white/10 border-white/25 text-white hover:bg-white/20 font-semibold text-xs space-x-1.5"
+            title="Xem hồ sơ và ký kết hợp đồng online"
+          >
+            <FileText className="w-4 h-4 text-emerald-400" />
+            <span>Hợp đồng của tôi</span>
+          </Button>
         </div>
       </div>
 
       {/* Restrained Dashboard Metric Cards - Clickable */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-2xl">
         <button
           type="button"
           onClick={() => navigate(ROUTES.PROJECTS.LIST)}
@@ -112,6 +121,28 @@ export const ModernizationDashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate('/contracts')}
+          className="bg-white border border-[#D9E2EC] hover:border-purple-500 text-left rounded-2xl p-5 shadow-2xs hover:shadow-md transition-all flex items-center justify-between group cursor-pointer"
+          title="Click to view and sign contracts"
+        >
+          <div className="flex items-center space-x-3.5">
+            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-purple-100">
+              <FileCheck2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-[#6B778C] uppercase tracking-wider">
+                Hợp Đồng & Ký Số
+              </div>
+              <div className="text-xs font-bold text-[#091E42] mt-1 flex items-center gap-1">
+                Xem hợp đồng <ArrowRight className="w-3 h-3 text-purple-600 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </div>
+          <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
         </button>
       </div>
 
