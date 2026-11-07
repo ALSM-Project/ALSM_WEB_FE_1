@@ -8,6 +8,8 @@ import { Web1ThemeProvider, useWeb1Theme } from '@/context/Web1ThemeContext';
 import { ROUTES } from '@/shared/constants/routes';
 import { billingService } from '@/features/billing/services/billing.service';
 import { NotificationsBell } from '@/features/notifications/components/NotificationsBell';
+import { CustomerChatWidget } from '@/features/chat/CustomerChatWidget';
+import { Toaster } from '@/shared/ui/Toast';
 
 const getInitials = (name?: string) => {
   if (!name) return 'U';
@@ -114,14 +116,14 @@ export const AppLayoutContent: React.FC = () => {
 
           {/* Center: HorizonX-inspired Prominent Global Search */}
           <div className="hidden md:flex items-center justify-center flex-1 max-w-md mx-4">
-            <div className="w-full relative flex items-center bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-lg px-3 py-1.5 text-xs text-[#64748B] focus-within:bg-white focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/15 transition-all">
+            <div className="w-full relative flex items-center bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-lg px-3 py-1.5 text-xs text-[#64748B] focus-within:bg-white focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/15 transition-colors">
               <Search className="w-4 h-4 text-[#64748B] mr-2 shrink-0" aria-hidden="true" />
               <input
                 type="text"
                 placeholder="Search projects, screens, commands..."
                 className="w-full bg-transparent border-none p-0 text-xs text-[#0F172A] placeholder-[#64748B] focus:outline-none"
               />
-              <kbd className="hidden lg:inline-flex items-center bg-white border border-[#E2E8F0] rounded px-1.5 py-0.5 text-[10px] font-mono text-[#64748B] shadow-2xs shrink-0 ml-2">
+              <kbd className="hidden lg:inline-flex items-center bg-white border border-[#E2E8F0] rounded px-2 py-0.5 text-xs font-mono text-[#64748B] shadow-2xs shrink-0 ml-2">
                 Ctrl K
               </kbd>
             </div>
@@ -138,7 +140,7 @@ export const AppLayoutContent: React.FC = () => {
               onClick={() => navigate(ROUTES.ACCOUNT.PASSWORD)}
               className="p-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-lg transition-colors cursor-pointer"
               title="Account Settings"
-              aria-label="Cài đặt tài khoản"
+              aria-label="Account settings"
             >
               <Settings className="w-4.5 h-4.5" aria-hidden="true" />
             </button>
@@ -148,7 +150,7 @@ export const AppLayoutContent: React.FC = () => {
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer"
-                aria-label="Menu tài khoản người dùng"
+                aria-label="User account menu"
               >
                 <div className="w-7 h-7 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] font-bold flex items-center justify-center text-xs shadow-2xs">
                   {getInitials(user?.fullName)}
@@ -161,7 +163,7 @@ export const AppLayoutContent: React.FC = () => {
                 <div className="absolute right-0 mt-2 w-56 bg-white border border-[#D9E2EC] rounded-xl shadow-lg py-1.5 z-50 text-xs">
                   <div className="px-3.5 py-2 border-b border-[#E5EAF0]">
                     <p className="font-semibold text-[#091E42] truncate">{user?.fullName || 'User Account'}</p>
-                    <p className="text-[10px] text-[#6B778C] truncate">{user?.email || 'poc@alsm.io'}</p>
+                    <p className="text-xs text-[#6B778C] truncate">{user?.email || 'poc@alsm.io'}</p>
                   </div>
                   {isEnterprise ? (
                     <button
@@ -194,7 +196,7 @@ export const AppLayoutContent: React.FC = () => {
                       className="w-full text-left px-3.5 py-2 text-[#42526E] hover:bg-[#F7F9FC] font-medium transition-colors flex items-center space-x-2"
                     >
                       <CreditCard className="w-4 h-4 text-slate-400" />
-                      <span>Contact & Upgrade</span>
+                      <span>Contact & Support</span>
                     </button>
                   )}
                   <Link
@@ -249,6 +251,9 @@ export const AppLayoutContent: React.FC = () => {
         <main className="flex-grow p-6 lg:p-8 w-full min-w-0">
           <Outlet />
         </main>
+
+        {/* Customer Realtime Chat Widget */}
+        <CustomerChatWidget />
       </div>
     </div>
   );
@@ -257,6 +262,7 @@ export const AppLayoutContent: React.FC = () => {
 export const AppLayout: React.FC = () => (
   <Web1ThemeProvider>
     <AppLayoutContent />
+    <Toaster />
   </Web1ThemeProvider>
 );
 
