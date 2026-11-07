@@ -400,6 +400,11 @@ export const CustomerContractsPage: React.FC = () => {
                         {signingFeedback && (
                           <p className="mt-2 text-xs font-medium text-blue-800">{signingFeedback}</p>
                         )}
+                        {error && (
+                          <div role="alert" className="mt-3 rounded-lg border border-rose-300 bg-rose-50 p-3 text-xs font-semibold text-rose-800">
+                            {error}
+                          </div>
+                        )}
                         {selected.contract.lifecycleStatus === 'PROVIDER_COMPLETED_EVIDENCE_PENDING' && (
                           <div className="mt-4 flex items-center gap-3 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
                             <RefreshCw className="h-5 w-5 animate-spin text-emerald-600" />
