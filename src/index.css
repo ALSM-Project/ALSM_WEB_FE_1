@@ -14,11 +14,11 @@
   --alsm-text: #0F172A;
   --alsm-text-muted: #475569;
 
-  /* Primary Brand Action (Single Blue Action) */
-  --alsm-primary: #2563EB;
-  --alsm-primary-hover: #1D4ED8;
-  --alsm-primary-soft: rgba(37, 99, 235, 0.12);
-  --alsm-focus-ring: rgba(37, 99, 235, 0.2);
+  /* Primary Brand Action (Single Blue Action - Inherited from Web2 Enterprise) */
+  --alsm-primary: #244A70;
+  --alsm-primary-hover: #1B3856;
+  --alsm-primary-soft: rgba(36, 74, 112, 0.12);
+  --alsm-focus-ring: rgba(36, 74, 112, 0.2);
 
   /* Left Showcase Panel (Deep Navy with Subtle Tone Gradient) */
   --alsm-panel-bg-top: #0B1B3A;

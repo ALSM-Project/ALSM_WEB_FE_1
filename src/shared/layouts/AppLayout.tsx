@@ -116,7 +116,7 @@ export const AppLayoutContent: React.FC = () => {
 
           {/* Center: HorizonX-inspired Prominent Global Search */}
           <div className="hidden md:flex items-center justify-center flex-1 max-w-md mx-4">
-            <div className="w-full relative flex items-center bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-lg px-3 py-1.5 text-xs text-[#64748B] focus-within:bg-white focus-within:border-[#2563EB] focus-within:ring-2 focus-within:ring-[#2563EB]/15 transition-colors">
+            <div className="w-full relative flex items-center bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-lg px-3 py-1.5 text-xs text-[#64748B] focus-within:bg-white focus-within:border-[#244A70] focus-within:ring-2 focus-within:ring-[#244A70]/15 transition-colors">
               <Search className="w-4 h-4 text-[#64748B] mr-2 shrink-0" aria-hidden="true" />
               <input
                 type="text"
@@ -131,10 +131,6 @@ export const AppLayoutContent: React.FC = () => {
 
           {/* Right: Notifications, Avatar, Upgrade Button */}
 <div className="flex items-center space-x-3 text-xs text-[#475569] shrink-0">
-            <Link to="/contracts" className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 font-semibold text-[#0652CC] hover:bg-[#F7F9FC]" title="My contracts">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">My contracts</span>
-            </Link>
             {/* Notifications with badge count */}
             <NotificationsBell />
 
@@ -156,7 +152,7 @@ export const AppLayoutContent: React.FC = () => {
                 className="flex items-center space-x-2 p-1 rounded-lg hover:bg-[#F1F5F9] transition-colors cursor-pointer"
                 aria-label="User account menu"
               >
-                <div className="w-7 h-7 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[#2563EB] font-bold flex items-center justify-center text-xs shadow-2xs">
+                <div className="w-7 h-7 rounded-full bg-[#F0F4F8] border border-[#DCE3EC] text-[#244A70] font-bold flex items-center justify-center text-xs shadow-2xs">
                   {getInitials(user?.fullName)}
                 </div>
                 <span className="hidden sm:inline font-semibold text-[#0F172A]">{user?.fullName || 'User'}</span>
@@ -243,7 +239,7 @@ export const AppLayoutContent: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}
-                className="px-3.5 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+                className="px-3.5 py-1.5 bg-[#244A70] hover:bg-[#1B3856] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
               >
                 Upgrade
               </button>

@@ -31,6 +31,18 @@ export default {
         accent: 'var(--alsm-accent)',
         danger: 'var(--alsm-danger)',
         success: 'var(--alsm-success)',
+        brand: {
+          50: '#F0F4F8',
+          100: '#DCE3EC',
+          200: '#B8C7D9',
+          300: '#8491A3',
+          400: '#4D6B8C',
+          500: '#244A70',
+          600: '#1B3856',
+          700: '#14263F',
+          800: '#0F1C2E',
+          900: '#0A131F',
+        },
         // Corporate Enterprise Design System (ALSM Web2 Admin Inheritance - Meridian ERP Reference)
         corporate: {
           sidebar: 'var(--alsm-sidebar-bg, #14263F)',
