@@ -14,7 +14,7 @@ import { CreateProjectModal } from '../components/CreateProjectModal';
 import { projectService } from '../services/project.service';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import { billingService } from '@/features/billing/services/billing.service';
-import { useAuth } from '@/app/providers';
+import { AuthContext, useAuth } from '@/app/providers';
 import type { Project } from '../types/project';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { UsageStatistics } from '@/features/billing/types/billing';
@@ -91,11 +91,8 @@ function renderProjectStatusBadge(status?: string) {
 }
 
 function useSafeAuth() {
-  try {
-    return useAuth();
-  } catch {
-    return { user: null };
-  }
+  const context = React.useContext(AuthContext);
+  return context || ({ user: null } as any);
 }
 
 export const ModernizationDashboardPage: React.FC = () => {

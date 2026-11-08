@@ -175,34 +175,45 @@ export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuI
   // 1. Start with dynamic items
   const merged: MenuItem[] = [...dynamicItems];
 
-  // 2. Add static Document entries if not explicitly overridden by dynamic items
-  const hasDynamicResources = dynamicItems.some(
+  // If a full MenuBuilder menu is present (contains ORGANIZATION or CONTRACT & BILLING),
+  // respect the admin configuration and do NOT force-inject extraneous resource docs.
+  const isMenuBuilderConfigured = dynamicItems.some(
     (item) =>
-      item.category === 'RESOURCES' ||
-      item.id?.includes('resource') ||
-      item.id?.includes('docs') ||
-      item.id?.includes('guide') ||
-      item.id === 'docs' ||
-      item.id === 'user-guide' ||
-      item.id === 'modernization-guide' ||
-      item.id === 'contact' ||
-      (item.children &&
-        item.children.some(
-          (c) =>
-            c.category === 'RESOURCES' ||
-            c.id?.includes('docs') ||
-            c.id?.includes('guide') ||
-            c.path?.includes('/workspace/docs'),
-        )),
+      item.id === 'web1_group_organization' ||
+      item.id === 'web1_group_contract_billing' ||
+      item.label === 'ORGANIZATION' ||
+      item.label === 'CONTRACT & BILLING',
   );
 
-  if (!hasDynamicResources) {
-    for (const doc of STATIC_RESOURCE_DOCS) {
-      const hasDuplicate =
-        dynamicIds.has(doc.id.toLowerCase()) ||
-        (doc.path && dynamicPaths.has(doc.path.toLowerCase()));
-      if (!hasDuplicate) {
-        merged.push({ ...doc });
+  if (!isMenuBuilderConfigured) {
+    const hasDynamicResources = dynamicItems.some(
+      (item) =>
+        item.category === 'RESOURCES' ||
+        item.id?.includes('resource') ||
+        item.id?.includes('docs') ||
+        item.id?.includes('guide') ||
+        item.id === 'docs' ||
+        item.id === 'user-guide' ||
+        item.id === 'modernization-guide' ||
+        item.id === 'contact' ||
+        (item.children &&
+          item.children.some(
+            (c) =>
+              c.category === 'RESOURCES' ||
+              c.id?.includes('docs') ||
+              c.id?.includes('guide') ||
+              c.path?.includes('/workspace/docs'),
+          )),
+    );
+
+    if (!hasDynamicResources) {
+      for (const doc of STATIC_RESOURCE_DOCS) {
+        const hasDuplicate =
+          dynamicIds.has(doc.id.toLowerCase()) ||
+          (doc.path && dynamicPaths.has(doc.path.toLowerCase()));
+        if (!hasDuplicate) {
+          merged.push({ ...doc });
+        }
       }
     }
   }
@@ -212,6 +223,7 @@ export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuI
     (item) =>
       item.category === 'ACCOUNT' ||
       item.id === 'settings' ||
+      item.id === 'web1_group_account' ||
       item.id.toLowerCase().includes('account') ||
       item.label.toLowerCase() === 'account'
   );
@@ -231,6 +243,8 @@ export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuI
   const hasDynamicService = dynamicItems.some(
     (item) =>
       item.category === 'SERVICE' ||
+      item.category === 'CONTRACT & BILLING' ||
+      item.id === 'web1_group_contract_billing' ||
       item.id?.includes('service') ||
       item.id?.includes('contract') ||
       item.path === '/contracts' ||
@@ -276,14 +290,21 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 
 function mapBackendNodeToMenuItem(
   node: BackendNavItem,
-  parentCategory?: 'MAIN' | 'SERVICE' | 'RESOURCES' | 'ACCOUNT'
+  parentCategory?: string
 ): MenuItem {
-  let category: 'MAIN' | 'SERVICE' | 'RESOURCES' | 'ACCOUNT' | undefined = parentCategory;
+  let category: string | undefined = parentCategory;
   const k = (node.key || '').toLowerCase();
   const id = (node.id || '').toLowerCase();
   const l = (node.label || '').toLowerCase();
 
-  if (
+  if (node.type === 'GROUP') {
+    const rawLabel = (node.label || '').toUpperCase();
+    if (rawLabel === 'SERVICE' || rawLabel === 'CONTRACT & BILLING' || rawLabel === 'BILLING' || rawLabel === 'SERVICE & CONTRACT') {
+      category = 'CONTRACT & BILLING';
+    } else {
+      category = rawLabel;
+    }
+  } else if (
     k.includes('resource') ||
     id.includes('resource') ||
     id.includes('docs') ||
@@ -309,9 +330,13 @@ function mapBackendNodeToMenuItem(
     id.includes('upgrade') ||
     l.includes('service')
   ) {
-    category = 'SERVICE';
+    category = 'CONTRACT & BILLING';
   } else if (!category) {
-    category = 'MAIN';
+    if (id.includes('dashboard') || k.includes('dashboard') || (node.route && node.route.includes('/dashboard'))) {
+      category = '';
+    } else {
+      category = 'MAIN';
+    }
   }
 
   return {

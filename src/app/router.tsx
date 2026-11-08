@@ -50,6 +50,15 @@ import {
   InvoicesPage,
   InvoicePaymentCheckoutPage,
 } from '@/features/billing';
+import {
+  OrganizationProfilePage,
+  OrganizationMembersPage,
+  OrganizationTeamsPage,
+  OrganizationProjectsPage,
+  OrganizationRolesPage,
+  OrganizationAnalyticsPage,
+  OrganizationAuditLogsPage,
+} from '@/features/organization';
 
 export const router = createBrowserRouter([
   { path: '/auth/password-callback', element: <PasswordCallbackPage /> },
@@ -96,8 +105,26 @@ export const router = createBrowserRouter([
           { path: '/projects', element: <ProjectsListPage /> },
           { path: '/projects/:projectId', element: <ProjectOverviewPage /> },
 
-          // Organization Profile
-          { path: '/organization/profile', element: <CompanyLegalProfilePage /> },
+          // Organization Profile & Enterprise Management Routes
+          { path: '/settings/organization', element: <OrganizationProfilePage /> },
+          { path: '/organization/profile', element: <OrganizationProfilePage /> },
+          { path: '/settings/team', element: <OrganizationMembersPage /> },
+          { path: '/settings/teams', element: <OrganizationTeamsPage /> },
+          { path: '/settings/members', element: <OrganizationMembersPage /> },
+          { path: '/organisation/members', element: <OrganizationMembersPage /> },
+          { path: '/organization/members', element: <OrganizationMembersPage /> },
+          { path: '/organisation/teams', element: <OrganizationTeamsPage /> },
+          { path: '/organization/teams', element: <OrganizationTeamsPage /> },
+          { path: '/internal-teams', element: <Navigate to="/organization/teams" replace /> },
+          { path: '/organisation/projects', element: <OrganizationProjectsPage /> },
+          { path: '/organization/projects', element: <OrganizationProjectsPage /> },
+          { path: '/settings/roles', element: <OrganizationRolesPage /> },
+          { path: '/organisation/roles', element: <OrganizationRolesPage /> },
+          { path: '/organization/roles', element: <OrganizationRolesPage /> },
+          { path: '/organisation/analytics', element: <OrganizationAnalyticsPage /> },
+          { path: '/organization/analytics', element: <OrganizationAnalyticsPage /> },
+          { path: '/organisation/audit-logs', element: <OrganizationAuditLogsPage /> },
+          { path: '/organization/audit-logs', element: <OrganizationAuditLogsPage /> },
 
           // Account Security Nested Subroutes (Profile, Preferences, Passwords, etc.)
           {

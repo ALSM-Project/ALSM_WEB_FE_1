@@ -29,25 +29,64 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Dynamically group items into sections
   const sections = useMemo(() => {
     const result: NavSection[] = [];
+    const seenPaths = new Set<string>();
     const mainItems: MenuItem[] = [];
     const sectionOrderMap = new Map<string, number>();
     sectionOrderMap.set('MAIN', 1);
 
+    const normalizeSectionTitle = (raw: string): string => {
+      const upper = raw.trim().toUpperCase();
+      if (
+        upper === 'SERVICE' ||
+        upper === 'CONTRACT & BILLING' ||
+        upper === 'SERVICE & CONTRACT' ||
+        upper === 'BILLING'
+      ) {
+        return 'CONTRACT & BILLING';
+      }
+      return upper;
+    };
+
     for (const item of sidebarNav) {
       if (item.isVisible === false) continue;
 
-      // Service group or items: unpack children directly under SERVICE section header
+      // Top level standalone root item (e.g. Dashboard)
+      const isRootStandalone =
+        (!item.parentId || item.parentId === '') &&
+        item.path &&
+        item.path !== '#' &&
+        (!item.children || item.children.length === 0) &&
+        (item.id.includes('dashboard') || !item.category || item.category === '' || item.category === 'MAIN');
+
+      if (isRootStandalone && item.path) {
+        let existing = result.find((s) => s.title === '');
+        if (!existing) {
+          existing = { title: '', items: [] };
+          result.push(existing);
+        }
+        const itemPath = item.path.toLowerCase();
+        if (!seenPaths.has(itemPath)) {
+          seenPaths.add(itemPath);
+          existing.items.push(item);
+        }
+        continue;
+      }
+
+      // Service / Contract & Billing group: unpack children directly under CONTRACT & BILLING section header
       const isServiceGroup =
         item.category === 'SERVICE' ||
+        item.category === 'CONTRACT & BILLING' ||
         item.id === 'service-group' ||
         item.id === 'web1_group_service' ||
-        item.label.toLowerCase() === 'service';
+        item.id === 'web1_group_contract_billing' ||
+        item.label.toLowerCase() === 'service' ||
+        item.label.toLowerCase() === 'contract & billing';
 
       if (isServiceGroup && item.children && item.children.length > 0) {
-        sectionOrderMap.set('SERVICE', item.order ?? 5);
-        let existing = result.find((s) => s.title === 'SERVICE');
+        sectionOrderMap.set('CONTRACT & BILLING', item.order ?? 3);
+        let existing = result.find((s) => s.title === 'CONTRACT & BILLING');
         if (!existing) {
-          existing = { title: 'SERVICE', items: [] };
+          existing = { title: 'CONTRACT & BILLING', items: [] };
           result.push(existing);
         }
         for (const child of item.children) {
@@ -60,10 +99,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         }
       } else if (isServiceGroup) {
         if (item.path && item.path !== '#') {
-          sectionOrderMap.set('SERVICE', item.order ?? 5);
-          let existing = result.find((s) => s.title === 'SERVICE');
+          sectionOrderMap.set('CONTRACT & BILLING', item.order ?? 3);
+          let existing = result.find((s) => s.title === 'CONTRACT & BILLING');
           if (!existing) {
-            existing = { title: 'SERVICE', items: [] };
+            existing = { title: 'CONTRACT & BILLING', items: [] };
             result.push(existing);
           }
           if (!existing.items.some((i) => i.id === item.id || (i.path && item.path && i.path === item.path))) {
@@ -76,7 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         item.id.includes('group_account') ||
         item.label.toLowerCase() === 'account'
       ) {
-        sectionOrderMap.set('ACCOUNT', item.order ?? 7);
+        sectionOrderMap.set('ACCOUNT', item.order ?? 5);
         if (item.children && item.children.length > 0) {
           let existing = result.find((s) => s.title === 'ACCOUNT');
           if (!existing) {
@@ -92,20 +131,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }
           }
         } else if (item.path && item.path !== '#') {
-          // Only push if it has an actual navigable route (never push container group itself)
           let existing = result.find((s) => s.title === 'ACCOUNT');
           if (!existing) {
             existing = { title: 'ACCOUNT', items: [] };
             result.push(existing);
           }
-          if (!existing.items.some((i) => i.id === item.id || (i.path && i.path === item.path))) {
+          if (!existing.items.some((i) => i.id === item.id || (i.path && item.path && i.path === item.path))) {
             existing.items.push(item);
           }
         }
       } else if ((!item.path || item.path === '#') && item.children && item.children.length > 0) {
-        // Top-level custom group with children and without direct path (e.g. RESOURCES or custom group)
-        const groupTitle = item.label.toUpperCase();
-        sectionOrderMap.set(groupTitle, item.order ?? 6);
+        const groupTitle = normalizeSectionTitle(item.label);
+        sectionOrderMap.set(groupTitle, item.order ?? 4);
         let existing = result.find((s) => s.title === groupTitle);
         if (!existing) {
           existing = { title: groupTitle, items: [] };
@@ -120,9 +157,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           }
         }
       } else if (item.category && item.category !== 'MAIN') {
-        const groupTitle = item.category.toUpperCase();
+        const groupTitle = normalizeSectionTitle(item.category);
         if (!sectionOrderMap.has(groupTitle)) {
-          sectionOrderMap.set(groupTitle, item.order ?? 6);
+          sectionOrderMap.set(groupTitle, item.order ?? 4);
         }
         let existing = result.find((s) => s.title === groupTitle);
         if (!existing) {
@@ -144,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
     if (mainItems.length > 0) {
       result.unshift({
-        title: 'MAIN',
+        title: '',
         items: mainItems,
       });
     }
@@ -154,16 +191,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       section.items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
 
-    // Section ordering priority: WORKSPACE (1) -> MAIN (2) -> ORGANIZATION (3) -> CONTRACT & BILLING (4) -> COLLABORATION (5) -> ACCOUNT (7)
+    // Section ordering priority: '' (0) -> ORGANIZATION (1) -> CONTRACT & BILLING (2) -> COLLABORATION (3) -> ACCOUNT (4)
     const getSectionPriority = (title: string): number => {
-      if (title === 'WORKSPACE') return 1;
-      if (title === 'MAIN') return 2;
-      if (title === 'ORGANIZATION') return 3;
-      if (title === 'CONTRACT & BILLING' || title === 'SERVICE') return 4;
-      if (title === 'COLLABORATION') return 5;
+      if (title === '' || title === 'TOP') return 0;
+      if (title === 'ORGANIZATION') return 1;
+      if (title === 'CONTRACT & BILLING') return 2;
+      if (title === 'COLLABORATION') return 3;
+      if (title === 'ACCOUNT') return 4;
       if (sectionOrderMap.has(title)) return sectionOrderMap.get(title)!;
-      if (title === 'RESOURCES') return 6;
-      if (title === 'ACCOUNT') return 7;
       return 10;
     };
 
@@ -174,9 +209,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const renderSection = (title: string, items: MenuItem[]) => {
     if (items.length === 0) return null;
+    const showHeader = !isCollapsed && title.trim() !== '' && title !== 'MAIN' && title !== 'TOP';
     return (
-      <div key={title} className="mb-5 last:mb-0">
-        {!isCollapsed && (
+      <div key={title || 'top'} className="mb-5 last:mb-0">
+        {showHeader && (
           <div className="px-2.5 text-xs font-bold uppercase tracking-wider text-[#475569] mb-2 select-none">
             {title}
           </div>

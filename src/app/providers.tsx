@@ -15,7 +15,7 @@ interface AuthContextType extends AuthState {
   refreshUser: () => Promise<User | null>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
 import { NavigationProvider } from '@/context/NavigationContext';
