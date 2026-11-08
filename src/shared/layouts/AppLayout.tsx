@@ -7,6 +7,7 @@ import { useAuth } from '@/app/providers';
 import { Web1ThemeProvider, useWeb1Theme } from '@/context/Web1ThemeContext';
 import { ROUTES } from '@/shared/constants/routes';
 import { billingService } from '@/features/billing/services/billing.service';
+import { customerContractsService } from '@/features/contracts/services/customerContracts.service';
 import { NotificationsBell } from '@/features/notifications/components/NotificationsBell';
 
 const getInitials = (name?: string) => {
@@ -58,7 +59,23 @@ export const AppLayoutContent: React.FC = () => {
           if (typeof tier === 'string' && tier.toLowerCase().includes('enterprise')) {
             setIsEnterprise(true);
             setIsEnterpriseSuspended(false);
+            return;
           }
+        }
+
+        // Also check active signed/completed contracts via CRM enterprise activation
+        const contracts = await customerContractsService.list().catch(() => []);
+        if (
+          !cancelled &&
+          Array.isArray(contracts) &&
+          contracts.some(
+            (c) =>
+              c.contract.lifecycleStatus === 'COMPLETED' ||
+              (c.version?.plan && c.version.plan.toLowerCase().includes('enterprise')),
+          )
+        ) {
+          setIsEnterprise(true);
+          setIsEnterpriseSuspended(false);
         }
       } catch {
         // Silently ignore — default to showing Upgrade
