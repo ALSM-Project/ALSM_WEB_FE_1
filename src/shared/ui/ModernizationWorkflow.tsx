@@ -21,35 +21,99 @@ export interface WorkflowStep {
   description: string;
 }
 
-export const WORKFLOW_STEPS: WorkflowStep[] = [
+export const BMS_WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: 'upload',
     label: 'Upload',
-    sublabel: 'Source ingestion',
-    description: 'Ingest legacy BMS/DSPF screen maps and COBOL source files.',
+    sublabel: 'BMS/DSPF Maps',
+    description: 'Ingest legacy IBM 3270 BMS and AS/400 DSPF screen map files.',
   },
   {
     id: 'convert',
     label: 'Convert',
-    sublabel: 'Target code generation',
-    description: 'The modernization engine generates target React components and DTOs.',
+    sublabel: 'React Generation',
+    description: 'Modernization engine generates target React 19 TypeScript components.',
   },
   {
     id: 'validate',
     label: 'Validate',
-    sublabel: 'Rule-based validation',
-    description: 'Rule-based validation of generated components and data bindings.',
+    sublabel: 'UI & Field Rules',
+    description: 'Validate screen field bindings, display attributes, and visual layout.',
   },
   {
     id: 'export',
     label: 'Export',
-    sublabel: 'Modernization package',
-    description: 'Package modernized components and code artifacts for deployment.',
+    sublabel: 'React Bundle',
+    description: 'Package modernized React components and frontend project artifacts.',
   },
 ];
 
+export const COBOL_WORKFLOW_STEPS: WorkflowStep[] = [
+  {
+    id: 'upload',
+    label: 'Upload Source Files',
+    sublabel: 'Source Ingestion',
+    description: 'Upload COBOL programs (.cbl, .cob) and copybooks (.cpy).',
+  },
+  {
+    id: 'analyze',
+    label: 'Analyze & Prepare',
+    sublabel: 'Transpiler Passes 1–2.4',
+    description: 'Project index, CICS normalization, preprocessing, AST parsing, symbol resolution, and control flow analysis.',
+  },
+  {
+    id: 'convert',
+    label: 'Convert to Java',
+    sublabel: 'Code Generation',
+    description: 'Transpile COBOL divisions, statements, and SQL into Java Spring Boot components using Cobol2Java.',
+  },
+  {
+    id: 'validate',
+    label: 'Validate & Build',
+    sublabel: 'Scaffold & Compiler',
+    description: 'Assemble Spring Batch scaffold and verify compilation with Maven build verification.',
+  },
+  {
+    id: 'review',
+    label: 'Review Results',
+    sublabel: 'Findings & Reports',
+    description: 'Inspect generated Java classes, method mappings, conversion diagnostics, and technical reports.',
+  },
+  {
+    id: 'export',
+    label: 'Export Java Project',
+    sublabel: 'Deployable Artifacts',
+    description: 'Download complete modernized Spring Boot Maven project bundle and conversion reports.',
+  },
+];
+
+export const WORKFLOW_STEPS: WorkflowStep[] = BMS_WORKFLOW_STEPS;
+
 // Helper to normalize legacy step IDs to 0-indexed step number
-function getStepIndex(stepId: WorkflowStepId): number {
+function getStepIndex(stepId: WorkflowStepId, isCobol = false): number {
+  if (isCobol) {
+    switch (stepId) {
+      case 'upload':
+        return 0;
+      case 'analyze':
+      case 'analysis':
+      case 'mapping':
+        return 1;
+      case 'convert':
+      case 'conversion':
+        return 2;
+      case 'validate':
+      case 'validation':
+        return 3;
+      case 'review':
+      case 'result':
+        return 4;
+      case 'export':
+        return 5;
+      default:
+        return 0;
+    }
+  }
   switch (stepId) {
     case 'upload':
       return 0;
@@ -78,6 +142,7 @@ export interface ModernizationWorkflowProps {
   onActionClick?: () => void;
   actionLabel?: string;
   className?: string;
+  workflowType?: 'SCREENS' | 'PROGRAMS' | 'COBOL_TO_JAVA' | 'BMS_DSPF_TO_REACT' | 'BMS_DSPF_TO_FRONTEND';
 }
 
 export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
@@ -87,9 +152,15 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
   onActionClick,
   actionLabel,
   className = '',
+  workflowType,
 }) => {
-  const currentIndex = getStepIndex(currentStep);
-  const currentStepInfo = WORKFLOW_STEPS[currentIndex] ?? WORKFLOW_STEPS[0];
+  const steps =
+    workflowType === 'PROGRAMS' || workflowType === 'COBOL_TO_JAVA'
+      ? COBOL_WORKFLOW_STEPS
+      : BMS_WORKFLOW_STEPS;
+  const isCobolWorkflow = workflowType === 'PROGRAMS' || workflowType === 'COBOL_TO_JAVA';
+  const currentIndex = getStepIndex(currentStep, isCobolWorkflow);
+  const currentStepInfo = steps[currentIndex] ?? steps[0];
 
   return (
     <div className={`bg-white border border-[#E2E8F0] rounded-xl overflow-hidden shadow-xs w-full ${className}`}>
@@ -103,9 +174,9 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
             Deterministic stage progression for legacy assets
           </p>
         </div>
-        <div className="inline-flex items-center space-x-1.5 bg-[#EFF6FF] border border-[#DBEAFE] px-3 py-1 rounded-full text-xs font-semibold text-[#1D4ED8]">
-          <span>Stage {currentIndex + 1} of {WORKFLOW_STEPS.length}</span>
-          <span className="text-[#93C5FD]">•</span>
+        <div className="inline-flex items-center space-x-1.5 bg-[#F0F4F8] border border-[#DCE3EC] px-3 py-1 rounded-full text-xs font-semibold text-[#244A70]">
+          <span>Stage {currentIndex + 1} of {steps.length}</span>
+          <span className="text-[#8491A3]">•</span>
           <span>{currentStepInfo.label}</span>
         </div>
       </div>
@@ -114,7 +185,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
       <div className="p-6 lg:p-7">
         {/* Desktop / Tablet Horizontal Stepper */}
         <div className="hidden md:flex items-center justify-between relative">
-          {WORKFLOW_STEPS.map((step, idx) => {
+          {steps.map((step, idx) => {
             const isCompleted = idx < currentIndex || completedSteps.includes(step.id as WorkflowStepId);
             const isCurrent = idx === currentIndex;
 
@@ -135,7 +206,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                         <Check className="w-4 h-4 stroke-2" aria-hidden="true" />
                       </div>
                     ) : isCurrent ? (
-                      <div className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center shadow-xs ring-4 ring-[#DBEAFE]">
+                      <div className="w-7 h-7 rounded-full bg-[#244A70] text-white flex items-center justify-center shadow-xs ring-4 ring-[#DCE3EC]">
                         <span className="w-2 h-2 bg-white rounded-full"></span>
                       </div>
                     ) : (
@@ -150,7 +221,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                     <p
                       className={`text-sm font-bold transition-colors ${
                         isCurrent
-                          ? 'text-[#2563EB]'
+                          ? 'text-[#244A70]'
                           : isCompleted
                           ? 'text-[#0F172A]'
                           : 'text-[#64748B] group-hover:text-[#0F172A]'
@@ -165,7 +236,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                 </button>
 
                 {/* Connector line */}
-                {idx < WORKFLOW_STEPS.length - 1 && (
+                {idx < steps.length - 1 && (
                   <div
                     className={`flex-1 h-[2px] mx-4 lg:mx-6 rounded-full transition-colors ${
                       idx < currentIndex ? 'bg-emerald-400' : 'bg-[#E2E8F0]'
@@ -179,7 +250,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
 
         {/* Mobile Vertical Stepper */}
         <div className="md:hidden space-y-3">
-          {WORKFLOW_STEPS.map((step, idx) => {
+          {steps.map((step, idx) => {
             const isCompleted = idx < currentIndex;
             const isCurrent = idx === currentIndex;
 
@@ -191,7 +262,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                 disabled={!onStepClick}
                 className={`w-full flex items-center space-x-3.5 p-3 rounded-lg text-left transition-colors ${
                   isCurrent
-                    ? 'bg-[#EFF6FF] text-[#2563EB]'
+                    ? 'bg-[#F0F4F8] text-[#244A70]'
                     : 'hover:bg-[#F8FAFC] text-[#0F172A]'
                 }`}
               >
@@ -201,7 +272,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
                       <Check className="w-4 h-4 stroke-2" aria-hidden="true" />
                     </div>
                   ) : isCurrent ? (
-                    <div className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-full bg-[#244A70] text-white flex items-center justify-center">
                       <span className="w-2 h-2 bg-white rounded-full"></span>
                     </div>
                   ) : (
@@ -224,7 +295,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
       <div className="px-6 py-4 bg-white border-t border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-sm">
         <div className="space-y-0.5">
           <p className="text-[#0F172A] font-semibold text-sm">
-            Current stage: <span className="text-[#2563EB] font-bold">{currentStepInfo.label}</span>
+            Current stage: <span className="text-[#244A70] font-bold">{currentStepInfo.label}</span>
           </p>
           <p className="text-[#475569] text-xs sm:text-sm leading-normal max-w-xl font-normal">{currentStepInfo.description}</p>
         </div>
@@ -233,7 +304,7 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
           <button
             type="button"
             onClick={onActionClick}
-            className="inline-flex items-center space-x-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs sm:text-sm font-semibold h-9 px-4 rounded-lg shadow-xs hover:shadow-sm shrink-0 cursor-pointer transition-all active:scale-[0.98] group"
+            className="inline-flex items-center space-x-1.5 bg-[#244A70] hover:bg-[#1B3856] text-white text-xs sm:text-sm font-semibold h-9 px-4 rounded-lg shadow-xs hover:shadow-sm shrink-0 cursor-pointer transition-all active:scale-[0.98] group"
           >
             <span>{actionLabel ?? 'Open Project'}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />

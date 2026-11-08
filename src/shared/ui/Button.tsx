@@ -19,19 +19,19 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--alsm-primary)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs';
+    'inline-flex items-center justify-center font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#244A70] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs';
 
   const variants = {
     primary:
-      'bg-[var(--alsm-primary)] hover:bg-[var(--alsm-primary-hover)] active:bg-[var(--alsm-primary-hover)] text-[var(--alsm-surface)]',
+      'bg-[#244A70] hover:bg-[#1B3856] active:bg-[#13283E] text-white shadow-xs',
     secondary:
-      'bg-[var(--alsm-primary-soft)] text-[var(--alsm-primary)] hover:bg-[var(--alsm-primary)] hover:text-[var(--alsm-surface)] border border-transparent',
+      'bg-[#EEF1F6] text-[#244A70] hover:bg-[#DCE3EC] border border-[#DCE3EC] shadow-xs',
     outline:
-      'bg-[var(--alsm-surface)] border border-[var(--alsm-border)] hover:border-[var(--alsm-text-muted)] text-[var(--alsm-text)] hover:bg-[var(--alsm-bg)]',
+      'bg-white border border-[#DCE3EC] hover:border-[#B8C7D9] hover:bg-[#F4F7FB] text-[#17263A] shadow-xs',
     ghost:
-      'hover:bg-[var(--alsm-bg)] text-[var(--alsm-text-muted)] hover:text-[var(--alsm-text)] shadow-none',
+      'hover:bg-[#EEF1F6] text-[#17263A] hover:text-[#17263A] shadow-none',
     danger:
-      'bg-[var(--alsm-danger)] hover:opacity-90 text-[var(--alsm-surface)]',
+      'bg-rose-700 hover:bg-rose-800 text-white shadow-xs',
   };
 
   const sizes = {
