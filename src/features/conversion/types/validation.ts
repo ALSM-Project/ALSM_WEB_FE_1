@@ -8,6 +8,8 @@ export const ValidationRunStatus = {
 export type ValidationRunStatus =
   (typeof ValidationRunStatus)[keyof typeof ValidationRunStatus];
 
+export type ValidationExecutionOutcome = 'AI_COMPLETED' | 'HEURISTIC_FALLBACK' | 'HEURISTIC_ONLY';
+
 export const ValidationFindingSource = {
   RULE: 'RULE',
   AI: 'AI',
@@ -82,6 +84,11 @@ export interface ValidationRun {
   provider?: string;
   model?: string;
   promptVersion?: string;
+  executionOutcome?: ValidationExecutionOutcome;
+  resultProvider?: string;
+  resultModel?: string;
+  modelVersion?: string;
+  providerFailureCode?: string;
   redactionCount?: number;
   selectedFileCount?: number;
   inputCharacterCount?: number;
@@ -116,6 +123,7 @@ export interface ValidationFinding {
   confidence?: number;
   modelProvider?: string;
   modelName?: string;
+  modelVersion?: string;
   reviewedBy?: string;
   reviewedAt?: string;
   reviewNote?: string;

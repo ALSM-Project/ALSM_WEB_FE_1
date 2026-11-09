@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { ValidationOutcomeNotice } from '../components/ValidationOutcomeNotice';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -194,6 +195,7 @@ export const ConvertScreenPage: React.FC = () => {
 
   const queryClient = useQueryClient();
   const [saveLoading, setSaveLoading] = useState(false);
+  const saveInFlight = useRef(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   const handleResetCode = () => {
@@ -206,7 +208,8 @@ export const ConvertScreenPage: React.FC = () => {
   };
 
   const handleSaveCode = async (shouldValidate = false) => {
-    if (!projectId || !screenId || !selectedFile) return;
+    if (!projectId || !screenId || !selectedFile || saveInFlight.current || (shouldValidate && isValidationActive)) return;
+    saveInFlight.current = true;
     setSaveLoading(true);
     setSaveSuccessMsg(null);
     try {
@@ -232,13 +235,10 @@ export const ConvertScreenPage: React.FC = () => {
       }
     } catch (err: any) {
       console.error('Failed to save screen code', err);
-      setSaveSuccessMsg('Warning: could not persist to backend storage, triggering validation directly.');
+      setSaveSuccessMsg('Code could not be saved. Validation was not requested; save the code before trying again.');
       setTimeout(() => setSaveSuccessMsg(null), 4000);
-      if (shouldValidate) {
-        setActiveTab('findings');
-        triggerValidation.mutate();
-      }
     } finally {
+      saveInFlight.current = false;
       setSaveLoading(false);
     }
   };
@@ -307,7 +307,7 @@ export const ConvertScreenPage: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: conversionKeys.all });
       await queryClient.invalidateQueries({ queryKey: validationKeys.all });
 
-      setSaveSuccessMsg(`AI fix applied to ${selectedFile.relativePath} and finding marked as Resolved!`);
+      setSaveSuccessMsg(`Suggestion applied to ${selectedFile.relativePath} and finding marked as Resolved!`);
       setTimeout(() => setSaveSuccessMsg(null), 4000);
     } catch (err: any) {
       console.error('Failed to apply AI fix', err);
@@ -355,7 +355,7 @@ export const ConvertScreenPage: React.FC = () => {
       await queryClient.invalidateQueries({ queryKey: conversionKeys.all });
       await queryClient.invalidateQueries({ queryKey: validationKeys.all });
 
-      setSaveSuccessMsg(`Successfully applied all ${pendingWithSuggestions.length} AI fixes!`);
+      setSaveSuccessMsg(`Successfully applied all ${pendingWithSuggestions.length} suggestions!`);
       setTimeout(() => setSaveSuccessMsg(null), 4000);
     } catch (err: any) {
       console.error('Failed to apply all AI suggestions', err);
@@ -942,7 +942,7 @@ export const ConvertScreenPage: React.FC = () => {
                 Semantic Validation Findings
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Automated AST cross-validation between legacy BMS 3270 macros and generated React TSX components.
+                Semantic comparison of source and generated code. Review the execution outcome below.
               </p>
             </div>
             <div className="flex items-center space-x-2.5">
@@ -955,7 +955,7 @@ export const ConvertScreenPage: React.FC = () => {
                   className="text-xs font-semibold px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white space-x-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  <span>Accept All AI Fixes ({findings.filter((f) => f.suggestion && f.status !== ValidationFindingStatus.RESOLVED).length})</span>
+                  <span>Apply All Suggestions ({findings.filter((f) => f.suggestion && f.status !== ValidationFindingStatus.RESOLVED).length})</span>
                 </Button>
               )}
               <Button
@@ -977,6 +977,7 @@ export const ConvertScreenPage: React.FC = () => {
             </div>
           </div>
 
+          <ValidationOutcomeNotice run={currentRun} />
           {isValidationActive ? (
             <div className="border border-slate-200 bg-slate-50/75 rounded-xl p-8 text-center space-y-2">
               <div className="text-xs font-semibold text-slate-800">Validation in Progress</div>
@@ -990,7 +991,7 @@ export const ConvertScreenPage: React.FC = () => {
                 <div>
                   <h4 className="font-bold text-rose-950 text-sm">AI Validation Encountered an Issue</h4>
                   <p className="text-rose-700 mt-1">
-                    {currentRun?.failureMessage || 'The AI validation service experienced a temporary demand spike. Please retry.'}
+                    {currentRun?.failureMessage || 'Validation could not complete. Check the failure code and local configuration before trying again.'}
                   </p>
                 </div>
                 <Button
@@ -1083,11 +1084,11 @@ export const ConvertScreenPage: React.FC = () => {
             <div className="border border-emerald-200 bg-emerald-50/40 rounded-xl p-5 text-xs text-emerald-900 flex items-center justify-between">
               <div>
                 <div className="font-semibold text-emerald-950 flex items-center space-x-2">
-                  <span className="bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wide">PASSED</span>
+                  <span className="bg-emerald-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded tracking-wide">REVIEW</span>
                   <span>0 Discrepancies Detected</span>
                 </div>
                 <p className="text-emerald-700 mt-1">
-                  All field definitions, protection attributes, input constraints, and coordinates match the original BMS specification.
+                  No findings were reported by this run. Review the execution outcome above; this does not establish semantic equivalence.
                 </p>
               </div>
               <div className="flex items-center space-x-2">
@@ -1211,7 +1212,7 @@ export const ConvertScreenPage: React.FC = () => {
                             className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all disabled:opacity-50"
                           >
                             <Sparkles className="w-3.5 h-3.5" />
-                            <span>{applyingFixId === f.id ? 'Applying Fix...' : 'Accept AI Fix'}</span>
+                            <span>{applyingFixId === f.id ? 'Applying Fix...' : 'Apply Suggestion'}</span>
                           </button>
                         )}
                         <button
