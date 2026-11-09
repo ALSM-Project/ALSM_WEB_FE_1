@@ -50,10 +50,13 @@ export function isUserStaffOrAdmin(u: User | null | undefined): boolean {
  */
 export function isUserPartner(u: User | null | undefined): boolean {
   if (!u) return false;
+  // Never treat platform admins or internal staff as external partners
+  if (isUserStaffOrAdmin(u)) return false;
   if (u.hasWeb3Access) return true;
   const roles = (u.roles || []).map((r) => String(r).toUpperCase());
   const role = (u.role || '').toUpperCase();
-  const partnerRoles = ['PARTNER', 'ORGANIZATION_OWNER', 'ENTERPRISE_CUSTOMER'];
+  // Only explicitly designated enterprise partner roles, NOT regular self-service organization owners
+  const partnerRoles = ['PARTNER', 'ENTERPRISE_CUSTOMER', 'ENTERPRISE_ADMIN'];
   return partnerRoles.includes(role) || roles.some((r) => partnerRoles.includes(r));
 }
 
@@ -73,12 +76,12 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
       const params = new URLSearchParams(window.location.search);
       const returnTo = params.get("returnTo");
       if (returnTo && (returnTo.startsWith("http://") || returnTo.startsWith("https://"))) {
-        // If returnTo points to Web 3 (Partner Portal), ONLY redirect if user is actually a partner or staff/admin
+        // If returnTo points to Web 3 (Partner Portal), ONLY redirect if user is legitimately a partner with Web 3 access
         if (returnTo.includes('3003') || returnTo.includes('web3')) {
-          if (isUserPartner(u) || isUserStaffOrAdmin(u) || u.hasWeb3Access) {
+          if (isUserPartner(u) || u.hasWeb3Access) {
             return returnTo;
           }
-          // Standard customer without Web 3 access must stay in Web 1!
+          // Standard customer or staff without Web 3 access must NOT be bounced to Web 3!
           return null;
         }
 
@@ -97,16 +100,16 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
     }
   }
 
-  // 2. PARTNER role or has Web 3 access -> redirect to Web 3
-  if (isUserPartner(u) || u.hasWeb3Access) {
-    const web3Url = import.meta.env.VITE_WEB3_PORTAL_URL || "http://localhost:3003";
-    return `${web3Url}/auth/callback`;
-  }
-
-  // 3. Internal staff / admin -> redirect to Web 2
+  // 2. Internal staff / admin -> redirect to Web 2 (Staff Portal takes absolute priority for internal staff)
   if (isUserStaffOrAdmin(u)) {
     const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || "http://localhost:3002";
     return `${staffUrl}/auth/callback`;
+  }
+
+  // 3. PARTNER role or has Web 3 access -> redirect to Web 3
+  if (isUserPartner(u) || u.hasWeb3Access) {
+    const web3Url = import.meta.env.VITE_WEB3_PORTAL_URL || "http://localhost:3003";
+    return `${web3Url}/auth/callback`;
   }
 
   return null;
