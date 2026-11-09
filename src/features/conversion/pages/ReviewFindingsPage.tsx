@@ -1,3 +1,4 @@
+import { ValidationOutcomeNotice } from '../components/ValidationOutcomeNotice';
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -289,7 +290,7 @@ export const ReviewFindingsPage: React.FC = () => {
         return (
           <StatePanel
             icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
-            title="AI validation completed"
+            title="Validation results"
             action={runValidationButton('Re-run AI Validation')}
           >
             <p>No semantic findings were detected in this validation run.</p>
@@ -311,9 +312,6 @@ export const ReviewFindingsPage: React.FC = () => {
             action={runValidationButton('Run Validation Again')}
           >
             <p>{currentRun?.failureMessage ?? 'The validation run could not be completed.'}</p>
-            {currentRun?.failureCode && (
-              <p className="mt-2 font-mono text-xs text-slate-500">{currentRun.failureCode}</p>
-            )}
             {triggerError && (
               <p className="mt-3 font-semibold text-rose-700" role="alert">
                 {triggerError}
@@ -502,6 +500,7 @@ export const ReviewFindingsPage: React.FC = () => {
         </div>
       </header>
 
+      <ValidationOutcomeNotice run={currentRun} />
       {renderState()}
 
       {notApplicableFinding && (

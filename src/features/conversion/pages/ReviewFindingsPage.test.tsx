@@ -107,6 +107,16 @@ beforeEach(() => {
 });
 
 describe('ReviewFindingsPage validation lifecycle', () => {
+  it('labels a completed heuristic fallback without claiming Gemini success', () => {
+    mocks.useValidationRuns.mockReturnValue(queryResult([{ ...run,
+      executionOutcome: 'HEURISTIC_FALLBACK', resultProvider: 'heuristic-fallback',
+      resultModel: 'heuristic-rules-v1', providerFailureCode: 'AI_PROVIDER_DAILY_QUOTA_EXCEEDED',
+    }]));
+    renderPage();
+    expect(screen.getByText('Heuristic fallback — AI validation did not complete')).toBeInTheDocument();
+    expect(screen.queryByText('AI validation completed')).not.toBeInTheDocument();
+    expect(screen.getByText('AI_PROVIDER_DAILY_QUOTA_EXCEEDED')).toBeInTheDocument();
+  });
   it('shows an empty state when no conversion exists', () => {
     mocks.useConversionJob.mockReturnValue(queryResult(null));
     renderPage();
