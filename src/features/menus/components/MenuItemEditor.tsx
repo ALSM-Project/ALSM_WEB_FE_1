@@ -178,7 +178,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           <div>
             <label className="text-xs font-semibold text-[#091E42] mb-1 block">Route / URL *</label>
             <div className="relative">
-              <LinkIcon className="w-3.5 h-3.5 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
+              <LinkIcon className="w-4 h-4 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
               <Input
                 value={formState.path || ''}
                 onChange={(e) => handleChange('path', e.target.value)}
@@ -222,7 +222,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           {/* Required Permission */}
           <div className="pt-2 border-t border-[#E5EAF0]">
             <div className="flex items-center space-x-1.5 mb-1">
-              <Shield className="w-3.5 h-3.5 text-[#0652CC]" />
+              <Shield className="w-4 h-4 text-[#0652CC]" />
               <label className="text-xs font-semibold text-[#091E42]">Required Permission</label>
             </div>
             <Select
@@ -258,7 +258,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
             onClick={handleDelete}
             className="w-full text-rose-600 border-rose-200 hover:bg-rose-50 flex items-center justify-center space-x-1.5"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
             <span>Delete Menu Item</span>
           </Button>
         </Tooltip>
@@ -269,7 +269,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           onClick={() => onAddChild(selectedItem.id)}
           className="w-full text-[#0652CC] border-[#0652CC]/30 hover:bg-[#E8F1FF] flex items-center justify-center space-x-1.5 font-semibold"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-4 h-4" />
           <span>Add Child Item</span>
         </Button>
       </div>

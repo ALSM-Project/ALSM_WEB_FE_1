@@ -168,14 +168,14 @@ public class AccountProcessorService {
       <div className="bg-gradient-to-r from-[#091E42] via-[#0A2540] to-[#0652CC] text-white rounded-2xl p-6 sm:p-8 shadow-md relative overflow-hidden">
         <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold text-cyan-300 border border-white/10">
-            <BookOpen className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/15 rounded-full text-xs font-semibold text-blue-100 border border-white/20">
+            <BookOpen className="w-3.5 h-3.5 text-blue-200" />
             <span>ALSM Workspace Documentation</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
             Technical Documentation & Developer Guide
           </h1>
-          <p className="text-sm text-slate-300 leading-relaxed">
+          <p className="text-sm text-slate-200 leading-relaxed max-w-2xl">
             Complete technical reference for analyzing, converting, validating, and exporting IBM BMS, AS/400 DSPF screen maps, and COBOL applications into modern React UI and Java 21 microservices.
           </p>
         </div>
@@ -200,7 +200,7 @@ public class AccountProcessorService {
 
             {SIDEBAR_NAV.map((sec) => (
               <div key={sec.title} className="space-y-1">
-                <p className="text-[10px] font-extrabold text-[#6B778C] uppercase tracking-wider px-2 mb-1">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider px-2 mb-1.5">
                   {sec.title}
                 </p>
                 <nav className="space-y-0.5">
@@ -217,7 +217,7 @@ public class AccountProcessorService {
                             e.preventDefault();
                             scrollToSection(item.id);
                           }}
-                          className={`flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-all ${
+                          className={`flex items-center space-x-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
                             isActive
                               ? 'bg-[#E8F1FF] text-[#0652CC] border border-blue-200'
                               : 'text-[#42526E] hover:bg-[#F7F9FC] hover:text-[#091E42]'
@@ -237,22 +237,22 @@ public class AccountProcessorService {
         {/* Right Main Content */}
         <main className="lg:col-span-3 bg-white border border-[#D9E2EC] rounded-2xl p-6 sm:p-8 space-y-8 shadow-2xs">
           {/* Visual Pipeline Block */}
-          <div className="bg-[#020817] border border-white/10 rounded-2xl p-6 text-white space-y-4 shadow-lg relative overflow-hidden">
-            <div className="flex items-center space-x-2 text-xs font-extrabold text-cyan-400 uppercase tracking-wider">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
+          <div className="bg-[#0A192F] border border-slate-700/60 rounded-2xl p-6 text-white space-y-4">
+            <div className="flex items-center space-x-2 text-xs font-bold text-slate-300 uppercase tracking-wider">
+              <Workflow className="w-4 h-4 text-blue-400" />
               <span>ALSM Modernization Pipeline</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pt-2">
               {PIPELINE_STEPS.map((s) => (
                 <div
                   key={s.step}
-                  className="bg-white/5 border border-white/10 rounded-xl p-3 text-center space-y-1 hover:border-cyan-400/50 hover:bg-cyan-400/5 transition-all"
+                  className="p-3 text-center space-y-1.5 rounded-lg bg-slate-900/60 hover:bg-slate-900/90 transition-colors"
                 >
-                  <span className="text-[10px] font-black text-purple-400 bg-purple-500/20 px-2 py-0.5 rounded">
+                  <span className="inline-block text-xs font-bold text-blue-300 bg-blue-900/50 border border-blue-700/40 px-2 py-0.5 rounded font-mono">
                     {s.step}
                   </span>
-                  <h4 className="text-xs font-bold text-white pt-1">{s.name}</h4>
-                  <p className="text-[10px] text-slate-400 leading-tight">{s.desc}</p>
+                  <p className="text-xs font-bold text-white pt-1">{s.name}</p>
+                  <p className="text-xs text-slate-300 leading-snug">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -265,10 +265,10 @@ public class AccountProcessorService {
               <h2 className="text-xl font-bold text-[#091E42] tracking-tight">Introduction</h2>
             </div>
             <h3 className="text-sm font-bold text-[#091E42]">What is ALSM?</h3>
-            <p className="text-xs text-[#42526E] leading-relaxed">
+            <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">
               ALSM (Automated Legacy Screen & Code Modernization) is an enterprise-grade platform designed to accelerate the digital transformation of core legacy systems. By parsing legacy IBM BMS screen maps, AS/400 DSPF display files, and COBOL programs, ALSM generates modern React UI interfaces and Java microservices without manual rewrite risk.
             </p>
-            <p className="text-xs text-[#42526E] leading-relaxed">
+            <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">
               Unlike black-box automated tools, ALSM maintains complete developer transparency. Every step of the pipeline—from field identification to rule & AI validation—provides interactive preview studios, field mapping controls, and explicit diagnostic reports.
             </p>
           </section>
@@ -279,13 +279,13 @@ public class AccountProcessorService {
               <Workflow className="w-6 h-6 text-[#0652CC]" />
               <h2 className="text-xl font-bold text-[#091E42] tracking-tight">Getting Started</h2>
             </div>
-            <p className="text-xs text-[#42526E] leading-relaxed">To begin modernizing your application:</p>
-            <ul className="space-y-2 text-xs text-[#42526E] list-disc list-inside">
+            <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">To begin modernizing your application:</p>
+            <ul className="space-y-2 text-xs text-[#42526E] list-disc list-inside max-w-2xl">
               <li>
                 <strong className="text-[#091E42]">Create a Project:</strong> Navigate to the Projects dashboard and click New Project.
               </li>
               <li>
-                <strong className="text-[#091E42]">Upload Source Files:</strong> Drag and drop your <code className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-[11px]">.bms</code>, <code className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-[11px]">.dspf</code>, or <code className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-[11px]">.cbl</code> files.
+                <strong className="text-[#091E42]">Upload Source Files:</strong> Drag and drop your <code className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-xs">.bms</code>, <code className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-xs">.dspf</code>, or <code className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-800 font-mono text-xs">.cbl</code> files.
               </li>
               <li>
                 <strong className="text-[#091E42]">Review Screen Maps:</strong> Inspect auto-detected fields, coordinates, attributes, and labels in the Screens list.
@@ -305,17 +305,17 @@ public class AccountProcessorService {
               <Layers className="w-6 h-6 text-[#0652CC]" />
               <h2 className="text-xl font-bold text-[#091E42] tracking-tight">BMS / DSPF Screen Modernization</h2>
             </div>
-            <p className="text-xs text-[#42526E] leading-relaxed">
+            <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">
               IBM BMS (Basic Mapping Support) and AS/400 DSPF display files use row-column coordinates and attribute macros. ALSM parses these macros into an Abstract Syntax Tree (AST) before rendering responsive React UI layouts.
             </p>
 
             {/* BMS Code Box */}
-            <div className="bg-[#020817] border border-white/10 rounded-xl overflow-hidden shadow-md">
-              <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-300">
-                <span className="font-mono text-cyan-400">ACCTMAP.bms</span>
+            <div className="bg-[#0A192F] border border-slate-700/60 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-[#0F223D] border-b border-slate-700/60 text-xs font-semibold text-slate-300">
+                <span className="font-mono text-xs font-semibold text-slate-200">ACCTMAP.bms</span>
                 <button
                   onClick={() => handleCopy(bmsSnippet, 'bms')}
-                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-[11px] rounded font-semibold transition-colors flex items-center space-x-1"
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-xs rounded font-semibold transition-colors flex items-center space-x-1"
                 >
                   {copiedId === 'bms' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedId === 'bms' ? 'Copied' : 'Copy Code'}</span>
@@ -333,17 +333,17 @@ public class AccountProcessorService {
               <Code2 className="w-6 h-6 text-[#0652CC]" />
               <h2 className="text-xl font-bold text-[#091E42] tracking-tight">Generated React Output</h2>
             </div>
-            <p className="text-xs text-[#42526E] leading-relaxed">
+            <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">
               The BMS/DSPF structure is transformed into clean, componentized React 19 JSX styled with Tailwind CSS or CSS variables.
             </p>
 
             {/* React Code Box */}
-            <div className="bg-[#020817] border border-white/10 rounded-xl overflow-hidden shadow-md">
-              <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-300">
-                <span className="font-mono text-cyan-400">AccountManagementScreen.tsx</span>
+            <div className="bg-[#0A192F] border border-slate-700/60 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-[#0F223D] border-b border-slate-700/60 text-xs font-semibold text-slate-300">
+                <span className="font-mono text-xs font-semibold text-slate-200">AccountManagementScreen.tsx</span>
                 <button
                   onClick={() => handleCopy(reactSnippet, 'react')}
-                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-[11px] rounded font-semibold transition-colors flex items-center space-x-1"
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-xs rounded font-semibold transition-colors flex items-center space-x-1"
                 >
                   {copiedId === 'react' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedId === 'react' ? 'Copied' : 'Copy Code'}</span>
@@ -361,17 +361,17 @@ public class AccountProcessorService {
               <Terminal className="w-6 h-6 text-[#0652CC]" />
               <h2 className="text-xl font-bold text-[#091E42] tracking-tight">COBOL Business Logic Conversion</h2>
             </div>
-            <p className="text-xs text-[#42526E] leading-relaxed">
+            <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">
               COBOL DATA DIVISION variables and PROCEDURE DIVISION paragraphs are parsed into structured Java 21 domain classes and Spring Boot services.
             </p>
 
             {/* COBOL Code Box */}
-            <div className="bg-[#020817] border border-white/10 rounded-xl overflow-hidden shadow-md">
-              <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-300">
-                <span className="font-mono text-cyan-400">ACCTPROC.cbl</span>
+            <div className="bg-[#0A192F] border border-slate-700/60 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-[#0F223D] border-b border-slate-700/60 text-xs font-semibold text-slate-300">
+                <span className="font-mono text-xs font-semibold text-slate-200">ACCTPROC.cbl</span>
                 <button
                   onClick={() => handleCopy(cobolSnippet, 'cobol')}
-                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-[11px] rounded font-semibold transition-colors flex items-center space-x-1"
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-xs rounded font-semibold transition-colors flex items-center space-x-1"
                 >
                   {copiedId === 'cobol' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedId === 'cobol' ? 'Copied' : 'Copy Code'}</span>
@@ -391,12 +391,12 @@ public class AccountProcessorService {
             </div>
 
             {/* Java Code Box */}
-            <div className="bg-[#020817] border border-white/10 rounded-xl overflow-hidden shadow-md">
-              <div className="flex items-center justify-between px-4 py-2.5 bg-white/5 border-b border-white/10 text-xs font-semibold text-slate-300">
-                <span className="font-mono text-cyan-400">AccountProcessorService.java</span>
+            <div className="bg-[#0A192F] border border-slate-700/60 rounded-xl overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-[#0F223D] border-b border-slate-700/60 text-xs font-semibold text-slate-300">
+                <span className="font-mono text-xs font-semibold text-slate-200">AccountProcessorService.java</span>
                 <button
                   onClick={() => handleCopy(javaSnippet, 'java')}
-                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-[11px] rounded font-semibold transition-colors flex items-center space-x-1"
+                  className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-slate-200 text-xs rounded font-semibold transition-colors flex items-center space-x-1"
                 >
                   {copiedId === 'java' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                   <span>{copiedId === 'java' ? 'Copied' : 'Copy Code'}</span>
@@ -414,10 +414,10 @@ public class AccountProcessorService {
               <Sparkles className="w-6 h-6 text-[#0652CC]" />
               <h2 className="text-xl font-bold text-[#091E42] tracking-tight">AI Validation & Rule Engine</h2>
             </div>
-            <p className="text-xs text-[#42526E] leading-relaxed">
+            <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">
               Every converted screen passes through automated rule validation and optional AI validation to ensure:
             </p>
-            <ul className="space-y-1.5 text-xs text-[#42526E] list-disc list-inside">
+            <ul className="space-y-1.5 text-xs text-[#42526E] list-disc list-inside max-w-2xl">
               <li>Field length constraints matching original legacy definitions.</li>
               <li>Data types (PIC 9 vs PIC X) mapping accurately to TypeScript or Java types.</li>
               <li>Conditional business rules preserving branch coverage.</li>

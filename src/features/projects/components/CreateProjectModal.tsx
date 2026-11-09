@@ -83,12 +83,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/40 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
       style={{ zIndex: 999999 }}
       onClick={onClose}
     >
       <div
-        className="relative bg-white border border-[#D9E2EC] rounded-2xl shadow-2xl w-full max-w-xl p-6 sm:p-8 space-y-5 my-auto overflow-hidden animate-scaleUp"
+        className="relative bg-white border border-[#D9E2EC] rounded-xl shadow-2xl w-full max-w-xl p-6 sm:p-8 space-y-5 my-auto overflow-hidden animate-scaleUp"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -142,7 +142,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-[#091E42]">BMS / DSPF &rarr; React</h4>
+                    <h3 className="text-xs font-bold text-[#091E42]">BMS / DSPF &rarr; React</h3>
                     <p className="text-[11px] text-[#6B778C] mt-0.5">
                       Legacy BMS/DSPF screens to React 19 + TypeScript.
                     </p>
@@ -167,7 +167,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-xs font-bold text-[#091E42]">COBOL &rarr; Java</h4>
+                    <h3 className="text-xs font-bold text-[#091E42]">COBOL &rarr; Java</h3>
                     <p className="text-[11px] text-[#6B778C] mt-0.5">
                       COBOL programs to Java 21 + Spring Boot.
                     </p>
@@ -268,3 +268,4 @@ function extractApiErrorMessage(err: unknown, fallback: string): string {
 }
 
 export default CreateProjectModal;
+

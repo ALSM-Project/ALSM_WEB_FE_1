@@ -14,7 +14,7 @@ export const Card: React.FC<CardProps> = ({
   className,
   ...props
 }) => {
-  const baseStyles = 'bg-white rounded-xl transition-all duration-200';
+  const baseStyles = 'bg-white rounded-xl transition-colors duration-200';
 
   const variants = {
     default: 'border border-[#D9E2EC] shadow-[0_2px_4px_rgba(9,30,66,0.04)]',

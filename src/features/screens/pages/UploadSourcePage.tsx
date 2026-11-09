@@ -6,7 +6,6 @@ import { projectService } from '@/features/projects/services/project.service';
 import type { Project } from '@/features/projects/types/project';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
-import { Tabs } from '@/shared/ui/Tabs';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
@@ -21,8 +20,7 @@ export const UploadSourcePage: React.FC = () => {
   const navigate = useNavigate();
 
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState('screens');
-  const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
+    const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
   const [programFiles, setProgramFiles] = useState<SourceFile[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -35,11 +33,7 @@ export const UploadSourcePage: React.FC = () => {
       ?.then((p) => {
         if (!cancelled && p) {
           setProject(p);
-          if (p.conversionType === 'COBOL_TO_JAVA') {
-            setActiveTab('programs');
-          } else if (p.conversionType === 'BMS_DSPF_TO_FRONTEND') {
-            setActiveTab('screens');
-          }
+          
         }
       })
       ?.catch(() => {});
@@ -66,7 +60,12 @@ export const UploadSourcePage: React.FC = () => {
     };
   }, [projectId]);
 
-  const files = activeTab === 'screens' ? screenFiles : programFiles;
+  const isProgramProject =
+    project?.conversionType === 'COBOL_TO_JAVA' ||
+    (programFiles.length > 0 && screenFiles.length === 0);
+
+  const activeTab = isProgramProject ? 'programs' : 'screens';
+  const files = isProgramProject ? programFiles : screenFiles;
   const readyCount = files.filter((f) => f.status === 'Ready').length;
 
   const totalCount = files.length;
@@ -118,28 +117,22 @@ export const UploadSourcePage: React.FC = () => {
     status: 'Failed to parse',
   });
 
-  const isMismatchedTab =
-    (project?.conversionType === 'BMS_DSPF_TO_FRONTEND' && activeTab === 'programs') ||
-    (project?.conversionType === 'COBOL_TO_JAVA' && activeTab === 'screens');
-
   const handleFiles = (files: File[]) => {
-    if (isMismatchedTab) {
+    // Check if any file has an unsupported extension for this project
+    const invalidFile = files.find(
+      (file) => !acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
+    );
+    if (invalidFile) {
       setUploadError(
-        activeTab === 'programs'
-          ? 'Cannot upload COBOL/RPG programs to a BMS/DSPF → React project. Please create a "COBOL → Java" project to convert COBOL files.'
-          : 'Cannot upload BMS/DSPF screens to a COBOL → Java project. Please create a "BMS / DSPF → React" project to convert screen files.',
+        isProgramProject
+          ? 'Cannot upload BMS/DSPF screens to a COBOL → Java project. Please create a "BMS / DSPF → React" project to convert screen files.'
+          : 'Cannot upload COBOL/RPG programs to a BMS/DSPF → React project. Please create a "COBOL → Java" project to convert COBOL files.',
       );
       return;
     }
-    if (activeTab === 'screens') {
-      // Each screen file is an independent conversion unit — upload one at a time so
-      // every file gets its own real inputReference/Screen instead of accidentally
-      // sharing one storage bundle with unrelated screens.
+    if (!isProgramProject) {
       return handleUploadScreensSequentially(files);
     }
-    // Program files (a .cob/.cbl plus its .cpy copybooks) must be uploaded together in
-    // one request — tool2java only resolves COPY statements from files in the same
-    // directory as the program, so splitting these into separate uploads would break it.
     return handleUploadProgramBundle(files);
   };
 
@@ -256,57 +249,23 @@ export const UploadSourcePage: React.FC = () => {
         }}
       />
 
-      <Tabs
-        tabs={[
-          { id: 'screens', label: 'Screens (BMS / DSPF)', count: screenFiles.length },
-          { id: 'programs', label: 'Programs (COBOL / RPG)', count: programFiles.length },
-        ]}
-        activeTab={activeTab}
-        onChange={(tab) => {
-          setActiveTab(tab);
-          setCurrentPage(1);
-          setUploadError(null);
-        }}
-      />
-
-      {isMismatchedTab && (
-        <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-amber-900 text-xs flex items-start justify-between gap-4 shadow-xs">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600 mt-0.5" />
-            <div>
-              <p className="font-bold text-sm text-amber-900">
-                {activeTab === 'programs'
-                  ? 'Project is configured for BMS / DSPF → React'
-                  : 'Project is configured for COBOL → Java'}
-              </p>
-              <p className="mt-1 text-amber-800 leading-relaxed">
-                {activeTab === 'programs'
-                  ? 'This project only accepts legacy screen map files (.bms, .dspf) for UI modernization. To convert COBOL programs or copybooks (.cob, .cbl, .cpy) to Java, please create a project with conversion type "COBOL → Java".'
-                  : 'This project only accepts COBOL source files (.cob, .cbl, .cpy) for backend modernization. To convert BMS/DSPF screens (.bms, .dspf) to React, please create a project with conversion type "BMS / DSPF → React".'}
-              </p>
-            </div>
-          </div>
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => navigate(ROUTES.PROJECTS.NEW)}
-            className="flex-shrink-0 text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100"
-          >
-            Create New Project
-          </Button>
-        </div>
-      )}
-
+      
       <div
+        onClick={(e) => {
+          const target = e.target as HTMLElement | null;
+          if (target?.closest?.('#folder-picker-btn')) {
+            return;
+          }
+          document.getElementById('file-upload')?.click();
+        }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleFileDrop}
-        className="bg-white border-2 border-dashed border-slate-300 hover:border-brand-600 rounded-2xl p-8 lg:p-12 text-center transition-all cursor-pointer group shadow-sm"
+        className="bg-white border-2 border-dashed border-slate-300 hover:border-brand-600 rounded-xl p-8 lg:p-12 text-center transition-all cursor-pointer group shadow-sm"
       >
         <input
           type="file"
           id="file-upload"
-          accept={activeTab === 'screens' ? '.bms,.dspf' : '.cob,.cbl,.cpy'}
+          accept={isProgramProject ? '.cob,.cbl,.cpy' : '.bms,.dspf'}
           onChange={handleFileSelect}
           multiple
           className="hidden"
@@ -323,23 +282,31 @@ export const UploadSourcePage: React.FC = () => {
           <UploadCloud className="w-8 h-8" />
         </div>
         <div className="mt-4">
-          <label htmlFor="file-upload" className="text-base font-bold text-slate-900 cursor-pointer block">
+          <span className="text-base font-bold text-slate-900 block group-hover:text-brand-600 transition-colors">
             Drag and drop your files here
-          </label>
+          </span>
           <p className="text-xs text-brand-600 font-semibold mt-1">
-            <label htmlFor="file-upload" className="underline hover:text-brand-800 cursor-pointer">
+            <span className="underline hover:text-brand-800">
               click to browse from device
-            </label>
+            </span>
             {' · '}
-            <label htmlFor="folder-upload" className="underline hover:text-brand-800 cursor-pointer">
+            <button
+              type="button"
+              id="folder-picker-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                document.getElementById('folder-upload')?.click();
+              }}
+              className="underline hover:text-brand-800 cursor-pointer bg-transparent border-0 p-0 text-xs font-semibold text-brand-600 inline"
+            >
               select an entire folder
-            </label>
+            </button>
           </p>
         </div>
         <p className="text-xs text-slate-500 mt-4">
-          {activeTab === 'screens'
-            ? 'Accepted: .bms, .dspf — select or drop multiple screens at once (max 50MB/file)'
-            : 'Accepted: .cob, .cbl, .cpy — select the program(s) together with their copybooks, or select the whole application folder at once (max 50MB/file)'}
+          {isProgramProject
+            ? 'Accepted: .cob, .cbl, .cpy — select the program(s) together with their copybooks, or select the whole application folder at once (max 50MB/file)'
+            : 'Accepted: .bms, .dspf — select or drop multiple screens at once (max 50MB/file)'}
         </p>
       </div>
 
@@ -360,12 +327,12 @@ export const UploadSourcePage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
+      <div className="bg-white border border-[#D9E2EC] rounded-xl overflow-hidden">
         <div className="p-4 border-b border-[#D9E2EC] flex justify-between items-center bg-[#F7F9FC]">
           <h3 className="text-sm font-bold text-[#091E42]">Uploaded Files ({files.length})</h3>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto p-3 sm:p-4">
           <table className="w-full min-w-[850px] text-left text-xs table-fixed">
             <colgroup>
               <col className="w-[30%]" />
@@ -374,7 +341,7 @@ export const UploadSourcePage: React.FC = () => {
               <col className="w-[14%]" />
               <col className="w-[24%]" />
             </colgroup>
-            <thead className="bg-[#F7F9FC] text-[#42526E] font-bold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
+            <thead className="text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-[#D9E2EC]">
               <tr>
                 <th className="py-3.5 px-4">FILE NAME</th>
                 <th className="py-3.5 px-4">SIZE</th>
@@ -420,38 +387,38 @@ export const UploadSourcePage: React.FC = () => {
                         <>
                           <Link
                             to={ROUTES.PROJECTS.MAPPING(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
                             title="Inspect Field Mapping"
                           >
-                            <Code2 className="w-3.5 h-3.5" />
+                            <Code2 className="w-4 h-4" />
                             <span>Mapping</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.CONVERT(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-100 bg-[#E8F1FF] px-2.5 py-1 rounded-md transition-colors"
                             title="Run Conversion Algorithm"
                           >
-                            <Play className="w-3.5 h-3.5" />
+                            <Play className="w-4 h-4" />
                             <span>Convert</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.RESULT(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded-md transition-colors"
                             title="View Modernized Output"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="w-4 h-4" />
                             <span>Result</span>
                           </Link>
                         </>
                       )}
                       <button
                         onClick={() => handleRemove(file.id)}
-                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition-colors"
+                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 px-2 py-1 rounded-md transition-colors"
                         title="Remove file"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -460,16 +427,17 @@ export const UploadSourcePage: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
 
-        {/* Server-Side Style Pagination Footer */}
-        <div className="bg-[#F7F9FC] px-4 py-3 border-t border-[#D9E2EC] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6B778C] font-medium">
+      {/* Standalone Pagination Footer outside table card */}
+      <div className="px-2 pt-3 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-600 font-medium">
           <div className="flex items-center space-x-3">
             <span>
               Showing {totalCount === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, totalCount)} of {totalCount}{' '}
               uploaded {activeTab === 'screens' ? 'screens' : 'programs'}
             </span>
             <div className="flex items-center space-x-1.5">
-              <span className="text-[11px] text-[#42526E]">Per page:</span>
+              <span className="text-xs text-slate-600">Per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -522,7 +490,6 @@ export const UploadSourcePage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
       {readyCount > 0 && (
         <div className="bg-[#ECFDF3] border border-[#ABEFC6] p-4 rounded-xl flex items-center justify-between text-xs text-[#079455] font-medium">

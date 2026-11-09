@@ -18,7 +18,7 @@ export const DeviceSwitcher: React.FC<DeviceSwitcherProps> = ({ mode, onChange }
         }`}
         title="Desktop (100%)"
       >
-        <Monitor className="w-3.5 h-3.5" />
+        <Monitor className="w-4 h-4" />
         <span className="hidden sm:inline">Desktop</span>
       </button>
 
@@ -29,7 +29,7 @@ export const DeviceSwitcher: React.FC<DeviceSwitcherProps> = ({ mode, onChange }
         }`}
         title="Tablet (768px)"
       >
-        <Tablet className="w-3.5 h-3.5" />
+        <Tablet className="w-4 h-4" />
         <span className="hidden sm:inline">Tablet</span>
       </button>
 
@@ -40,7 +40,7 @@ export const DeviceSwitcher: React.FC<DeviceSwitcherProps> = ({ mode, onChange }
         }`}
         title="Mobile (375px)"
       >
-        <Smartphone className="w-3.5 h-3.5" />
+        <Smartphone className="w-4 h-4" />
         <span className="hidden sm:inline">Mobile</span>
       </button>
     </div>

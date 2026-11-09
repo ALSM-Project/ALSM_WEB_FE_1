@@ -41,7 +41,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
             onClick={onSelectAllConverted}
             className="text-brand-600 hover:text-brand-700 font-semibold transition-colors flex items-center space-x-1"
           >
-            <CheckSquare className="w-3.5 h-3.5" />
+            <CheckSquare className="w-4 h-4" />
             <span>Select Ready ({convertedScreens.length})</span>
           </button>
           <span className="text-slate-300">•</span>
@@ -93,7 +93,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
 
                 <div className="min-w-0">
                   <div className="flex items-center space-x-2">
-                    <FileCode className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <FileCode className="w-4 h-4 text-slate-400 shrink-0" />
                     <span className="text-xs font-bold text-slate-900 font-mono truncate">
                       {screen.name}
                     </span>
@@ -117,7 +117,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
 
       {selectedScreenIds.length === 0 && (
         <p className="text-xs text-rose-600 flex items-center space-x-1.5 font-medium">
-          <AlertCircle className="w-3.5 h-3.5" />
+          <AlertCircle className="w-4 h-4" />
           <span>Please select at least one screen to export.</span>
         </p>
       )}

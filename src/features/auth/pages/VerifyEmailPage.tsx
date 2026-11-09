@@ -231,8 +231,10 @@ export const VerifyEmailPage: React.FC = () => {
             </button>
           </div>
 
+
           <Link to={invitationLoginLocation} state={invitationLoginState} className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 font-medium text-xs pt-1">
             <ArrowLeft className="w-3.5 h-3.5" />
+
             Back to Sign In
           </Link>
         </div>

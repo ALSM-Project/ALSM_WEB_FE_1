@@ -165,7 +165,7 @@ export const ResultInspectionPage: React.FC = () => {
               isLoading={retryJob.isPending}
               className="space-x-1.5 text-xs font-bold border-[#FEDF89] text-[#DC6803] bg-white hover:bg-amber-50 flex-shrink-0"
             >
-              <RotateCw className="w-3.5 h-3.5" />
+              <RotateCw className="w-4 h-4" />
               <span>Retry Job</span>
             </Button>
           )}
@@ -253,7 +253,7 @@ export const ResultInspectionPage: React.FC = () => {
                   }`}
                 >
                   <span className="flex items-center space-x-2 min-w-0">
-                    <FileCode className="w-3.5 h-3.5 text-brand-600 flex-shrink-0" />
+                    <FileCode className="w-4 h-4 text-brand-600 flex-shrink-0" />
                     <span className={`font-mono truncate ${index === selectedFileIndex ? 'text-brand-700 font-semibold' : 'text-slate-700'}`}>
                       {file.relativePath}
                     </span>
@@ -268,7 +268,7 @@ export const ResultInspectionPage: React.FC = () => {
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-100">
         <Button variant="outline" onClick={handleReRunValidator} isLoading={validating} className="space-x-1.5 text-xs font-semibold">
-          <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+          <RefreshCw className="w-4 h-4 text-slate-600" />
           <span>Re-run Validation Engine</span>
         </Button>
 
@@ -278,7 +278,7 @@ export const ResultInspectionPage: React.FC = () => {
             onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
             className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
           >
-            <Eye className="w-3.5 h-3.5 text-brand-600" />
+            <Eye className="w-4 h-4 text-brand-600" />
             <span>Open UI Screen Preview</span>
           </Button>
           <Button
@@ -292,7 +292,7 @@ export const ResultInspectionPage: React.FC = () => {
             }
             className="space-x-1.5 text-xs font-semibold"
           >
-            <Sliders className="w-3.5 h-3.5" />
+            <Sliders className="w-4 h-4" />
             <span>{screen?.sourceType === 'COBOL' ? 'Edit Method Mapping' : 'Edit Field Mapping'}</span>
           </Button>
           <Button

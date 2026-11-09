@@ -1,0 +1,1 @@
+export function formatDisplayDate(dateStr: string): string { const d = new Date(dateStr); return d.toLocaleDateString('vi-VN'); }

@@ -147,7 +147,7 @@ export const MenuBuilderPage: React.FC = () => {
                 onClick={handleAddRootItem}
                 className="flex items-center space-x-1 text-[#0652CC] border-[#0652CC]/30 hover:bg-[#E8F1FF]"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4" />
                 <span>Add Menu</span>
               </Button>
             </div>
@@ -161,7 +161,7 @@ export const MenuBuilderPage: React.FC = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 text-xs py-1.5"
                 />
-                <Search className="w-3.5 h-3.5 text-[#6B778C] absolute left-2.5 top-2.5 pointer-events-none" />
+                <Search className="w-4 h-4 text-[#6B778C] absolute left-2.5 top-2.5 pointer-events-none" />
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-[#6B778C]">

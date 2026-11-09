@@ -3,11 +3,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { UploadSourcePage } from './UploadSourcePage';
 
-// Bug: whenever the whole upload request was rejected by the backend (e.g. a real,
-// specific error like a duplicate filename across subfolders, or the wrong project
-// conversion type), every file in the batch was shown with a generic hardcoded
-// "Failed to parse" label and the real backend error message was only console.error'd,
-// never shown to the user - making a config/data problem look like a parsing bug.
 const mocks = vi.hoisted(() => ({
   getScreens: vi.fn(),
   uploadSource: vi.fn(),
@@ -44,6 +39,7 @@ describe('UploadSourcePage - real upload error surfacing', () => {
 
   it('shows the real backend error message instead of a generic label when an upload is rejected', async () => {
     mocks.getScreens.mockResolvedValue([]);
+    mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', conversionType: 'COBOL_TO_JAVA' });
     mocks.uploadSource.mockRejectedValue(
       new Error(
         'Two different files named "COACTUP.CPY" were selected in this upload (likely from two different subfolders).',
@@ -51,9 +47,7 @@ describe('UploadSourcePage - real upload error surfacing', () => {
     );
 
     renderPage();
-
-    const tab = await screen.findByText('Programs (COBOL / RPG)');
-    fireEvent.click(tab);
+    await screen.findByText(/Proceed to Programs List/i);
 
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     const file = new File(['content'], 'COACTUP.CPY', { type: 'text/plain' });
@@ -64,11 +58,11 @@ describe('UploadSourcePage - real upload error surfacing', () => {
 
   it('clears the previous error banner once a new upload attempt starts', async () => {
     mocks.getScreens.mockResolvedValue([]);
+    mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', conversionType: 'COBOL_TO_JAVA' });
     mocks.uploadSource.mockRejectedValueOnce(new Error('Duplicate file name conflict.'));
 
     renderPage();
-    const tab = await screen.findByText('Programs (COBOL / RPG)');
-    fireEvent.click(tab);
+    await screen.findByText(/Proceed to Programs List/i);
 
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     fireEvent.change(fileInput, {
@@ -90,7 +84,7 @@ describe('UploadSourcePage - real upload error surfacing', () => {
     });
   });
 
-  it('shows an informative banner and prevents upload when tab does not match project conversion type', async () => {
+  it('shows an informative banner and prevents upload when file does not match project conversion type', async () => {
     mocks.getScreens.mockResolvedValue([]);
     mocks.getProjectById.mockResolvedValue({
       id: 'proj-acme',
@@ -99,13 +93,7 @@ describe('UploadSourcePage - real upload error surfacing', () => {
     });
 
     renderPage();
-
-    const tab = await screen.findByText('Programs (COBOL / RPG)');
-    fireEvent.click(tab);
-
-    expect(
-      await screen.findByText('Project is configured for BMS / DSPF → React'),
-    ).toBeInTheDocument();
+    await screen.findByText(/Proceed to Screens List/i);
 
     const fileInput = document.getElementById('file-upload') as HTMLInputElement;
     fireEvent.change(fileInput, {
@@ -121,9 +109,7 @@ describe('UploadSourcePage - real upload error surfacing', () => {
   });
 });
 
-// Bug: every loaded item was put in the screens list, so a COBOL_TO_JAVA project opened on
-// the Programs tab with nothing in it even though its programs were uploaded.
-describe('UploadSourcePage - loaded files go to the right tab', () => {
+describe('UploadSourcePage - loaded files adapted to project type', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -143,7 +129,7 @@ describe('UploadSourcePage - loaded files go to the right tab', () => {
       </MemoryRouter>,
     );
 
-  it('lists uploaded COBOL programs at once when a COBOL to Java project opens on Programs', async () => {
+  it('lists uploaded COBOL programs at once when a COBOL to Java project opens', async () => {
     mocks.getScreens.mockResolvedValue(loaded);
     mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', name: 'Acme', conversionType: 'COBOL_TO_JAVA' });
 
@@ -152,10 +138,10 @@ describe('UploadSourcePage - loaded files go to the right tab', () => {
     expect(await screen.findByText('MODEL01.cbl')).toBeInTheDocument();
     expect(screen.getByText('PAYROLL.rpg')).toBeInTheDocument();
     expect(screen.queryByText('LOGIN.bms')).not.toBeInTheDocument();
-    expect(await screen.findByText('Programs (COBOL / RPG)')).toBeInTheDocument();
+    expect(await screen.findByText(/Proceed to Programs List/i)).toBeInTheDocument();
   });
 
-  it('keeps BMS and DSPF screens on the Screens tab', async () => {
+  it('keeps BMS and DSPF screens for BMS project', async () => {
     mocks.getScreens.mockResolvedValue(loaded);
     mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', name: 'Acme', conversionType: 'BMS_DSPF_TO_FRONTEND' });
 
@@ -163,5 +149,6 @@ describe('UploadSourcePage - loaded files go to the right tab', () => {
 
     expect(await screen.findByText('LOGIN.bms')).toBeInTheDocument();
     expect(screen.queryByText('MODEL01.cbl')).not.toBeInTheDocument();
+    expect(await screen.findByText(/Proceed to Screens List/i)).toBeInTheDocument();
   });
 });

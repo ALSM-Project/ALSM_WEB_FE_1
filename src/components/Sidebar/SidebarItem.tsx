@@ -28,12 +28,12 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     if (!node.path) return false;
 
     // Projects menu item only active on exact projects list page (/projects)
-    if (node.id === 'projects') {
+    if (node.id === 'projects' || node.id === 'web1_projects') {
       return currentPath === '/projects' || currentPath === '/projects/';
     }
 
     // Screens menu item active when navigating inside screen workflows
-    if (node.id === 'screens') {
+    if (node.id === 'screens' || node.id === 'web1_screens') {
       return (
         currentPath.includes('/screens') ||
         currentPath.includes('/upload') ||
@@ -45,7 +45,7 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
       );
     }
 
-    if (node.id === 'conversion') {
+    if (node.id === 'conversion' || node.id === 'web1_conversion') {
       return currentPath.includes('/bulk-convert');
     }
 
@@ -78,11 +78,11 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     : 'pl-11 pr-2.5 justify-between';
 
   const getDynamicPath = (node: MenuItem): string => {
-    if (node.id === 'screens') {
+    if (node.id === 'screens' || node.id === 'web1_screens') {
       const lastProjId = localStorage.getItem('last_active_project_id') || 'proj-acme';
       return `/projects/${lastProjId}/screens`;
     }
-    if (node.id === 'diagnostics') {
+    if (node.id === 'diagnostics' || node.id === 'web1_diagnostics') {
       const lastProjId = localStorage.getItem('last_active_project_id') || 'proj-acme';
       return `/projects/${lastProjId}/diagnostics`;
     }
@@ -96,19 +96,19 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className={`w-full h-10 flex items-center text-sm font-semibold rounded-lg transition-colors cursor-pointer border-l-4 ${paddingClass} ${
+            className={`w-full h-10 flex items-center text-sm font-medium rounded-lg transition-colors cursor-pointer ${paddingClass} ${
               isActive
-                ? 'bg-[#E8F1FF] text-[#0652CC] border-[#0652CC] font-bold shadow-2xs'
-                : 'text-[#42526E] border-transparent hover:bg-[#F7F9FC] hover:text-[#091E42]'
+                ? 'bg-[#EFF6FF] text-[#2563EB] font-semibold shadow-2xs'
+                : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]'
             }`}
             title={isCollapsed ? item.label : undefined}
           >
             <div className="flex items-center space-x-3 truncate min-w-0">
-              <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#0652CC]' : 'text-[#6B778C]'}`} />
+              <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
               {!isCollapsed && <span className="truncate">{item.label}</span>}
             </div>
             {!isCollapsed && (
-              <span className="text-[#6B778C] shrink-0 ml-1">
+              <span className="text-[#64748B] shrink-0 ml-1">
                 {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               </span>
             )}
@@ -134,22 +134,22 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           to={getDynamicPath(item)}
           onClick={() => onTrackUsage && onTrackUsage(item.id)}
           className={() =>
-            `w-full h-10 flex items-center text-sm font-semibold rounded-lg transition-all border-l-4 ${paddingClass} ${
+            `w-full h-10 flex items-center text-sm font-medium rounded-lg transition-colors ${paddingClass} ${
               isActive
-                ? 'bg-[#E8F1FF] text-[#0652CC] border-[#0652CC] font-bold shadow-2xs'
-                : 'text-[#42526E] border-transparent hover:bg-[#F7F9FC] hover:text-[#091E42]'
+                ? 'bg-[#EFF6FF] text-[#2563EB] font-semibold shadow-2xs'
+                : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]'
             }`
           }
           title={isCollapsed ? item.label : undefined}
         >
           <div className="flex items-center space-x-3 truncate min-w-0">
-            <DynamicIcon name={item.icon} className="w-[18px] h-[18px] shrink-0" />
+            <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
             {!isCollapsed && <span className="truncate">{item.label}</span>}
           </div>
           {!isCollapsed && item.badge && (
             <span
-              className="text-[10px] px-1.5 py-0.5 rounded-full text-white font-bold shrink-0 ml-1.5"
-              style={{ backgroundColor: item.badgeColor || '#0652CC' }}
+              className="text-xs px-2.5 py-1 rounded-full text-white font-bold shrink-0 ml-1.5"
+              style={{ backgroundColor: item.badgeColor || '#2563EB' }}
             >
               {item.badge}
             </span>

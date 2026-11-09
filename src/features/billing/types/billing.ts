@@ -46,6 +46,10 @@ export interface UsageStatistics {
     used: number;
     max: number;   // -1 = unlimited
   };
+  programs?: {
+    used: number;
+    max: number;   // -1 = unlimited
+  };
   projects: {
     used: number;
     max: number;   // -1 = unlimited
@@ -65,13 +69,32 @@ export interface UsageStatistics {
   periodEnd?: string;
 }
 
+export interface InvoiceLineItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
 export interface Invoice {
   id: string;
+  status?: string;
+  currency?: string;
+  invoiceNumber?: string;
   date: string;
+  issueDate?: string;
+  dueDate?: string;
+  paidAt?: string | null;
   amount: number;
-  currency: 'VND';
-  status: 'paid' | 'pending' | 'failed';
   downloadUrl?: string;
+  organizationId?: string;
+  organizationName?: string;
+  customerId?: string;
+  customerEmail?: string;
+  subtotal?: number;
+  tax?: number;
+  items?: InvoiceLineItem[];
 }
 
 export interface QRDetails {

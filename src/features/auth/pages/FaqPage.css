@@ -3,7 +3,7 @@
    ================================================ */
 
 .alsm-faq-page {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
   color: #091E42;
   background-color: #F7F9FC;
   min-height: calc(100vh - 80px);
@@ -39,7 +39,7 @@
 
 .alsm-faq-subtitle {
   font-size: 16px;
-  color: #42526E;
+  color: #334155;
   max-width: 540px;
   margin: 0 auto;
   line-height: 1.5;
@@ -63,7 +63,7 @@
   border-radius: 999px;
   background: #ffffff;
   border: 1px solid #D9E2EC;
-  color: #42526E;
+  color: #334155;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -168,7 +168,7 @@
 .alsm-faq-chevron {
   width: 20px;
   height: 20px;
-  color: #42526E;
+  color: #334155;
   flex-shrink: 0;
   transition: transform 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94), color 200ms ease;
 }
@@ -202,7 +202,7 @@
 .alsm-faq-answer-content {
   padding: 0 24px 22px 24px;
   font-size: 14px;
-  color: #42526E;
+  color: #334155;
   line-height: 1.6;
   border-top: 1px solid #F0F4F9;
   margin-top: 4px;
@@ -229,7 +229,7 @@
 
 .alsm-faq-cta-subtitle {
   font-size: 14px;
-  color: #42526E;
+  color: #334155;
   margin-bottom: 24px;
   max-width: 480px;
   margin-left: auto;

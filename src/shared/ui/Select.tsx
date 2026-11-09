@@ -1,4 +1,5 @@
 import React from 'react';
+import { ChevronDown } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -30,7 +31,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             disabled={disabled}
             className={twMerge(
               clsx(
-                'w-full px-3.5 py-2 text-sm bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] shadow-2xs transition-all focus:outline-none focus:ring-2 focus:ring-[#0652CC] focus:border-[#0652CC] disabled:bg-[#F7F9FC] disabled:cursor-not-allowed appearance-none pr-8',
+                'w-full px-3.5 py-2 text-sm bg-white border border-[#D9E2EC] rounded-lg text-[#091E42] shadow-2xs transition-colors focus:outline-none focus:ring-2 focus:ring-[#0652CC] focus:border-[#0652CC] disabled:bg-[#F7F9FC] disabled:cursor-not-allowed appearance-none pr-8',
                 error && 'border-rose-500 focus:ring-rose-500 focus:border-rose-500',
                 className
               )
@@ -44,9 +45,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             ))}
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-[#6B778C]">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
+            <ChevronDown className="w-4 h-4 text-[#6B778C] pointer-events-none" aria-hidden="true" />
           </div>
         </div>
         {error ? (

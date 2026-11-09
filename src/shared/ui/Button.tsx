@@ -1,9 +1,10 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Loader2 } from 'lucide-react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'ai';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
 }
@@ -17,21 +18,26 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-semibold rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0652CC] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer';
+  const baseStyles =
+    'inline-flex items-center justify-center font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--alsm-primary)] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs';
 
   const variants = {
-    primary: 'bg-[#0652CC] hover:bg-[#0655FF] text-white shadow-[0_4px_15px_rgba(6,82,204,0.25)] hover:shadow-[0_6px_20px_rgba(6,85,255,0.35)]',
-    secondary: 'bg-[#E8F1FF] text-[#0652CC] hover:bg-[#0652CC] hover:text-white border border-[#0652CC]/25 shadow-sm',
-    outline: 'bg-white border border-[#D9E2EC] hover:border-[#0652CC]/50 text-[#091E42] hover:bg-[#F7F9FC] shadow-sm',
-    ghost: 'hover:bg-[#E8F1FF] text-[#42526E] hover:text-[#091E42]',
-    danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm',
-    ai: 'bg-gradient-to-r from-[#22D3EE] via-[#0655FF] to-[#8B5CF6] text-white font-bold shadow-[0_4px_20px_rgba(34,211,238,0.3)] hover:opacity-95',
+    primary:
+      'bg-[var(--alsm-primary)] hover:bg-[var(--alsm-primary-hover)] active:bg-[var(--alsm-primary-hover)] text-[var(--alsm-surface)]',
+    secondary:
+      'bg-[var(--alsm-primary-soft)] text-[var(--alsm-primary)] hover:bg-[var(--alsm-primary)] hover:text-[var(--alsm-surface)] border border-transparent',
+    outline:
+      'bg-[var(--alsm-surface)] border border-[var(--alsm-border)] hover:border-[var(--alsm-text-muted)] text-[var(--alsm-text)] hover:bg-[var(--alsm-bg)]',
+    ghost:
+      'hover:bg-[var(--alsm-bg)] text-[var(--alsm-text-muted)] hover:text-[var(--alsm-text)] shadow-none',
+    danger:
+      'bg-[var(--alsm-danger)] hover:opacity-90 text-[var(--alsm-surface)]',
   };
 
   const sizes = {
-    sm: 'px-3.5 py-1.5 text-xs',
-    md: 'px-5 py-2.5 text-sm',
-    lg: 'px-8 py-3.5 text-base',
+    sm: 'h-8 px-3 text-xs',
+    md: 'h-11 px-5 text-sm',
+    lg: 'h-12 px-6 text-base',
   };
 
   return (
@@ -42,10 +48,7 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {isLoading ? (
         <span className="flex items-center space-x-2">
-          <svg className="animate-spin h-4 w-4 text-current" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+          <Loader2 className="w-4 h-4 animate-spin text-current" aria-hidden="true" />
           <span>Processing...</span>
         </span>
       ) : (
@@ -54,4 +57,5 @@ export const Button: React.FC<ButtonProps> = ({
     </button>
   );
 };
+
 export default Button;

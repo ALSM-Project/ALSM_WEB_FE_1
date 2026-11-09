@@ -136,7 +136,7 @@ export const InitialQualityReviewPage: React.FC = () => {
   // State: Loading
   if (jobLoading || (job && job.status === 'COMPLETED' && reviewLoading && !qualityReviewData)) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <div className="w-full space-y-6 min-w-0">
         <ModernizationWorkflow currentStep="convert" completedSteps={['upload']} />
         <div className="bg-white border border-slate-200 rounded-xl p-12 text-center flex flex-col items-center justify-center space-y-4 shadow-sm">
           <LoaderCircle className="w-8 h-8 text-[#0652CC] animate-spin" />
@@ -149,7 +149,7 @@ export const InitialQualityReviewPage: React.FC = () => {
   // State: No job found
   if (!job) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <div className="w-full space-y-6 min-w-0">
         <ModernizationWorkflow currentStep="convert" completedSteps={['upload']} />
         <div className="bg-white border border-slate-200 rounded-xl p-12 text-center flex flex-col items-center justify-center space-y-4 shadow-sm">
           <AlertCircle className="w-10 h-10 text-slate-400" />
@@ -168,7 +168,7 @@ export const InitialQualityReviewPage: React.FC = () => {
   // State: Job Not Completed
   if (job.status !== 'COMPLETED') {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+      <div className="w-full space-y-6 min-w-0">
         <ModernizationWorkflow currentStep="convert" completedSteps={['upload']} />
         <div className="bg-white border border-slate-200 rounded-xl p-12 text-center flex flex-col items-center justify-center space-y-4 shadow-sm">
           <Clock3 className="w-10 h-10 text-amber-500" />
@@ -178,7 +178,7 @@ export const InitialQualityReviewPage: React.FC = () => {
           </p>
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={() => refetchJob()} className="space-x-1.5">
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RefreshCw className="w-4 h-4" />
               <span>Refresh Status</span>
             </Button>
             <Button onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}>
@@ -197,7 +197,7 @@ export const InitialQualityReviewPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <div className="w-full space-y-6 min-w-0">
       {/* Stepper Header */}
       <ModernizationWorkflow
         currentStep="convert"
@@ -230,7 +230,7 @@ export const InitialQualityReviewPage: React.FC = () => {
             onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
             className="space-x-1.5 text-xs font-semibold"
           >
-            <Sliders className="w-3.5 h-3.5" />
+            <Sliders className="w-4 h-4" />
             <span>Edit Mapping</span>
           </Button>
           <Button
@@ -239,7 +239,7 @@ export const InitialQualityReviewPage: React.FC = () => {
             onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId))}
             className="space-x-1.5 text-xs font-semibold"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
+            <RefreshCw className="w-4 h-4" />
             <span>Re-convert Screen</span>
           </Button>
         </div>
@@ -464,7 +464,7 @@ export const InitialQualityReviewPage: React.FC = () => {
           onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}
           className="space-x-1.5 text-xs font-semibold"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
           <span>Back to Result Inspection</span>
         </Button>
 

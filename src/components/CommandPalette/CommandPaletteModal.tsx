@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import { toast } from '@/shared/ui';
 import { useCommandPalette } from '../../hooks/useCommandPalette';
 import './CommandPaletteModal.css';
 
@@ -34,7 +36,7 @@ export const CommandPaletteModal: React.FC = () => {
     } else if (cmd.data?.route) {
       window.location.href = cmd.data.route;
     } else {
-      alert(`Đã thực thi lệnh: ${cmd.label}`);
+      toast.info(`Executed command: ${cmd.label}`);
     }
   };
 
@@ -46,11 +48,11 @@ export const CommandPaletteModal: React.FC = () => {
         onKeyDown={handleKeyDown}
       >
         <div className="command-palette-input-wrapper">
-          <span className="search-icon">🔍</span>
+          <Search className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
           <input
             type="text"
             className="command-palette-input"
-            placeholder="Nhập lệnh hoặc từ khóa (ví dụ: BMS, Project, Mapping, Convert)..."
+            placeholder="Type a command or keyword (e.g. BMS, Project, Mapping, Convert)..."
             value={query}
             onChange={e => setQuery(e.target.value)}
             autoFocus
@@ -58,36 +60,28 @@ export const CommandPaletteModal: React.FC = () => {
           <kbd className="esc-badge">ESC</kbd>
         </div>
 
-        <div className="command-palette-results">
-          {loading && <div className="command-loading">Đang tìm kiếm...</div>}
-          {!loading && commands.length === 0 && (
-            <div className="command-empty">Không tìm thấy lệnh khớp với "{query}"</div>
-          )}
-          {!loading &&
-            commands.map((cmd, index) => (
-              <div
+        {loading ? (
+          <div className="command-palette-empty">Searching...</div>
+        ) : commands.length === 0 ? (
+          <div className="command-palette-empty">No matching command found</div>
+        ) : (
+          <ul className="command-palette-list">
+            {commands.map((cmd, idx) => (
+              <li
                 key={cmd.id}
-                className={`command-item ${index === selectedIndex ? 'selected' : ''}`}
+                className={`command-palette-item ${idx === selectedIndex ? 'selected' : ''}`}
                 onClick={() => executeCommand(cmd)}
-                onMouseEnter={() => setSelectedIndex(index)}
+                onMouseEnter={() => setSelectedIndex(idx)}
               >
                 <div className="command-item-main">
-                  <span className="command-category">{cmd.category}</span>
-                  <div className="command-label">{cmd.label}</div>
-                  {cmd.description && (
-                    <div className="command-desc">{cmd.description}</div>
-                  )}
+                  <span className="command-item-label">{cmd.label}</span>
+                  {cmd.description && <span className="command-item-desc">{cmd.description}</span>}
                 </div>
-                {cmd.shortcut && (
-                  <div className="command-shortcuts">
-                    {cmd.shortcut.map(s => (
-                      <kbd key={s}>{s}</kbd>
-                    ))}
-                  </div>
-                )}
-              </div>
+                {cmd.category && <span className="command-item-category">{cmd.category}</span>}
+              </li>
             ))}
-        </div>
+          </ul>
+        )}
       </div>
     </div>
   );

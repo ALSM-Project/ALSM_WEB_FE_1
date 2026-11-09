@@ -313,7 +313,7 @@ export const FieldMappingPage: React.FC = () => {
                   isLoading={loading}
                   className="text-xs font-semibold px-3 py-1 bg-[#0652CC] hover:bg-[#0655FF] text-white space-x-1"
                 >
-                  <Save className="w-3.5 h-3.5" />
+                  <Save className="w-4 h-4" />
                   <span>Save Code & Proceed to AI Validation &rarr;</span>
                 </Button>
               </div>

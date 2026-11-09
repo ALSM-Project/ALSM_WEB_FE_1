@@ -10,3 +10,4 @@ export * from './Select';
 export * from './Toggle';
 export * from './Tooltip';
 export * from './ModernizationWorkflow';
+export * from './Toast';

@@ -36,7 +36,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items: propItems, custom
 
         return (
           <React.Fragment key={`${item.label}-${index}`}>
-            {index > 0 && <ChevronRight className="w-3.5 h-3.5 text-[#97A0AF] shrink-0" />}
+            {index > 0 && <ChevronRight className="w-4 h-4 text-[#97A0AF] shrink-0" aria-hidden="true" />}
             {item.path && !isLast ? (
               <Link
                 to={item.path}

@@ -113,7 +113,7 @@ export const VersionHistoryPage: React.FC = () => {
                   </div>
                   <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
                     <span className="flex items-center space-x-1">
-                      <Clock className="w-3.5 h-3.5" />
+                      <Clock className="w-4 h-4" />
                       <span>{new Date(job.createdAt).toLocaleString()}</span>
                     </span>
                     {duration && <span>Duration: {duration}</span>}
@@ -132,7 +132,7 @@ export const VersionHistoryPage: React.FC = () => {
                       to={`${ROUTES.PROJECTS.RESULT(projectId, screenId)}?jobId=${job.id}`}
                       className="inline-flex items-center space-x-1.5 text-xs font-semibold text-brand-700 hover:underline"
                     >
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="w-4 h-4" />
                       <span>View Code</span>
                     </Link>
                   ) : (

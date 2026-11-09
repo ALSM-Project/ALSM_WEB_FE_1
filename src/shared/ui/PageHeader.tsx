@@ -20,7 +20,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           <h1 className="text-2xl font-bold tracking-tight text-[#091E42]">{title}</h1>
           {badge}
         </div>
-        {subtitle && <p className="mt-1 text-sm text-[#42526E]">{subtitle}</p>}
+        {subtitle && (
+          <p className="mt-1 text-sm text-slate-600 max-w-[65ch] [text-wrap:pretty] leading-relaxed">
+            {subtitle}
+          </p>
+        )}
       </div>
       {actions && <div className="flex items-center space-x-3 shrink-0">{actions}</div>}
     </div>

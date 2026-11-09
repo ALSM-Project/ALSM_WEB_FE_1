@@ -1,6 +1,8 @@
 import type { MenuItem } from '@/features/menus/types/menu';
 import { getProjectName } from '@/shared/utils/projectCache';
 
+export const generateBreadcrumbs = (pathname: string): any => getBreadcrumbsFromRoute(pathname);
+
 export interface BreadcrumbNode {
   label: string;
   path?: string;
@@ -113,7 +115,32 @@ export function getBreadcrumbsFromRoute(
   }
 
   if (cleanPath.includes('/contact')) {
-    return [{ label: 'Resources' }, { label: 'Contact & Upgrade' }];
+    return [{ label: 'Resources' }, { label: 'Contact & Support' }];
+  }
+
+  // Handle Enterprise Contracts routes & detail view
+  if (cleanPath === '/account/contracts' || cleanPath === '/contracts') {
+    return [{ label: 'Account', path: '/account/profile' }, { label: 'Contracts' }];
+  }
+
+  const contractDetailMatch = cleanPath.match(/^(?:\/account)?\/contracts\/([^/]+)/);
+  if (contractDetailMatch) {
+    const rawId = contractDetailMatch[1];
+    const contractDisplayLabel = rawId.length > 15 ? 'Contract Details' : rawId;
+    return [
+      { label: 'Account', path: '/account/profile' },
+      { label: 'Contracts', path: '/account/contracts' },
+      { label: contractDisplayLabel },
+    ];
+  }
+
+  if (
+    cleanPath === '/organization/profile' ||
+    cleanPath.startsWith('/organization') ||
+    cleanPath === '/account/company' ||
+    cleanPath === '/account/company-profile'
+  ) {
+    return [{ label: 'Organization' }, { label: 'Organization Profile' }];
   }
 
   if (cleanPath.startsWith('/account')) {
@@ -121,6 +148,21 @@ export function getBreadcrumbsFromRoute(
     if (cleanPath.includes('password')) return [...base, { label: 'Password & Security' }];
     if (cleanPath.includes('profile')) return [...base, { label: 'Profile Settings' }];
     return [...base, { label: 'Account Settings' }];
+  }
+
+  if (cleanPath.startsWith('/billing/invoices/') && cleanPath.endsWith('/pay')) {
+    return [
+      { label: 'Account', path: '/account/profile' },
+      { label: 'Contracts', path: '/account/contracts' },
+      { label: 'Invoice Payment' },
+    ];
+  }
+  if (cleanPath.startsWith('/billing/contracts/') && cleanPath.endsWith('/pay')) {
+    return [
+      { label: 'Account', path: '/account/profile' },
+      { label: 'Contracts', path: '/account/contracts' },
+      { label: 'Contract Payment' },
+    ];
   }
 
   if (cleanPath.startsWith('/billing')) {

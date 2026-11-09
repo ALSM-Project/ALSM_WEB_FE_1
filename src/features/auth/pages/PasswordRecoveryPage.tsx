@@ -92,7 +92,7 @@ export const PasswordRecoveryPage: React.FC = () => {
         {step === 1 && (
           <div className="space-y-6">
             <Link to={ROUTES.PUBLIC.LOGIN} className="inline-flex items-center space-x-2 text-xs font-semibold text-slate-500 hover:text-[#0652CC] transition-colors">
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-4 h-4" />
               <span>Back to Sign In</span>
             </Link>
 
@@ -192,19 +192,19 @@ export const PasswordRecoveryPage: React.FC = () => {
               <div className="bg-slate-50 p-4 rounded-xl border border-[#D9E2EC] space-y-1.5 text-xs">
                 <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Requirements</p>
                 <div className="flex items-center space-x-2 text-slate-700">
-                  <CheckCircle2 className={`w-3.5 h-3.5 ${newPassword.length >= 8 ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <CheckCircle2 className={`w-4 h-4 ${newPassword.length >= 8 ? 'text-emerald-600' : 'text-slate-400'}`} />
                   <span>8+ characters</span>
                 </div>
                 <div className="flex items-center space-x-2 text-slate-700">
-                  <CheckCircle2 className={`w-3.5 h-3.5 ${/[A-Z]/.test(newPassword) && /[a-z]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <CheckCircle2 className={`w-4 h-4 ${/[A-Z]/.test(newPassword) && /[a-z]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`} />
                   <span>Uppercase & Lowercase</span>
                 </div>
                 <div className="flex items-center space-x-2 text-slate-700">
-                  <CheckCircle2 className={`w-3.5 h-3.5 ${/[0-9]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <CheckCircle2 className={`w-4 h-4 ${/[0-9]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`} />
                   <span>Number (0-9)</span>
                 </div>
                 <div className="flex items-center space-x-2 text-slate-700">
-                  <CheckCircle2 className={`w-3.5 h-3.5 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <CheckCircle2 className={`w-4 h-4 ${/[^A-Za-z0-9]/.test(newPassword) ? 'text-emerald-600' : 'text-slate-400'}`} />
                   <span>Special character (!@#$%^&*)</span>
                 </div>
               </div>
@@ -218,7 +218,7 @@ export const PasswordRecoveryPage: React.FC = () => {
               />
               {confirmPassword && newPassword === confirmPassword && (
                 <p className="text-xs text-emerald-600 font-medium flex items-center space-x-1">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                   <span>Passwords match</span>
                 </p>
               )}

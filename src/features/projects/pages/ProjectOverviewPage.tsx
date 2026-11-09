@@ -213,7 +213,7 @@ export const ProjectOverviewPage: React.FC = () => {
                   className="w-full text-xs font-semibold justify-between space-x-1 bg-white border border-[#D9E2EC] hover:bg-slate-50"
                 >
                   <span>{m.btnText}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-4 h-4" />
                 </Button>
               </div>
             );
