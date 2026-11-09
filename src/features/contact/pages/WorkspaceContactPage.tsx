@@ -100,6 +100,7 @@ export const WorkspaceContactPage: React.FC = () => {
       {/* Section A: Header */}
       <PageHeader
         title="Contact & Support"
+        subtitle="Get assistance with your workspace, screen conversion capacity, or enterprise modernization requirements."
       />
 
       {/* Conditional: Enterprise Suspension Appeal Banner & Form */}

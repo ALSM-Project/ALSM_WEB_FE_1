@@ -1,2 +1,3 @@
+import { describe, it, expect } from 'vitest';
 import { calculateTotalWithVAT } from '../invoice-calculator';
 describe('invoice-calculator', () => { it('calculates 10% VAT correctly', () => { const r = calculateTotalWithVAT(1000000); expect(r.vat).toBe(100000); expect(r.total).toBe(1100000); }); });

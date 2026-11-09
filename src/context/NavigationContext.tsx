@@ -156,24 +156,22 @@ export const STATIC_ACCOUNT_SETTINGS: MenuItem[] = [
  * merging dynamic backend items seamlessly without replacing or dropping static navigation.
  */
 export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuItem[] {
-  if (!Array.isArray(dynamicItems) || dynamicItems.length === 0) {
-    return [...DEFAULT_SIDEBAR_NAV];
-  }
+  const items = Array.isArray(dynamicItems) ? dynamicItems : [];
 
   const dynamicIds = new Set<string>();
   const dynamicPaths = new Set<string>();
 
-  const collectIdentifiers = (items: MenuItem[]) => {
-    for (const item of items) {
+  const collectIdentifiers = (itemList: MenuItem[]) => {
+    for (const item of itemList) {
       if (item.id) dynamicIds.add(item.id.toLowerCase());
       if (item.path) dynamicPaths.add(item.path.toLowerCase());
       if (item.children) collectIdentifiers(item.children);
     }
   };
-  collectIdentifiers(dynamicItems);
+  collectIdentifiers(items);
 
   // 1. Start with dynamic items
-  const merged: MenuItem[] = [...dynamicItems];
+  const merged: MenuItem[] = [...items];
 
   // If a full MenuBuilder menu is present (contains ORGANIZATION or CONTRACT & BILLING),
   // respect the admin configuration and do NOT force-inject extraneous resource docs.

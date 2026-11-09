@@ -73,3 +73,6 @@ export async function generateCleanBankQrDataUrl(options: BankQrOptions): Promis
     errorCorrectionLevel: 'M',
   });
 }
+
+export const generateBankQrUrl = generateCleanBankQrDataUrl;
+

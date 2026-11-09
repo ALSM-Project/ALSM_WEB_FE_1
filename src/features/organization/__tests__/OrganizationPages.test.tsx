@@ -12,6 +12,18 @@ import {
 } from '../pages/OrganizationPages';
 import { companyLegalProfileService } from '@/features/account/services/companyLegalProfile.service';
 
+vi.mock('@/app/providers', () => ({
+  useAuth: () => ({
+    user: {
+      id: 'usr-enterprise-01',
+      fullName: 'Enterprise Admin',
+      email: 'partner@alsm.io',
+      organizationId: 'org-enterprise-01',
+      organizationName: 'FinTech Nexus Enterprise',
+    },
+  }),
+}));
+
 vi.mock('@/features/account/services/companyLegalProfile.service', () => ({
   companyLegalProfileService: {
     getTaxLookupStatus: vi.fn(),

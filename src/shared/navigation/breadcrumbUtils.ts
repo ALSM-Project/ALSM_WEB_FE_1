@@ -1,6 +1,8 @@
 import type { MenuItem } from '@/features/menus/types/menu';
 import { getProjectName } from '@/shared/utils/projectCache';
 
+export const generateBreadcrumbs = (pathname: string): any => getBreadcrumbsFromRoute(pathname);
+
 export interface BreadcrumbNode {
   label: string;
   path?: string;

@@ -1,1 +1,1 @@
-export function isValidTaxId(taxId: string): boolean { return /^\\d{10}(-\\d{3})?$/.test(taxId.trim()); }
+export function isValidTaxId(taxId: string): boolean { return /^\d{10}(-\d{3})?$/.test(taxId.trim()); }

@@ -14,7 +14,7 @@ import { CreateProjectModal } from '../components/CreateProjectModal';
 import { projectService } from '../services/project.service';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import { billingService } from '@/features/billing/services/billing.service';
-import { AuthContext, useAuth } from '@/app/providers';
+import { AuthContext } from '@/app/providers';
 import type { Project } from '../types/project';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { UsageStatistics } from '@/features/billing/types/billing';
