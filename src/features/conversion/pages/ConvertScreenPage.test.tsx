@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { LegacyScreen } from '@/features/screens/types/screen';
@@ -16,6 +16,8 @@ const mocks = vi.hoisted(() => ({
   getConversionResult: vi.fn(),
   getFieldMappings: vi.fn(),
   createConversion: vi.fn(),
+  saveScreenCode: vi.fn(),
+  triggerValidation: vi.fn(),
 }));
 
 vi.mock('../services/conversion.service', () => ({
@@ -25,8 +27,19 @@ vi.mock('../services/conversion.service', () => ({
     getConversionResult: mocks.getConversionResult,
     getFieldMappings: mocks.getFieldMappings,
     createConversion: mocks.createConversion,
+    saveScreenCode: mocks.saveScreenCode,
   },
 }));
+
+vi.mock('../queries/useValidation', () => ({
+  useValidationRuns: () => ({ data: [] }),
+  useValidationRun: () => ({ data: undefined }),
+  useValidationFindings: () => ({ data: [] }),
+  useReviewValidationFinding: () => ({ isPending: false }),
+  useTriggerAiValidation: () => ({ mutate: mocks.triggerValidation, isPending: false }),
+}));
+
+afterEach(() => { vi.clearAllMocks(); vi.restoreAllMocks(); });
 
 const screen1: LegacyScreen = {
   id: 'scr-1',
@@ -93,6 +106,24 @@ describe('ConvertScreenPage - Field Mapping tab (UC-98)', () => {
     const tab = await screen.findByText('Field Mapping');
     fireEvent.click(tab);
   };
+
+  it.each([true, false])('requests validation only after a successful save: success=%s', async success => {
+    mocks.getScreenById.mockResolvedValue(screen1);
+    mocks.getLatestConversion.mockResolvedValue(completedJob);
+    mocks.getConversionResult.mockResolvedValue(resultBundle);
+    mocks.getFieldMappings.mockResolvedValue([]);
+    if (success) mocks.saveScreenCode.mockResolvedValue(undefined);
+    else mocks.saveScreenCode.mockRejectedValue(new Error('synthetic save failure'));
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Code' }));
+    const buttons = await screen.findAllByRole('button', { name: /Save & Run AI Validation/ });
+    fireEvent.click(buttons[0]);
+    if (success) await screen.findByText('Semantic Validation Findings');
+    else await screen.findByText(/Code could not be saved/);
+    expect(mocks.saveScreenCode).toHaveBeenCalledTimes(1);
+    expect(mocks.triggerValidation).toHaveBeenCalledTimes(success ? 1 : 0);
+  });
 
   it('never shows the old fabricated example rows (USER-ID-INPUT / PASS-KEY-ATTR)', async () => {
     mocks.getScreenById.mockResolvedValue(screen1);
