@@ -98,13 +98,13 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
             onClick={() => setIsExpanded(!isExpanded)}
             className={`w-full h-10 flex items-center text-sm font-medium rounded-lg transition-colors cursor-pointer ${paddingClass} ${
               isActive
-                ? 'bg-[#EFF6FF] text-[#2563EB] font-semibold shadow-2xs'
+                ? 'bg-[#EEF1F6] text-[#244A70] font-semibold shadow-2xs'
                 : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]'
             }`}
             title={isCollapsed ? item.label : undefined}
           >
             <div className="flex items-center space-x-3 truncate min-w-0">
-              <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
+              <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#244A70]' : 'text-[#64748B]'}`} />
               {!isCollapsed && <span className="truncate">{item.label}</span>}
             </div>
             {!isCollapsed && (
@@ -136,20 +136,20 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
           className={() =>
             `w-full h-10 flex items-center text-sm font-medium rounded-lg transition-colors ${paddingClass} ${
               isActive
-                ? 'bg-[#EFF6FF] text-[#2563EB] font-semibold shadow-2xs'
+                ? 'bg-[#EEF1F6] text-[#244A70] font-semibold shadow-2xs'
                 : 'text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]'
             }`
           }
           title={isCollapsed ? item.label : undefined}
         >
           <div className="flex items-center space-x-3 truncate min-w-0">
-            <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#2563EB]' : 'text-[#64748B]'}`} />
+            <DynamicIcon name={item.icon} className={`w-[18px] h-[18px] shrink-0 ${isActive ? 'text-[#244A70]' : 'text-[#64748B]'}`} />
             {!isCollapsed && <span className="truncate">{item.label}</span>}
           </div>
           {!isCollapsed && item.badge && (
             <span
               className="text-xs px-2.5 py-1 rounded-full text-white font-bold shrink-0 ml-1.5"
-              style={{ backgroundColor: item.badgeColor || '#2563EB' }}
+              style={{ backgroundColor: item.badgeColor || '#244A70' }}
             >
               {item.badge}
             </span>
