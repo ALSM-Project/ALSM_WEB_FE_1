@@ -2,11 +2,10 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Search, Plus, FileCode, Layers, AlertTriangle, CheckCircle2, XCircle, Play, Eye, Code2, Stethoscope, Trash2, GitBranch } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
-import { projectService } from '@/features/projects/services/project.service';
-import type { Project } from '@/features/projects/types/project';
 import { useBulkConvert } from '@/features/conversion/queries/useBulkConvert';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
+import { Tabs } from '@/shared/ui/Tabs';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Modal } from '@/shared/ui/Modal';
@@ -37,9 +36,11 @@ export const ScreensListPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-const [project, setProject] = useState<Project | null>(null);
+  const [activeTab, setActiveTab] = useState('screens');
   const [fetchedAssets, setFetchedAssets] = useState<LegacyScreen[]>([]);
   const [assetsLoaded, setAssetsLoaded] = useState(false);
+  // Screens sent to the conversion queue from this page (or the bulk-convert page): the backend
+  // keeps them "Ready" until a worker takes them, so they are watched and shown as queued.
   const [tracked, setTracked] = useState<TrackedConversions>({});
   const allAssets = React.useMemo(
     () => withQueuedStatus(fetchedAssets, tracked, Date.now()),
@@ -50,15 +51,6 @@ const [project, setProject] = useState<Project | null>(null);
   const [dependencyModalScreenId, setDependencyModalScreenId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<LegacyScreen | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (projectId) {
-      projectService.getProjectById(projectId).then((p) => {
-        if (p) setProject(p);
-      });
-    }
-  }, [projectId]);
 
   // A refresh that is still in flight when the next one is due, or that answers after the project
   // changed, must not be applied on top of newer data.
@@ -66,7 +58,6 @@ const [project, setProject] = useState<Project | null>(null);
   const loading = useRef(false);
 
   const loadScreens = useCallback(() => {
-
     if (loading.current) return;
     loading.current = true;
     const sequence = ++loadSequence.current;
@@ -83,7 +74,6 @@ const [project, setProject] = useState<Project | null>(null);
       })
       .finally(() => {
         loading.current = false;
-
       });
   }, [projectId]);
 
@@ -158,33 +148,19 @@ const [project, setProject] = useState<Project | null>(null);
   const handleDeleteScreen = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
-setDeleteError(null);
-    try {
-      const ok = await conversionService.deleteScreen(projectId, deleteTarget.id);
-      setIsDeleting(false);
-      if (ok) {
-        setFetchedAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
-        setDeleteTarget(null);
-      } else {
-        setDeleteError(`Failed to delete ${isProgramProject ? 'program' : 'screen'}. Please try again.`);
-      }
-    } catch {
-      setIsDeleting(false);
-      setDeleteError(`Failed to delete ${isProgramProject ? 'program' : 'screen'}. Please try again.`);
+    const ok = await conversionService.deleteScreen(projectId, deleteTarget.id);
+    setIsDeleting(false);
+    if (ok) {
+      setFetchedAssets((prev) => prev.filter((s) => s.id !== deleteTarget.id));
     }
+    setDeleteTarget(null);
   };
 
-  // Screens (BMS/DSPF/TXT) vs Programs (COBOL/RPG) split by sourceType
+  // Screens (BMS/DSPF/TXT) vs Programs (COBOL/RPG) share the same real data source
+  // (whatever was uploaded, plus the app's baseline demo screens) — split by sourceType
+  // instead of keeping a second, disconnected hardcoded list.
   const screens = allAssets.filter((a) => !PROGRAM_SOURCE_TYPES.has(a.sourceType));
   const programs = allAssets.filter((a) => PROGRAM_SOURCE_TYPES.has(a.sourceType));
-
-  // A project is dedicated either to screens OR to programs
-  const isProgramProject =
-    project?.conversionType === 'COBOL_TO_JAVA' ||
-    (allAssets.length > 0 && allAssets.every((a) => PROGRAM_SOURCE_TYPES.has(a.sourceType))) ||
-    (programs.length > 0 && screens.length === 0);
-
-  const activeTab = isProgramProject ? 'programs' : 'screens';
 
   const applyFilters = (items: LegacyScreen[]) =>
     items.filter((item) => {
@@ -202,8 +178,8 @@ setDeleteError(null);
 
   const filteredScreens = applyFilters(screens);
   const filteredPrograms = applyFilters(programs);
-  const activeList = isProgramProject ? (filteredPrograms.length > 0 ? filteredPrograms : applyFilters(allAssets)) : (filteredScreens.length > 0 ? filteredScreens : applyFilters(allAssets));
-  const activeFullList = isProgramProject ? (programs.length > 0 ? programs : allAssets) : (screens.length > 0 ? screens : allAssets);
+  const activeList = activeTab === 'screens' ? filteredScreens : filteredPrograms;
+  const activeFullList = activeTab === 'screens' ? screens : programs;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -258,12 +234,8 @@ setDeleteError(null);
     <div className="space-y-6">
       {/* Reusable Standard PageHeader */}
       <PageHeader
-        title={isProgramProject ? 'Programs Workspace' : 'Screens Workspace'}
-        subtitle={
-          isProgramProject
-            ? 'Analyze, convert, validate, and inspect COBOL business logic programs.'
-            : 'Analyze, convert, validate, and inspect legacy screen mapsets.'
-        }
+        title="Screens & Programs Workspace"
+        subtitle="Analyze, convert, validate, and inspect legacy screen mapsets and COBOL business logic programs."
         actions={
           <div className="flex items-center space-x-3 shrink-0">
             <Button
@@ -285,7 +257,6 @@ setDeleteError(null);
         }
       />
 
-
       {toast && (
         <div
           role="status"
@@ -303,7 +274,6 @@ setDeleteError(null);
           >
             ✕
           </button>
-
         </div>
       )}
 
@@ -328,12 +298,12 @@ setDeleteError(null);
         <button
           type="button"
           onClick={() => setStatusFilter('ALL')}
-          className={`text-left bg-white border p-4 rounded-xl flex items-center space-x-4 cursor-pointer transition-colors hover:border-[#0652CC] ${
+          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-[#0652CC] ${
             statusFilter === 'ALL' ? 'border-[#0652CC] ring-2 ring-blue-100 bg-blue-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to view all assets"
         >
-          <div className="w-11 h-11 bg-[#E8F1FF] text-[#0652CC] rounded-xl flex items-center justify-center shrink-0">
+          <div className="p-3 bg-[#E8F1FF] text-[#0652CC] rounded-xl border border-blue-100 shrink-0">
             <Layers className="w-5 h-5" />
           </div>
           <div>
@@ -348,12 +318,12 @@ setDeleteError(null);
         <button
           type="button"
           onClick={() => setStatusFilter('COMPLETED')}
-          className={`text-left bg-white border p-4 rounded-xl flex items-center space-x-4 cursor-pointer transition-colors hover:border-emerald-500 ${
+          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-emerald-500 ${
             statusFilter === 'COMPLETED' ? 'border-emerald-500 ring-2 ring-emerald-100 bg-emerald-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to filter by Converted status"
         >
-          <div className="w-11 h-11 bg-emerald-50 text-emerald-700 rounded-xl flex items-center justify-center shrink-0">
+          <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-200 shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
@@ -366,12 +336,12 @@ setDeleteError(null);
         <button
           type="button"
           onClick={() => setStatusFilter('REVIEW REQUIRED')}
-          className={`text-left bg-white border p-4 rounded-xl flex items-center space-x-4 cursor-pointer transition-colors hover:border-amber-500 ${
+          className={`text-left bg-white border p-4 rounded-2xl flex items-center space-x-4 shadow-2xs cursor-pointer transition-all hover:border-amber-500 ${
             statusFilter === 'REVIEW REQUIRED' ? 'border-amber-500 ring-2 ring-amber-100 bg-amber-50/20' : 'border-[#D9E2EC]'
           }`}
           title="Click to filter by Review Required status"
         >
-          <div className="w-11 h-11 bg-amber-50 text-amber-700 rounded-xl flex items-center justify-center shrink-0">
+          <div className="p-3 bg-amber-50 text-amber-700 rounded-xl border border-amber-200 shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div>
@@ -383,10 +353,10 @@ setDeleteError(null);
         {/* 4. Failed Card -> Direct Link to Diagnostics */}
         <Link
           to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
-          className="bg-white border border-[#D9E2EC] p-4 rounded-xl flex items-center space-x-4 hover:border-rose-400 transition-colors cursor-pointer group"
+          className="bg-white border border-[#D9E2EC] p-4 rounded-2xl flex items-center space-x-4 shadow-2xs hover:border-rose-400 hover:shadow-xs transition-all cursor-pointer group"
           title="Click to view Diagnostics & Error Logs"
         >
-          <div className="w-11 h-11 bg-rose-50 text-rose-700 rounded-xl flex items-center justify-center shrink-0">
+          <div className="p-3 bg-rose-50 text-rose-700 rounded-xl border border-rose-200 group-hover:scale-105 transition-transform shrink-0">
             <XCircle className="w-5 h-5" />
           </div>
           <div>
@@ -396,22 +366,30 @@ setDeleteError(null);
         </Link>
       </div>
 
+      <Tabs
+        tabs={[
+          { id: 'screens', label: 'Legacy Screens (BMS/DSPF)', count: screens.length },
+          { id: 'programs', label: 'COBOL Programs (Logic)', count: programs.length },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+      />
+
       {/* Filter Row */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between bg-white p-4 rounded-xl border border-[#D9E2EC]">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between bg-white p-4 rounded-2xl border border-[#D9E2EC] shadow-2xs">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-[#6B778C]" />
           <input
             type="text"
             placeholder={`Search ${activeTab === 'screens' ? 'legacy screens' : 'COBOL programs'} by name...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0652CC] text-[#091E42] placeholder-slate-400"
+            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0652CC] text-[#091E42] placeholder-[#6B778C]"
           />
         </div>
 
         <div className="flex space-x-3">
           <select
-            aria-label="Filter by status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
@@ -427,7 +405,8 @@ setDeleteError(null);
       </div>
 
       {/* Enterprise Data Table with Exact 5 Columns & Width Proportions */}
-      <div className="bg-white border border-[#D9E2EC] rounded-xl p-3 sm:p-4 overflow-x-auto">
+      <div className="bg-white border border-[#D9E2EC] rounded-2xl overflow-hidden shadow-2xs">
+        <div className="overflow-x-auto">
           <table className="w-full min-w-[950px] text-left text-xs table-fixed">
             <colgroup>
               <col className="w-[24%]" />
@@ -436,7 +415,7 @@ setDeleteError(null);
               <col className="w-[18%]" />
               <col className="w-[28%]" />
             </colgroup>
-            <thead className="text-slate-600 font-bold uppercase tracking-wider text-xs border-b border-[#E5EAF0]">
+            <thead className="bg-[#F7F9FC] text-[#42526E] font-bold uppercase tracking-wider text-[11px] border-b border-[#D9E2EC]">
               <tr>
                 <th className="py-3.5 px-4">{activeTab === 'screens' ? 'SCREEN NAME' : 'PROGRAM NAME'}</th>
                 <th className="py-3.5 px-4">LEGACY SOURCE TYPE</th>
@@ -446,24 +425,15 @@ setDeleteError(null);
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5EAF0]">
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-8 px-4 text-center text-slate-500">
-                    <div className="inline-flex items-center space-x-2">
-                      <div className="w-4 h-4 border-2 border-[#0652CC] border-t-transparent rounded-full animate-spin" />
-                      <span>Loading assets...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : paginatedList.length === 0 ? (
+              {paginatedList.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-8 px-4 text-center text-slate-500">
                     No {activeTab === 'screens' ? 'screens' : 'programs'} match your filters yet. Upload a
                     source file to get started.
                   </td>
                 </tr>
-              ) : (
-                paginatedList.map((item) => (
+              )}
+              {paginatedList.map((item) => (
                 <tr
                   key={item.id}
                   onClick={() => navigate(ROUTES.PROJECTS.CONVERT(projectId, item.id))}
@@ -490,7 +460,7 @@ setDeleteError(null);
                   </td>
 
                   {/* 4. LAST UPDATED (18%) */}
-                  <td className="py-3.5 px-4 text-xs text-slate-500 truncate">
+                  <td className="py-3.5 px-4 text-xs text-[#6B778C] truncate">
                     {item.lastUpdated}
                   </td>
 
@@ -501,18 +471,18 @@ setDeleteError(null);
                         <>
                           <Link
                             to={ROUTES.PROJECTS.DIAGNOSTICS(projectId)}
-                            className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-md transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-rose-700 font-semibold bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-100 transition-colors"
                           >
-                            <Stethoscope className="w-4 h-4" />
+                            <Stethoscope className="w-3.5 h-3.5" />
                             <span>Diagnostics</span>
                           </Link>
                           {PROGRAM_SOURCE_TYPES.has(item.sourceType) && (
                             <button
                               onClick={() => setDependencyModalScreenId(item.id)}
-                              className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
+                              className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] hover:bg-slate-100 transition-colors"
                               title="View copybook dependency diagnostics"
                             >
-                              <GitBranch className="w-4 h-4" />
+                              <GitBranch className="w-3.5 h-3.5" />
                               <span className="hidden sm:inline">Dependencies</span>
                             </button>
                           )}
@@ -521,58 +491,57 @@ setDeleteError(null);
                         <>
                           <Link
                             to={ROUTES.PROJECTS.MAPPING(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] bg-[#F7F9FC] px-2.5 py-1.5 rounded-lg border border-[#D9E2EC] transition-colors"
                             title="Inspect Field Mapping"
                           >
-                            <Code2 className="w-4 h-4" />
+                            <Code2 className="w-3.5 h-3.5" />
                             <span>Mapping</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.CONVERT(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-100 bg-[#E8F1FF] px-2.5 py-1 rounded-md transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-50 bg-[#E8F1FF] px-2.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
                             title="Algorithm Conversion Engine"
                           >
-                            <Play className="w-4 h-4" />
+                            <Play className="w-3.5 h-3.5" />
                             <span>Convert</span>
                           </Link>
 
                           <Link
                             to={ROUTES.PROJECTS.RESULT(projectId, item.id)}
-                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1 rounded-md transition-colors"
+                            className="inline-flex items-center space-x-1 text-xs text-emerald-700 font-semibold hover:bg-emerald-100 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition-colors"
                             title="View Modernized Output"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5" />
                             <span>Result</span>
                           </Link>
                         </>
                       )}
                       <button
                         type="button"
-                        aria-label={`Delete ${item.name}`}
                         onClick={(e) => { e.stopPropagation(); setDeleteTarget(item); }}
-                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 px-2 py-1 rounded-md transition-colors"
+                        className="inline-flex items-center space-x-1 text-xs text-rose-600 font-semibold hover:bg-rose-100 bg-rose-50 px-2 py-1.5 rounded-lg border border-rose-200 transition-colors"
                         title="Delete this screen"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </td>
                 </tr>
-              )))}
+              ))}
             </tbody>
           </table>
-      </div>
+        </div>
 
-      {/* Standalone Pagination Footer outside table card */}
-      <div className="px-2 pt-3 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-600 font-medium">
+        {/* Server-Side Style Pagination Footer */}
+        <div className="bg-[#F7F9FC] px-4 py-3 border-t border-[#D9E2EC] flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-[#6B778C] font-medium">
           <div className="flex items-center space-x-3">
             <span>
               Showing {totalCount === 0 ? 0 : startIndex + 1}–{Math.min(startIndex + pageSize, totalCount)} of {totalCount}{' '}
               {activeTab === 'screens' ? 'legacy screens' : 'COBOL programs'}
             </span>
             <div className="flex items-center space-x-1.5">
-              <span className="text-xs text-slate-600 font-medium">Per page:</span>
+              <span className="text-[11px] text-[#42526E]">Per page:</span>
               <select
                 value={pageSize}
                 onChange={(e) => {
@@ -626,6 +595,7 @@ setDeleteError(null);
             </div>
           )}
         </div>
+      </div>
 
       <Modal isOpen={bulkConfirmOpen} onClose={closeBulkConfirm} title="Bulk Convert" maxWidth="md">
         <div className="p-6 space-y-4">
@@ -682,13 +652,13 @@ setDeleteError(null);
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] transition-opacity"
             onClick={() => !isDeleting && setDeleteTarget(null)}
           />
-          <div className="relative bg-white rounded-xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-auto space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 w-full max-w-md mx-auto space-y-4 z-10 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center space-x-3">
               <div className="p-2.5 bg-rose-50 rounded-xl border border-rose-200">
                 <Trash2 className="w-5 h-5 text-rose-600" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Delete {isProgramProject ? 'Program' : 'Screen'}</h3>
+                <h3 className="text-base font-bold text-slate-900">Delete Screen</h3>
                 <p className="text-xs text-slate-500 mt-0.5">This action cannot be undone.</p>
               </div>
             </div>
@@ -696,9 +666,6 @@ setDeleteError(null);
               Are you sure you want to delete <strong className="font-mono text-rose-700">{deleteTarget.name}</strong>?
               All associated conversion results and data will be permanently removed.
             </p>
-            {deleteError && (
-              <p className="text-xs text-rose-600 font-medium">{deleteError}</p>
-            )}
             <div className="flex justify-end space-x-3 pt-2">
               <Button
                 variant="outline"
@@ -713,8 +680,8 @@ setDeleteError(null);
                 isLoading={isDeleting}
                 className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold space-x-1.5"
               >
-                <Trash2 className="w-4 h-4" />
-                <span>Delete {isProgramProject ? 'Program' : 'Screen'}</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Screen</span>
               </Button>
             </div>
           </div>
