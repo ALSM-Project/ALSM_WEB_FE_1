@@ -130,7 +130,11 @@ export const AppLayoutContent: React.FC = () => {
           </div>
 
           {/* Right: Notifications, Avatar, Upgrade Button */}
-          <div className="flex items-center space-x-3 text-xs text-[#475569] shrink-0">
+<div className="flex items-center space-x-3 text-xs text-[#475569] shrink-0">
+            <Link to="/contracts" className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 font-semibold text-[#0652CC] hover:bg-[#F7F9FC]" title="My contracts">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">My contracts</span>
+            </Link>
             {/* Notifications with badge count */}
             <NotificationsBell />
 

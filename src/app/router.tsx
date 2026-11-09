@@ -6,7 +6,7 @@ import AccountSettingsLayout from '@/shared/layouts/AccountSettingsLayout';
 import { GuestRoute, ProtectedRoute, RoleGuard, PasswordCallbackPage } from './guards';
 
 // Feature Modules
-import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage, VerifyEmailPage } from '@/features/auth';
+import { LandingPage, RegisterPage, LoginPage, PasswordRecoveryPage, FaqPage, ContactPage, ResetPasswordPage, VerifyEmailPage, ProspectInvitationPage } from '@/features/auth';
 import { DocsPage, WorkspaceDocsPage } from '@/features/docs';
 
 import {
@@ -41,6 +41,7 @@ import {
 import { WorkspaceContactPage } from '@/features/contact';
 import { DiagnosticsPage } from '@/features/diagnostics';
 import { Web1WorkspacePreview } from '@/features/preview/Web1WorkspacePreview';
+
 import {
   RequestEnterprisePage,
   TrialActivationPage,
@@ -60,8 +61,10 @@ import {
   OrganizationAuditLogsPage,
 } from '@/features/organization';
 
+
 export const router = createBrowserRouter([
   { path: '/auth/password-callback', element: <PasswordCallbackPage /> },
+  { path: '/prospect-invitation', element: <ProspectInvitationPage /> },
   // Public Routes (Header & Layout for all visitors)
   {
     element: <PublicLayout />,
@@ -98,6 +101,7 @@ export const router = createBrowserRouter([
         children: [
           // PoC Workspace Main Entry Points
           { path: '/dashboard', element: <ModernizationDashboardPage /> },
+          { path: '/contracts', element: <CustomerContractsPage /> },
           { path: '/workspace-preview', element: <Web1WorkspacePreview /> },
           { path: '/workspace/docs', element: <WorkspaceDocsPage /> },
 

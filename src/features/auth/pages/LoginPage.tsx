@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+
 import {
   Lock,
   Mail,
@@ -10,6 +11,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useAuth, isUserStaffOrAdmin, isUserPartner, getTargetHandoffUrl } from '@/app/providers';
+
 import { ROUTES } from '@/shared/constants/routes';
 import { ApiError } from '@/services/api/apiError';
 import logo from '@/assets/logo.png';
@@ -177,6 +179,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const user = await login({ email: email.trim(), password });
+
       if (user) {
         const handoff = getTargetHandoffUrl(user);
         if (handoff || isUserStaffOrAdmin(user) || isUserPartner(user) || user.hasWeb3Access) {
@@ -188,8 +191,9 @@ export const LoginPage: React.FC = () => {
           setIsRedirecting(true);
           return;
         }
+
         navigate(getRedirectTarget(), { replace: true });
-      } else {
+      } else if (!user) {
         setError('Unable to retrieve account information. Please try again.');
       }
     } catch (err: any) {
@@ -210,6 +214,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       const user = await loginWithGoogle(idToken);
+
       if (user) {
         if (user.email) {
           persistRememberMeCredentials(user.email);
@@ -224,8 +229,9 @@ export const LoginPage: React.FC = () => {
           setIsRedirecting(true);
           return;
         }
+
         navigate(getRedirectTarget(), { replace: true });
-      } else {
+      } else if (!user) {
         setError('Google sign-in failed. Please try again.');
       }
     } catch (err) {

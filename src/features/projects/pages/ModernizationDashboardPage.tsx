@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+
 import {
   Plus,
   RefreshCw,
@@ -9,6 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
+
 import { ROUTES } from '@/shared/constants/routes';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { projectService } from '../services/project.service';
@@ -444,6 +446,7 @@ export const ModernizationDashboardPage: React.FC = () => {
             title="Click to view all projects"
             aria-label={`Total Projects: ${totalProjects}`}
           >
+
             <div>
               <span className="text-xs font-medium text-[#64748B] block">Total Projects</span>
               <span className="text-2xl sm:text-3xl font-extrabold text-[#0F172A] mt-1 font-mono tracking-tight block">
@@ -511,13 +514,16 @@ export const ModernizationDashboardPage: React.FC = () => {
               <AlertCircle className="w-4 h-4" />
             </div>
           </button>
+
         </div>
       </section>
+
 
       {/* ─── 3 & 4. MAIN CONTENT ROW (60% / 40% SPLIT) ───────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* ─── 3. RECENT PROJECTS (~60% WIDTH) ───────────────────────────────── */}
         <div className="lg:col-span-7 bg-white border border-[#E2E8F0] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
               <h2 className="text-sm sm:text-base font-bold text-[#0F172A]">Recent Projects</h2>

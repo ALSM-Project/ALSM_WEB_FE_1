@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, ShieldCheck, ArrowLeft, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { ROUTES } from '@/shared/constants/routes';
@@ -7,16 +7,20 @@ import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { ApiError } from '@/services/api/apiError';
 import { AuthLayout } from '../components/AuthLayout';
+import { prospectInvitationService } from '../services/prospectInvitation.service';
 
 export const VerifyEmailPage: React.FC = () => {
-  const { verifyEmail, resendVerification } = useAuth();
+  const { verifyEmail, resendVerification, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
 
   const emailParam = searchParams.get('email') || '';
   const tokenParam = searchParams.get('token') || '';
+  const invitationToken = new URLSearchParams(location.hash.replace(/^#/, '')).get('invite') || '';
+  const stateEmail = (location.state as { email?: string } | null)?.email || '';
 
-  const [email, setEmail] = useState(emailParam);
+  const [email, setEmail] = useState(emailParam || stateEmail);
   const [code, setCode] = useState(tokenParam);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -24,12 +28,28 @@ export const VerifyEmailPage: React.FC = () => {
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
-  // Auto-verify if token is provided in URL
+  const invitationLoginLocation = invitationToken
+    ? {
+        pathname: ROUTES.PUBLIC.LOGIN,
+        hash: `#invite=${encodeURIComponent(invitationToken)}`,
+      }
+    : ROUTES.PUBLIC.LOGIN;
+  const invitationLoginState = invitationToken
+    ? { returnTo: `/prospect-invitation#token=${encodeURIComponent(invitationToken)}` }
+    : undefined;
+
   useEffect(() => {
-    if (tokenParam && emailParam) {
-      handleVerify(tokenParam, emailParam);
-    }
-  }, [tokenParam, emailParam]);
+    if (!invitationToken || emailParam || stateEmail) return;
+    let active = true;
+    prospectInvitationService.resolve(invitationToken)
+      .then((invitation) => {
+        if (active) setEmail(invitation.recipientEmail);
+      })
+      .catch(() => {
+        if (active) setError('This invitation is no longer available. Ask the ALSM contact to send a new invitation.');
+      });
+    return () => { active = false; };
+  }, [invitationToken, emailParam, stateEmail]);
 
   // Cooldown timer for resend button
   useEffect(() => {
@@ -38,9 +58,9 @@ export const VerifyEmailPage: React.FC = () => {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  const handleVerify = async (codeToVerify?: string, emailToVerify?: string) => {
-    const finalCode = (codeToVerify || code).trim();
-    const finalEmail = (emailToVerify || email).trim();
+  const handleVerify = useCallback(async (codeToVerify: string, emailToVerify: string) => {
+    const finalCode = codeToVerify.trim();
+    const finalEmail = emailToVerify.trim();
     setError('');
     setSuccess('');
 
@@ -50,7 +70,12 @@ export const VerifyEmailPage: React.FC = () => {
     setLoading(true);
     try {
       await verifyEmail(finalEmail, finalCode);
-      setSuccess('Email verified successfully! Redirecting to dashboard...');
+      if (invitationToken) {
+        await prospectInvitationService.accept(invitationToken);
+        setSuccess('Email verified and ALSM invitation accepted. Redirecting to your workspace...');
+      } else {
+        setSuccess('Email verified successfully! Redirecting to dashboard...');
+      }
       setTimeout(() => {
         navigate(ROUTES.DASHBOARD, { replace: true });
       }, 1200);
@@ -59,11 +84,33 @@ export const VerifyEmailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [verifyEmail, invitationToken, navigate]);
+
+  // Auto-verify if token is provided in URL
+  useEffect(() => {
+    if (!tokenParam || !emailParam) return;
+    const timer = window.setTimeout(() => void handleVerify(tokenParam, emailParam), 0);
+    return () => window.clearTimeout(timer);
+  }, [tokenParam, emailParam, handleVerify]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    handleVerify();
+    void handleVerify(code, email);
+  };
+
+  const handleAcceptInvitation = async () => {
+    if (!invitationToken || loading || success) return;
+    setError('');
+    setLoading(true);
+    try {
+      await prospectInvitationService.accept(invitationToken);
+      setSuccess('ALSM invitation accepted. Redirecting to your workspace...');
+      setTimeout(() => navigate(ROUTES.DASHBOARD, { replace: true }), 1200);
+    } catch (err) {
+      setError(toErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleResend = async () => {
@@ -76,7 +123,9 @@ export const VerifyEmailPage: React.FC = () => {
     setResending(true);
     try {
       await resendVerification(finalEmail);
-      setSuccess(`A new verification email has been sent to ${finalEmail}.`);
+      setSuccess(invitationToken
+        ? `If ${finalEmail} still needs verification, a new email was requested. Already verified accounts do not receive another code; sign in below to accept the invitation.`
+        : `If ${finalEmail} still needs verification, a new verification email was requested.`);
       setCooldown(60);
     } catch (err) {
       setError(toErrorMessage(err));
@@ -90,7 +139,9 @@ export const VerifyEmailPage: React.FC = () => {
       variant="register"
       eyebrow="ENTERPRISE MODERNIZATION PLATFORM"
       headline="Verify Your Email Address"
-      description="We sent a 6-digit verification code to your email. Enter the code below to activate your account."
+      description={invitationToken
+        ? 'New accounts need email verification. If you already have an ALSM account, sign in and accept the invitation instead.'
+        : 'Enter the verification code from your email to activate your account.'}
     >
       <div className="space-y-4 h-full flex flex-col justify-between">
         <div>
@@ -99,7 +150,9 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#091E42] tracking-tight">Check Your Inbox</h2>
           <p className="text-slate-500 text-xs mt-1">
-            We sent a verification code to <span className="font-semibold text-slate-700">{email || 'your email'}</span>.
+            {invitationToken
+              ? <>A code is only sent for an unverified account. The invited email is <span className="font-semibold text-slate-700">{email || 'being checked'}</span>.</>
+              : <>A verification code was requested for <span className="font-semibold text-slate-700">{email || 'your email'}</span>.</>}
           </p>
         </div>
 
@@ -115,7 +168,28 @@ export const VerifyEmailPage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        {isAuthenticated && invitationToken && (
+          <div className="space-y-2 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm text-blue-900">Your ALSM account is signed in. Accept the invitation to finish linking it to the customer record.</p>
+            <Button type="button" className="w-full" isLoading={loading} onClick={handleAcceptInvitation}>Accept ALSM invitation</Button>
+          </div>
+        )}
+
+        {!isAuthenticated && invitationToken && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-900">
+            Already have an ALSM account?{' '}
+            <Link
+              to={invitationLoginLocation}
+              state={invitationLoginState}
+              className="font-semibold text-[#0652CC] hover:underline"
+            >
+              Sign in and accept this invitation
+            </Link>
+            . Verified accounts will not receive another verification code.
+          </div>
+        )}
+
+        {!isAuthenticated && <form onSubmit={handleSubmit} className="space-y-3">
           <Input
             label="WORK EMAIL"
             type="email"
@@ -141,7 +215,7 @@ export const VerifyEmailPage: React.FC = () => {
           >
             Verify Email & Continue
           </Button>
-        </form>
+        </form>}
 
         <div className="pt-2 border-t border-[#D9E2EC] flex flex-col items-center space-y-2 text-xs text-slate-500">
           <div className="flex items-center space-x-1">
@@ -157,8 +231,10 @@ export const VerifyEmailPage: React.FC = () => {
             </button>
           </div>
 
-          <Link to={ROUTES.PUBLIC.LOGIN} className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 font-medium text-xs pt-1">
-            <ArrowLeft className="w-4 h-4" />
+
+          <Link to={invitationLoginLocation} state={invitationLoginState} className="inline-flex items-center gap-1 text-slate-600 hover:text-slate-900 font-medium text-xs pt-1">
+            <ArrowLeft className="w-3.5 h-3.5" />
+
             Back to Sign In
           </Link>
         </div>

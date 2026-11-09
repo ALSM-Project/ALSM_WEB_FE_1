@@ -50,6 +50,7 @@ export const GuestRoute: React.FC = () => {
 
   if (isAuthenticated) {
     if (user?.mustChangePassword) return <Navigate to="/account/security/password" replace />;
+if (location.pathname === '/verify-email' && location.hash.includes('invite=')) return <Outlet />;
     const targetHandoff = getTargetHandoffUrl(user);
     if (targetHandoff) {
       redirectUserToPortal(targetHandoff);
