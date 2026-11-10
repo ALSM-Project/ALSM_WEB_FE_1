@@ -490,7 +490,7 @@ export const CustomerContractsPage: React.FC = () => {
                 onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-[#244A70] text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
@@ -554,13 +554,13 @@ export const CustomerContractsPage: React.FC = () => {
           <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
           <h3 className="text-base font-bold text-slate-900">Unable to load contract data</h3>
           <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto">{error}</p>
-          <Button size="sm" onClick={() => fetchContracts()} className="mt-4 bg-blue-600 hover:bg-blue-700 text-white">
+          <Button size="sm" onClick={() => fetchContracts()} className="mt-4 bg-[#244A70] hover:bg-[#1B3856] text-white">
             Retry
           </Button>
         </div>
       ) : filteredContracts.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-xl p-12 text-center shadow-xs">
-          <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+          <div className="w-14 h-14 bg-slate-100 text-[#244A70] rounded-2xl flex items-center justify-center mx-auto mb-3">
             <FileText className="w-7 h-7" />
           </div>
           <h3 className="text-base font-bold text-slate-900">No contracts found</h3>
@@ -571,7 +571,7 @@ export const CustomerContractsPage: React.FC = () => {
             <Button
               size="sm"
               onClick={() => navigate('/billing/upgrade')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium"
+              className="bg-[#244A70] hover:bg-[#1B3856] text-white font-medium"
             >
               Select Modernization Package
             </Button>
@@ -693,7 +693,7 @@ export const CustomerContractsPage: React.FC = () => {
                             <Button
                               size="sm"
                               onClick={() => navigate(`/contracts/${contract.id}`)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs px-3 py-1.5 shadow-xs flex items-center gap-1"
+                              className="bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold text-xs px-3 py-1.5 shadow-xs flex items-center gap-1"
                             >
                               <PenTool className="w-3.5 h-3.5" />
                               <span>Review & Sign</span>
@@ -782,7 +782,7 @@ export const CustomerContractsPage: React.FC = () => {
                       <Button
                         size="sm"
                         onClick={() => navigate(`/contracts/${contract.id}`)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex-1 flex items-center justify-center gap-1"
+                        className="bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold text-xs flex-1 flex items-center justify-center gap-1"
                       >
                         <PenTool className="w-3.5 h-3.5" />
                         <span>Review & Sign</span>

@@ -139,7 +139,7 @@ export const WorkspaceContactPage: React.FC = () => {
                 rows={3}
                 required
                 minLength={10}
-                className="w-full text-xs p-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC] focus:border-transparent text-[#091E42]"
+                className="w-full text-xs p-3 border border-slate-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70] focus:border-transparent text-[#091E42]"
               />
               {appealError && <p className="text-xs text-rose-600 font-medium">{appealError}</p>}
               <div className="flex items-center space-x-3">
@@ -257,9 +257,9 @@ export const WorkspaceContactPage: React.FC = () => {
                   size="sm"
                   variant="outline"
                   onClick={handleOpenChat}
-                  className="shrink-0 text-[#0652CC] border-[#0652CC]/30 hover:border-[#0652CC] hover:bg-blue-50/50"
+                  className="shrink-0 text-[#244A70] border-[#244A70]/30 hover:border-[#244A70] hover:bg-[#EEF1F6]"
                 >
-                  <MessageSquare className="w-3.5 h-3.5 mr-1.5 text-[#0652CC]" />
+                  <MessageSquare className="w-3.5 h-3.5 mr-1.5 text-[#244A70]" />
                   Discuss Additional Capacity
                 </Button>
               </div>
@@ -278,9 +278,9 @@ export const WorkspaceContactPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 w-full">
           {/* 1. Sales & Service */}
-          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#0652CC]/50 hover:shadow-sm transition-all bg-white">
+          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#244A70]/50 hover:shadow-sm transition-all bg-white">
             <div className="space-y-3.5">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#0652CC] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#244A70] flex items-center justify-center">
                 <Building2 className="w-5 h-5" />
               </div>
               <div className="space-y-1.5">
@@ -303,7 +303,7 @@ export const WorkspaceContactPage: React.FC = () => {
           </Card>
 
           {/* 2. Technical Support */}
-          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#0652CC]/50 hover:shadow-sm transition-all bg-white">
+          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#244A70]/50 hover:shadow-sm transition-all bg-white">
             <div className="space-y-3.5">
               <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                 <Headphones className="w-5 h-5" />
@@ -328,7 +328,7 @@ export const WorkspaceContactPage: React.FC = () => {
           </Card>
 
           {/* 3. Custom Modernization */}
-          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#0652CC]/50 hover:shadow-sm transition-all bg-white">
+          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#244A70]/50 hover:shadow-sm transition-all bg-white">
             <div className="space-y-3.5">
               <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
                 <Code2 className="w-5 h-5" />
@@ -353,7 +353,7 @@ export const WorkspaceContactPage: React.FC = () => {
           </Card>
 
           {/* 4. Live Chat */}
-          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#0652CC]/50 hover:shadow-sm transition-all bg-white">
+          <Card className="flex flex-col justify-between h-full p-6 border border-slate-200 shadow-xs hover:border-[#244A70]/50 hover:shadow-sm transition-all bg-white">
             <div className="space-y-3.5">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <MessageSquare className="w-5 h-5" />
@@ -394,7 +394,7 @@ export const WorkspaceContactPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
           <Card className="p-6 border border-slate-200 bg-white space-y-3 h-full shadow-xs">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#0652CC] flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#244A70] flex items-center justify-center">
               <Zap className="w-4.5 h-4.5" />
             </div>
             <h3 className="font-bold text-sm text-[#091E42]">Capacity Limit Scaling</h3>
@@ -447,7 +447,7 @@ export const WorkspaceContactPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('/workspace/docs')}
-            className="inline-flex items-center space-x-1.5 text-xs font-semibold text-[#0652CC] hover:text-[#0655FF] transition-colors cursor-pointer"
+            className="inline-flex items-center space-x-1.5 text-xs font-semibold text-[#244A70] hover:text-[#1B3856] transition-colors cursor-pointer"
           >
             <span>View Architecture Documentation</span>
             <ArrowRight className="w-3.5 h-3.5" />
