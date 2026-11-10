@@ -210,7 +210,7 @@ export const VerifyEmailPage: React.FC = () => {
 
           <Button
             type="submit"
-            className="w-full py-2.5 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm mt-2"
+            className="w-full py-2.5 bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm mt-2"
             isLoading={loading}
           >
             Verify Email & Continue

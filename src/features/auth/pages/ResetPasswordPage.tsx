@@ -58,7 +58,7 @@ export const ResetPasswordPage: React.FC = () => {
             <p className="text-slate-500 text-sm mt-1">You can now sign in with your new password.</p>
           </div>
           <Link to={ROUTES.PUBLIC.LOGIN}>
-            <Button className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm">
+            <Button className="w-full py-3 bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm">
               Sign In Now
             </Button>
           </Link>
@@ -142,7 +142,7 @@ export const ResetPasswordPage: React.FC = () => {
 
           <Button 
             type="submit" 
-            className="w-full py-3 bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm" 
+            className="w-full py-3 bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold rounded-xl text-sm transition-colors shadow-sm" 
             isLoading={loading}
           >
             Update Password
