@@ -54,7 +54,7 @@ export const ContractPreviewPage: React.FC = () => {
         </div>
         <h2 className="text-xl font-bold text-slate-900 mb-2">Contract Does Not Exist</h2>
         <p className="text-sm text-slate-600 mb-6">{error || 'Contract data not found.'}</p>
-        <Button onClick={() => navigate('/contracts')} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={() => navigate('/contracts')} className="bg-[#244A70] hover:bg-[#1B3856] text-white">
           Back to Contracts List
         </Button>
       </div>
@@ -93,7 +93,7 @@ export const ContractPreviewPage: React.FC = () => {
           </Button>
           <Button
             onClick={() => navigate(`/contracts/${contractId}`)}
-            className="text-xs px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            className="text-xs px-3.5 py-2 bg-[#244A70] hover:bg-[#1B3856] text-white font-bold"
           >
             <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
             Sign / Pay Contract

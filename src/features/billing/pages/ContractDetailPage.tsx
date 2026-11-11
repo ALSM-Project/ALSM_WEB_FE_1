@@ -358,7 +358,7 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
         </div>
         <h2 className="text-xl font-bold text-slate-900 mb-2">Contract Not Found</h2>
         <p className="text-sm text-slate-600 mb-6">{error || 'This contract does not exist or you do not have permission to view it.'}</p>
-        <Button onClick={() => navigate('/contracts')} className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={() => navigate('/contracts')} className="bg-[#244A70] hover:bg-[#1B3856] text-white">
           Back to Contracts
         </Button>
       </div>
@@ -542,7 +542,7 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
         <div className="flex flex-wrap items-center gap-2.5">
           <Button
             onClick={() => setShowPreviewModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs transition"
+            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-[#244A70] hover:bg-[#1B3856] rounded-xl shadow-xs transition"
           >
             <Eye className="w-4 h-4" />
             Preview Contract
@@ -680,7 +680,7 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
           </div>
           <Button
             onClick={() => setShowPreviewModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs whitespace-nowrap"
+            className="bg-[#244A70] hover:bg-[#1B3856] text-white font-bold text-xs whitespace-nowrap"
           >
             <Eye className="w-3.5 h-3.5 mr-1.5" />
             Preview Full Contract Agreement
@@ -1010,7 +1010,7 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
                 <Button
                   type="submit"
                   disabled={signingLoading || !termsAgreed || !hasDrawn}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl shadow-xs disabled:opacity-50"
+                  className="w-full bg-[#244A70] hover:bg-[#1B3856] text-white font-bold py-2.5 rounded-xl shadow-xs disabled:opacity-50"
                 >
                   {signingLoading ? 'Executing SHA-256 Digital Signature...' : 'Sign Contract & Generate Payment QR Code'}
                 </Button>

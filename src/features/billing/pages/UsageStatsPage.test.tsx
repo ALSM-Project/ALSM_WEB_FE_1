@@ -130,6 +130,29 @@ describe('UsageStatsPage (UC-35)', () => {
     expect(screen.getAllByText('Unlimited').length).toBeGreaterThan(0);
   });
 
+  it('renders Trial plan badge and shows upgrade button with active trial quota text', () => {
+    mockUseUsageStats.mockReturnValue({
+      data: {
+        plan: { tier: 'TRIAL', name: 'Trial' },
+        screens: { used: 3, max: 20 },
+        projects: { used: 2, max: 10 },
+        storage: { usedGb: 0, maxGb: 5 },
+        monthlyConversions: [],
+      },
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+      refetch: vi.fn(),
+    } as any);
+
+    renderComponent();
+
+    expect(screen.getByText('Trial')).toBeInTheDocument();
+    expect(screen.getByText('TRIAL')).toBeInTheDocument();
+    expect(screen.getByText('Active trial quota configured by administrator')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Upgrade Plan/i })).toBeInTheDocument();
+  });
+
   it('renders monthly conversions activity section with data', () => {
     mockUseUsageStats.mockReturnValue({
       data: {

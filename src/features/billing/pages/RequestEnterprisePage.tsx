@@ -602,7 +602,7 @@ export const RequestEnterprisePage: React.FC = () => {
             <Button
               onClick={() => handleGenerateContract('GROWTH')}
               disabled={generatingTier !== null}
-              className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs"
+              className="mt-5 w-full bg-[#244A70] hover:bg-[#1B3856] text-white font-bold text-xs py-2.5 rounded-xl shadow-xs"
             >
               {generatingTier === 'GROWTH' ? (
                 <span className="flex items-center justify-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Generating Contract...</span>
@@ -718,7 +718,7 @@ export const RequestEnterprisePage: React.FC = () => {
               <div className="pt-2 flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={() => navigate(ROUTES.DASHBOARD)}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold rounded-xl text-sm"
                 >
                   Return to Dashboard
                 </Button>

@@ -199,11 +199,17 @@ export const UsageStatsPage: React.FC = () => {
   }
 
   const { plan, screens, projects, storage, monthlyConversions } = data;
+  const isTrial =
+    plan.tier?.toUpperCase() === 'TRIAL' ||
+    plan.name?.toLowerCase().includes('trial');
+  const isEnterprise = !isTrial && plan.tier?.toUpperCase() === 'ENTERPRISE';
+  const displayTier = isTrial ? 'TRIAL' : plan.tier?.toUpperCase();
+  const displayName = isTrial && !plan.name?.toLowerCase().includes('trial') ? 'Trial' : plan.name;
+
   const programs = data.programs || {
     used: 0,
-    max: plan.tier?.toUpperCase() === 'TRIAL' ? 5 : plan.tier?.toUpperCase() === 'ENTERPRISE' ? -1 : 50,
+    max: isTrial ? 10 : isEnterprise ? -1 : 50,
   };
-  const isEnterprise = plan.tier?.toUpperCase() === 'ENTERPRISE';
   const hasQuotaWarning = (!isEnterprise) && (
     (screens.max !== -1 && screens.used >= screens.max) ||
     (programs.max !== -1 && programs.used >= programs.max) ||
@@ -238,15 +244,15 @@ export const UsageStatsPage: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-slate-900">{plan.name}</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getPlanBadgeClass(plan.tier)}`}>
-                {plan.tier?.toUpperCase()}
+              <span className="text-sm font-bold text-slate-900">{displayName}</span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getPlanBadgeClass(displayTier)}`}>
+                {displayTier}
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
               {isEnterprise
-                ? 'Unlimited resources — Enterprise plan'
-                : plan.tier?.toUpperCase() === 'TRIAL'
+                ? (screens.max === -1 ? 'Unlimited resources — Enterprise plan' : 'Contracted enterprise quota')
+                : isTrial
                 ? 'Active trial quota configured by administrator'
                 : 'Current active subscription plan'}
             </p>
@@ -256,7 +262,7 @@ export const UsageStatsPage: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0652CC] text-white text-xs font-bold hover:bg-[#0448b3] transition-colors shadow-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#244A70] text-white text-xs font-bold hover:bg-[#1B3856] transition-colors shadow-sm"
           >
             <Zap className="w-4 h-4" />
             Upgrade Plan

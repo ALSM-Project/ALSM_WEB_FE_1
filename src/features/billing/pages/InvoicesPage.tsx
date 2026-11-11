@@ -178,7 +178,7 @@ export const InvoicesPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5EAF0] pb-5">
         <div>
           <h1 className="text-2xl font-extrabold text-[#091E42] tracking-tight flex items-center gap-2.5">
-            <FileText className="w-7 h-7 text-[#0652CC]" />
+            <FileText className="w-7 h-7 text-[#244A70]" />
             Invoices & Billing History
           </h1>
           <p className="text-sm text-[#6B778C] mt-1">
@@ -193,7 +193,7 @@ export const InvoicesPage: React.FC = () => {
             disabled={loading}
             className="flex items-center gap-1.5 text-xs text-[#091E42] border-[#D9E2EC] hover:bg-[#F7F9FC]"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#0652CC]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#244A70]' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -210,7 +210,7 @@ export const InvoicesPage: React.FC = () => {
               </h3>
               <p className="text-[11px] text-[#6B778C] mt-0.5">Lifetime statements across all periods</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-[#E8F1FF] flex items-center justify-center text-[#0652CC]">
+            <div className="w-12 h-12 rounded-xl bg-[#F0F4F8] border border-[#DCE3EC] flex items-center justify-center text-[#244A70]">
               <DollarSign className="w-6 h-6" />
             </div>
           </div>
@@ -271,8 +271,8 @@ export const InvoicesPage: React.FC = () => {
                 onClick={() => setStatusFilter(st)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   statusFilter === st
-                    ? 'bg-[#0652CC] text-white shadow-2xs'
-                    : 'bg-[#F7F9FC] text-[#42526E] hover:bg-[#E8F1FF] hover:text-[#0652CC] border border-[#E5EAF0]'
+                    ? 'bg-[#244A70] text-white shadow-2xs'
+                    : 'bg-[#F7F9FC] text-[#42526E] hover:bg-[#F0F4F8] hover:text-[#244A70] border border-[#E5EAF0]'
                 }`}
               >
                 {st === 'ALL' ? 'All Invoices' : st.charAt(0) + st.slice(1).toLowerCase()}
@@ -286,7 +286,7 @@ export const InvoicesPage: React.FC = () => {
       <Card variant="default" padding="none" className="border-[#E5EAF0] bg-white shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-20 flex flex-col items-center justify-center text-center">
-            <RefreshCw className="w-8 h-8 text-[#0652CC] animate-spin mb-3" />
+            <RefreshCw className="w-8 h-8 text-[#244A70] animate-spin mb-3" />
             <p className="text-sm font-semibold text-[#091E42]">Loading invoice records...</p>
             <p className="text-xs text-[#6B778C] mt-1">Fetching billing data from verified backend</p>
           </div>
@@ -341,7 +341,7 @@ export const InvoicesPage: React.FC = () => {
                     >
                       <td className="py-3.5 px-4 font-bold text-[#091E42]">
                         <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-[#0652CC] shrink-0" />
+                          <FileText className="w-4 h-4 text-[#244A70] shrink-0" />
                           <span>{invNum}</span>
                         </div>
                       </td>
@@ -357,7 +357,7 @@ export const InvoicesPage: React.FC = () => {
                       <td className="py-3.5 px-4 text-[#091E42] max-w-xs truncate font-medium">
                         <span>{firstItem}</span>
                         {moreItemsCount > 0 && (
-                          <span className="ml-1.5 text-[10px] bg-[#E8F1FF] text-[#0652CC] font-bold px-1.5 py-0.5 rounded">
+                          <span className="ml-1.5 text-[10px] bg-[#F0F4F8] text-[#244A70] border border-[#DCE3EC] font-bold px-1.5 py-0.5 rounded">
                             +{moreItemsCount} more
                           </span>
                         )}
@@ -387,7 +387,7 @@ export const InvoicesPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setSelectedInvoice(inv)}
-                            className="p-1.5 text-[#42526E] hover:text-[#0652CC] hover:bg-[#E8F1FF] rounded-lg transition-colors"
+                            className="p-1.5 text-[#42526E] hover:text-[#244A70] hover:bg-[#F0F4F8] rounded-lg transition-colors"
                             title="View Itemized Breakdown"
                           >
                             <Eye className="w-4 h-4" />
@@ -396,7 +396,7 @@ export const InvoicesPage: React.FC = () => {
                             type="button"
                             onClick={() => handleDownloadPdf(inv)}
                             disabled={downloadingId === inv.id}
-                            className="p-1.5 text-[#0652CC] hover:bg-[#E8F1FF] rounded-lg transition-colors disabled:opacity-50"
+                            className="p-1.5 text-[#244A70] hover:bg-[#F0F4F8] rounded-lg transition-colors disabled:opacity-50"
                             title="Download Official Receipt PDF"
                           >
                             {downloadingId === inv.id ? (
@@ -429,14 +429,14 @@ export const InvoicesPage: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#F7F9FC] p-4 rounded-xl border border-[#E5EAF0]">
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-[#6B778C]">
-                  <Building className="w-4 h-4 text-[#0652CC]" />
+                  <Building className="w-4 h-4 text-[#244A70]" />
                   <span className="font-semibold text-[#091E42]">
                     {selectedInvoice.organizationName || 'ALSM Enterprise Client'}
                   </span>
                 </div>
                 {selectedInvoice.customerEmail && (
                   <div className="flex items-center gap-2 text-[#6B778C]">
-                    <Mail className="w-4 h-4 text-[#0652CC]" />
+                    <Mail className="w-4 h-4 text-[#244A70]" />
                     <span>{selectedInvoice.customerEmail}</span>
                   </div>
                 )}
@@ -533,7 +533,7 @@ export const InvoicesPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-sm font-extrabold text-[#091E42] border-t border-[#E5EAF0] pt-2">
                   <span>Grand Total:</span>
-                  <span className="text-[#0652CC]">
+                  <span className="text-[#244A70]">
                     {formatCurrency(selectedInvoice.amount, selectedInvoice.currency)}
                   </span>
                 </div>
@@ -571,7 +571,7 @@ export const InvoicesPage: React.FC = () => {
                   size="sm"
                   onClick={() => handleDownloadPdf(selectedInvoice)}
                   disabled={downloadingId === selectedInvoice.id}
-                  className="flex items-center gap-2 text-xs bg-[#0652CC] hover:bg-[#0655FF] text-white"
+                  className="flex items-center gap-2 text-xs bg-[#244A70] hover:bg-[#1B3856] text-white"
                 >
                   {downloadingId === selectedInvoice.id ? (
                     <RefreshCw className="w-4 h-4 animate-spin" />

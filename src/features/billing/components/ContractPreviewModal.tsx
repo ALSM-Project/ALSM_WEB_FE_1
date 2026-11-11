@@ -362,7 +362,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
             <Button
               size="sm"
               onClick={() => setShowSignDialog(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs h-8 shadow-xs"
+              className="bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold text-xs h-8 shadow-xs"
             >
               <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
               Sign Contract Now
@@ -595,7 +595,7 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
                 <Button
                   type="submit"
                   disabled={signingLoading || !termsAgreed}
-                  className="h-10 sm:h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 rounded-xl shadow-md cursor-pointer"
+                  className="h-10 sm:h-11 bg-[#244A70] hover:bg-[#1B3856] text-white font-bold text-sm px-6 rounded-xl shadow-md cursor-pointer"
                 >
                   {signingLoading ? (
                     'Signing Digitally...'

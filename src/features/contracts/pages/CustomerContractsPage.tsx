@@ -382,7 +382,7 @@ export const CustomerContractsPage: React.FC = () => {
                           <Download className="h-4 w-4" /> {downloadLoading ? 'Preparing PDF…' : 'Download review copy PDF'}
                         </button>
                         {selected.demoSigningAvailable && (
-                          <button type="button" onClick={() => void startDemoSigning()} disabled={demoSigningLoading} className="mt-3 rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">
+                          <button type="button" onClick={() => void startDemoSigning()} disabled={demoSigningLoading} className="mt-3 rounded-lg bg-[#244A70] hover:bg-[#1B3856] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 shadow-xs">
                             {demoSigningLoading ? 'Starting demo…' : 'Start demo signing'}
                           </button>
                         )}
