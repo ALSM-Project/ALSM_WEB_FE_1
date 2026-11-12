@@ -23,7 +23,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [conversionType, setConversionType] = useState<ConversionType>('BMS_DSPF_TO_FRONTEND');
+  const [conversionType, setConversionType] = useState<ConversionType>('BMS_DSPF_TO_REACT');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +32,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     if (isOpen) {
       setName('');
       setDescription('');
-      setConversionType('BMS_DSPF_TO_FRONTEND');
+      setConversionType('BMS_DSPF_TO_REACT');
       setError('');
       document.body.style.overflow = 'hidden';
     } else {
@@ -133,11 +133,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div
-                onClick={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
+                onClick={() => setConversionType('BMS_DSPF_TO_REACT')}
                 className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                  conversionType === 'BMS_DSPF_TO_FRONTEND'
-                    ? 'bg-blue-50/60 border-[#0652CC] ring-2 ring-[#0652CC]/20'
-                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/40'
+                  conversionType === 'BMS_DSPF_TO_REACT' || conversionType === 'BMS_DSPF_TO_FRONTEND'
+                    ? 'bg-[#F0F4F8] border-[#244A70] ring-2 ring-[#244A70]/20'
+                    : 'bg-white border-[#D9E2EC] hover:border-[#244A70]/40'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -150,9 +150,9 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   <input
                     type="radio"
                     name="conversionType"
-                    checked={conversionType === 'BMS_DSPF_TO_FRONTEND'}
-                    onChange={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
-                    className="mt-0.5 text-[#0652CC] focus:ring-[#0652CC]"
+                    checked={conversionType === 'BMS_DSPF_TO_REACT' || conversionType === 'BMS_DSPF_TO_FRONTEND'}
+                    onChange={() => setConversionType('BMS_DSPF_TO_REACT')}
+                    className="mt-0.5 text-[#244A70] focus:ring-[#244A70]"
                   />
                 </div>
               </div>
@@ -161,8 +161,8 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 onClick={() => setConversionType('COBOL_TO_JAVA')}
                 className={`p-3 rounded-xl border cursor-pointer transition-all ${
                   conversionType === 'COBOL_TO_JAVA'
-                    ? 'bg-blue-50/60 border-[#0652CC] ring-2 ring-[#0652CC]/20'
-                    : 'bg-white border-[#D9E2EC] hover:border-[#0652CC]/40'
+                    ? 'bg-[#F0F4F8] border-[#244A70] ring-2 ring-[#244A70]/20'
+                    : 'bg-white border-[#D9E2EC] hover:border-[#244A70]/40'
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -177,7 +177,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                     name="conversionType"
                     checked={conversionType === 'COBOL_TO_JAVA'}
                     onChange={() => setConversionType('COBOL_TO_JAVA')}
-                    className="mt-0.5 text-[#0652CC] focus:ring-[#0652CC]"
+                    className="mt-0.5 text-[#244A70] focus:ring-[#244A70]"
                   />
                 </div>
               </div>
@@ -193,7 +193,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               placeholder="Briefly describe the scope of this modernization effort..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] rounded-xl p-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0652CC]/20 focus:border-[#0652CC] transition-all placeholder:text-[#6B778C]"
+              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] rounded-xl p-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#244A70]/20 focus:border-[#244A70] transition-all placeholder:text-[#6B778C]"
             />
           </div>
 
@@ -210,7 +210,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <Button
               type="submit"
               isLoading={loading}
-              className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs px-5 py-2 font-bold shadow-xs space-x-1.5"
+              className="bg-[#244A70] hover:bg-[#1B3856] text-white text-xs px-5 py-2 font-bold shadow-xs space-x-1.5"
             >
               <Plus className="w-4 h-4" />
               <span>Create Project</span>
