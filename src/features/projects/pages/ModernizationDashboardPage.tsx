@@ -22,6 +22,7 @@ import type { LegacyScreen } from '@/features/screens/types/screen';
 import type { UsageStatistics } from '@/features/billing/types/billing';
 
 const CONVERSION_TYPE_LABELS: Record<string, string> = {
+  BMS_DSPF_TO_REACT: 'BMS/DSPF → React',
   BMS_DSPF_TO_FRONTEND: 'BMS/DSPF → React',
   COBOL_TO_JAVA: 'COBOL → Java',
 };
@@ -204,14 +205,15 @@ export const ModernizationDashboardPage: React.FC = () => {
   const contractStatusInfo = useMemo(() => {
     if (!latestContract) {
       return {
-        label: 'Active',
+        hasContract: false,
+        label: 'No Active Contract',
         badge: (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            Active
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+            No Active Contract
           </span>
         ),
-        reference: 'ALSM-CTR-2026-89AA',
-        expiration: 'Nov 7, 2027',
+        reference: 'None',
+        expiration: 'N/A',
       };
     }
 
@@ -255,13 +257,13 @@ export const ModernizationDashboardPage: React.FC = () => {
       );
     }
 
-    const reference = latestContract.contractNumber || latestContract.id || 'ALSM-CTR-2026-89AA';
+    const reference = latestContract.contractNumber || latestContract.id || 'N/A';
     const expiration =
       latestContract.expirationDate || latestContract.endDate
         ? formatDate(latestContract.expirationDate || latestContract.endDate)
         : 'Continuous';
 
-    return { label, badge, reference, expiration };
+    return { hasContract: true, label, badge, reference, expiration };
   }, [latestContract]);
 
   // ─── 3. Action Required Items (Genuine Customer Actions Only) ──────────────
@@ -427,7 +429,7 @@ export const ModernizationDashboardPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-lg transition-colors cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-[#244A70] hover:bg-[#1B3856] rounded-lg transition-colors cursor-pointer shadow-xs"
           >
             <Plus className="w-4 h-4" />
             <span>Create Project</span>
@@ -546,7 +548,7 @@ export const ModernizationDashboardPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(true)}
-                  className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 bg-[#2563EB] text-white text-xs font-semibold rounded-lg hover:bg-[#1D4ED8] transition-colors"
+                  className="mt-2 inline-flex items-center gap-1 px-3 py-1.5 bg-[#244A70] text-white text-xs font-semibold rounded-lg hover:bg-[#1B3856] transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Create Project</span>
@@ -620,6 +622,11 @@ export const ModernizationDashboardPage: React.FC = () => {
                   {contractStatusInfo.expiration}
                 </span>
               </div>
+              {!contractStatusInfo.hasContract && (
+                <div className="pt-1.5 text-xs text-slate-500 border-t border-slate-200">
+                  You are currently using the default self-service workspace. No binding enterprise agreement on file.
+                </div>
+              )}
             </div>
 
             {/* Usage Quota Progress Bars */}
@@ -634,7 +641,7 @@ export const ModernizationDashboardPage: React.FC = () => {
                 </div>
                 <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#2563EB] rounded-full transition-all duration-300"
+                    className="h-full bg-[#244A70] rounded-full transition-all duration-300"
                     style={{ width: `${Math.min(100, Math.max(0, screensUsagePct))}%` }}
                   />
                 </div>

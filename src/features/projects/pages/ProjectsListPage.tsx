@@ -8,11 +8,13 @@ import { EditProjectModal } from '../components/EditProjectModal';
 import { projectService } from '../services/project.service';
 import type { Project } from '../types/project';
 
-const LEGACY_TYPE_LABEL: Record<Project['conversionType'], string> = {
+const LEGACY_TYPE_LABEL: Record<string, string> = {
+  BMS_DSPF_TO_REACT: 'BMS / DSPF',
   BMS_DSPF_TO_FRONTEND: 'BMS / DSPF',
   COBOL_TO_JAVA: 'COBOL',
 };
-const TARGET_FRAMEWORK_LABEL: Record<Project['conversionType'], string> = {
+const TARGET_FRAMEWORK_LABEL: Record<string, string> = {
+  BMS_DSPF_TO_REACT: 'React 19 + TypeScript',
   BMS_DSPF_TO_FRONTEND: 'React 19 + TypeScript',
   COBOL_TO_JAVA: 'Java 21 + Spring Boot',
 };
@@ -61,7 +63,7 @@ export const ProjectsListPage: React.FC = () => {
         actions={
           <Button
             onClick={() => setIsCreateModalOpen(true)}
-            className="bg-[#0652CC] hover:bg-[#0655FF] text-white font-bold text-xs shadow-xs space-x-1.5 shrink-0"
+            className="bg-[#244A70] hover:bg-[#1B3856] text-white font-bold text-xs shadow-xs space-x-1.5 shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>Create Project</span>
@@ -78,7 +80,7 @@ export const ProjectsListPage: React.FC = () => {
             placeholder="Search projects by name, legacy system type..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0652CC] transition-colors"
+            className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#244A70] transition-colors"
           />
         </div>
 
@@ -92,7 +94,7 @@ export const ProjectsListPage: React.FC = () => {
               onClick={() => setFilterType(t)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 filterType === t
-                  ? 'bg-[#0652CC] text-white'
+                  ? 'bg-[#244A70] text-white'
                   : 'bg-[#F7F9FC] text-[#42526E] hover:bg-slate-200 border border-[#D9E2EC]'
               }`}
             >
@@ -120,17 +122,17 @@ export const ProjectsListPage: React.FC = () => {
           filteredProjects.map((p) => (
             <div
               key={p.id}
-              onClick={() => navigate(ROUTES.PROJECTS.UPLOAD(p.id))}
-              className="bg-white border border-[#D9E2EC] hover:border-[#0652CC] rounded-xl p-6 shadow-2xs hover:shadow-md transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-6 cursor-pointer group"
+              onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
+              className="bg-white border border-[#D9E2EC] hover:border-[#244A70] rounded-xl p-6 shadow-2xs hover:shadow-md transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-6 cursor-pointer group"
             >
               <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#E8F1FF] text-[#0652CC] group-hover:bg-[#0652CC] group-hover:text-white transition-colors flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[#F0F4F8] text-[#244A70] group-hover:bg-[#244A70] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-[#DCE3EC]">
                     <FolderKanban className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <h2 className="font-bold text-base text-[#091E42] group-hover:text-[#0652CC] transition-colors">{p.name}</h2>
+                      <h2 className="font-bold text-base text-[#091E42] group-hover:text-[#244A70] transition-colors">{p.name}</h2>
                       <StatusBadge status={p.status} />
                     </div>
                     {p.description && <p className="text-xs text-[#42526E] mt-0.5 line-clamp-1">{p.description}</p>}
@@ -139,7 +141,7 @@ export const ProjectsListPage: React.FC = () => {
 
                 <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
                   <span className="inline-flex items-center space-x-1.5 bg-[#F7F9FC] border border-[#D9E2EC] px-2.5 py-1 rounded-lg font-mono text-[#091E42]">
-                    <Layers className="w-4 h-4 text-[#0652CC]" />
+                    <Layers className="w-4 h-4 text-[#244A70]" />
                     <span>
                       {LEGACY_TYPE_LABEL[p.conversionType]} &rarr; {TARGET_FRAMEWORK_LABEL[p.conversionType]}
                     </span>
@@ -156,9 +158,9 @@ export const ProjectsListPage: React.FC = () => {
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(ROUTES.PROJECTS.UPLOAD(p.id));
+                    navigate(ROUTES.PROJECTS.SCREENS(p.id));
                   }}
-                  className="bg-[#0652CC] hover:bg-[#0655FF] text-white text-xs font-bold space-x-1.5 shadow-2xs"
+                  className="bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold space-x-1.5 shadow-2xs"
                 >
                   <span>Open Workspace</span>
                   <ArrowRight className="w-4 h-4" />
@@ -169,7 +171,7 @@ export const ProjectsListPage: React.FC = () => {
                     e.stopPropagation();
                     setEditingProject(p);
                   }}
-                  className="p-2 border border-[#D9E2EC] text-slate-500 hover:text-[#0652CC] hover:bg-[#E8F1FF] hover:border-[#0652CC] transition-colors rounded-xl"
+                  className="p-2 border border-[#D9E2EC] text-slate-500 hover:text-[#244A70] hover:bg-[#F0F4F8] hover:border-[#244A70] transition-colors rounded-xl"
                   title="Edit Project"
                 >
                   <Pencil className="w-4 h-4" />
@@ -191,7 +193,7 @@ export const ProjectsListPage: React.FC = () => {
 
         {!isLoading && filteredProjects.length === 0 && (
           <div className="bg-white border border-[#D9E2EC] rounded-xl p-12 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-[#E8F1FF] text-[#0652CC] mx-auto flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-[#F0F4F8] text-[#244A70] border border-[#DCE3EC] mx-auto flex items-center justify-center">
               <FolderKanban className="w-6 h-6" />
             </div>
             <h2 className="font-bold text-base text-[#091E42]">
@@ -204,7 +206,7 @@ export const ProjectsListPage: React.FC = () => {
             </p>
             <Button
               onClick={() => setIsCreateModalOpen(true)}
-              className="bg-[#0652CC] text-white text-xs font-bold space-x-1.5"
+              className="bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold space-x-1.5"
             >
               <Plus className="w-4 h-4" />
               <span>Create Project</span>
