@@ -151,4 +151,60 @@ describe('UploadSourcePage - loaded files adapted to project type', () => {
     expect(screen.queryByText('MODEL01.cbl')).not.toBeInTheDocument();
     expect(await screen.findByText(/Proceed to Screens List/i)).toBeInTheDocument();
   });
+
+  it('opens confirmation modal with Web 2 design when folder is selected and proceeds on confirm', async () => {
+    mocks.getScreens.mockResolvedValue([]);
+    mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', name: 'Acme Project', conversionType: 'COBOL_TO_JAVA' });
+    mocks.uploadSource.mockResolvedValue({
+      inputReference: 'ref-folder-1',
+      files: [{ name: 'MAIN.cbl', sizeBytes: 2048 }],
+      screens: [{ id: 'sc-1', name: 'MAIN.cbl', status: 'Ready' }],
+    });
+
+    renderPage();
+    await screen.findByText(/Proceed to Programs List/i);
+
+    const folderInput = document.getElementById('folder-upload') as HTMLInputElement;
+    expect(folderInput).toBeInTheDocument();
+
+    const file1 = new File(['IDENTIFICATION DIVISION.'], 'MAIN.cbl', { type: 'text/plain' });
+    const file2 = new File(['01 WS-DATA PIC X.'], 'COMMON.cpy', { type: 'text/plain' });
+    fireEvent.change(folderInput, { target: { files: [file1, file2] } });
+
+    // Confirmation modal should open with title "Confirm Source Upload"
+    expect(await screen.findByText('Confirm Source Upload')).toBeInTheDocument();
+    expect(screen.getByText(/Ready to upload 2/i)).toBeInTheDocument();
+    expect(screen.getByText('MAIN.cbl')).toBeInTheDocument();
+    expect(screen.getByText('COMMON.cpy')).toBeInTheDocument();
+
+    // Clicking confirm triggers upload
+    const uploadBtn = screen.getByRole('button', { name: /Upload 2 Files/i });
+    fireEvent.click(uploadBtn);
+
+    await waitFor(() => {
+      expect(mocks.uploadSource).toHaveBeenCalledWith('proj-acme', [file1, file2], expect.any(Function));
+    });
+  });
+
+  it('cancels confirmation modal without uploading when Cancel is clicked', async () => {
+    mocks.getScreens.mockResolvedValue([]);
+    mocks.getProjectById.mockResolvedValue({ id: 'proj-acme', name: 'Acme Project', conversionType: 'COBOL_TO_JAVA' });
+
+    renderPage();
+    await screen.findByText(/Proceed to Programs List/i);
+
+    const folderInput = document.getElementById('folder-upload') as HTMLInputElement;
+    const file1 = new File(['IDENTIFICATION DIVISION.'], 'MAIN.cbl', { type: 'text/plain' });
+    fireEvent.change(folderInput, { target: { files: [file1] } });
+
+    expect(await screen.findByText('Confirm Source Upload')).toBeInTheDocument();
+
+    const cancelBtn = screen.getByRole('button', { name: /Cancel/i });
+    fireEvent.click(cancelBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Confirm Source Upload')).not.toBeInTheDocument();
+    });
+    expect(mocks.uploadSource).not.toHaveBeenCalled();
+  });
 });

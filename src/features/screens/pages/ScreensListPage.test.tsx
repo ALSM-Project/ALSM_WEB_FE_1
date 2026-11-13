@@ -246,8 +246,9 @@ describe('ScreensListPage Bulk Convert button', () => {
     await tick(0);
     openProgramsTab();
     clickHeaderBulkConvert();
-    expect(screen.getByText('There are no pending COBOL programs to convert.')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Convert 0 programs/ })).toBeDisabled();
+    expect(screen.getByText('No Programs Available')).toBeInTheDocument();
+    expect(screen.getByText('All eligible COBOL programs have already been processed or are currently being converted.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Choose Programs' })).toBeInTheDocument();
   });
 
   it('on the screens tab goes to the selection page as before', async () => {

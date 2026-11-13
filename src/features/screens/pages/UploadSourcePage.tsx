@@ -4,10 +4,13 @@ import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, Fo
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import { projectService } from '@/features/projects/services/project.service';
 import type { Project } from '@/features/projects/types/project';
+import { resolveWorkspace } from '@/features/projects/utils/conversionTypeResolver';
+import { UnsupportedProjectState } from '@/features/projects/components/UnsupportedProjectState';
 import type { SourceFile } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
+import { Modal } from '@/shared/ui/Modal';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -15,28 +18,102 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 /** Source types that are uploaded and listed as programs rather than screens. */
 const PROGRAM_TYPES = new Set(['COBOL', 'RPG']);
 
+interface WebkitFileSystemEntry {
+  isFile: boolean;
+  isDirectory: boolean;
+  file: (success: (file: File) => void, error?: () => void) => void;
+  createReader: () => {
+    readEntries: (success: (entries: WebkitFileSystemEntry[]) => void, error?: () => void) => void;
+  };
+}
+
+async function extractFilesFromDataTransfer(dataTransfer: DataTransfer): Promise<File[]> {
+  const files: File[] = [];
+  const items = dataTransfer.items;
+  if (items && items.length > 0 && typeof (items[0] as unknown as { webkitGetAsEntry?: () => unknown }).webkitGetAsEntry === 'function') {
+    const entries: WebkitFileSystemEntry[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const entry = (items[i] as unknown as { webkitGetAsEntry: () => WebkitFileSystemEntry | null }).webkitGetAsEntry();
+      if (entry) entries.push(entry);
+    }
+    const readEntry = async (entry: any, currentPath = ''): Promise<void> => {
+      if (entry.isFile) {
+        await new Promise<void>((resolve) => {
+          entry.file(
+            (file: File) => {
+              const relPath = currentPath ? `${currentPath}/${file.name}` : (entry.fullPath?.replace(/^\//, '') || file.name);
+              try {
+                Object.defineProperty(file, 'webkitRelativePath', {
+                  value: relPath,
+                  writable: false,
+                  configurable: true,
+                });
+              } catch {
+                // ignore
+              }
+              files.push(file);
+              resolve();
+            },
+            () => resolve(),
+          );
+        });
+      } else if (entry.isDirectory) {
+        const reader = entry.createReader();
+        const dirPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+        const readBatch = async (): Promise<void> => {
+          const batch: any[] = await new Promise((resolve) => {
+            reader.readEntries(
+              (results: any[]) => resolve(results),
+              () => resolve([]),
+            );
+          });
+          if (batch.length > 0) {
+            for (const child of batch) {
+              await readEntry(child, dirPath);
+            }
+            await readBatch();
+          }
+        };
+        await readBatch();
+      }
+    };
+    for (const entry of entries) {
+      await readEntry(entry);
+    }
+    return files;
+  }
+  return Array.from(dataTransfer.files);
+}
+
 export const UploadSourcePage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
 
   const [project, setProject] = useState<Project | null>(null);
-    const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
+  const [projectLoading, setProjectLoading] = useState(true);
+  const [pendingUploadFiles, setPendingUploadFiles] = useState<File[] | null>(null);
+  const [uploadStats, setUploadStats] = useState<{ totalScanned: number; ignored: number } | null>(null);
+  const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
   const [programFiles, setProgramFiles] = useState<SourceFile[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const folderInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Load project details and existing uploaded source screens for this project
   React.useEffect(() => {
     let cancelled = false;
+    setProjectLoading(true);
 
     Promise.resolve(projectService.getProjectById(projectId))
       ?.then((p) => {
-        if (!cancelled && p) {
+        if (!cancelled) {
           setProject(p);
-          
+          setProjectLoading(false);
         }
       })
-      ?.catch(() => {});
+      ?.catch(() => {
+        if (!cancelled) setProjectLoading(false);
+      });
 
     Promise.resolve(conversionService.getScreens(projectId))
       ?.then((screens) => {
@@ -60,9 +137,8 @@ export const UploadSourcePage: React.FC = () => {
     };
   }, [projectId]);
 
-  const isProgramProject =
-    project?.conversionType === 'COBOL_TO_JAVA' ||
-    (programFiles.length > 0 && screenFiles.length === 0);
+  const workspace = resolveWorkspace(project?.conversionType);
+  const isProgramProject = workspace === 'PROGRAMS';
 
   const activeTab = isProgramProject ? 'programs' : 'screens';
   const files = isProgramProject ? programFiles : screenFiles;
@@ -78,35 +154,47 @@ export const UploadSourcePage: React.FC = () => {
   const [uploadLabel, setUploadLabel] = useState('');
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleFileDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    if (e.dataTransfer.files.length) void handleFiles(Array.from(e.dataTransfer.files));
+    try {
+      const extractedFiles = await extractFilesFromDataTransfer(e.dataTransfer);
+      if (extractedFiles.length > 0) {
+        void handleFiles(extractedFiles, true);
+        return;
+      }
+    } catch {
+      // fallback
+    }
+    if (e.dataTransfer.files.length) {
+      void handleFiles(Array.from(e.dataTransfer.files), true);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.length) void handleFiles(Array.from(e.target.files));
+    if (e.target.files?.length) void handleFiles(Array.from(e.target.files), false);
     // Reset so selecting the exact same file(s) again still fires onChange.
     e.target.value = '';
   };
 
-  const acceptedExtensions = activeTab === 'screens' ? ['.bms', '.dspf'] : ['.cob', '.cbl', '.cpy'];
+  const acceptedExtensions = activeTab === 'screens'
+    ? ['.bms', '.dspf', '.zip']
+    : ['.cbl', '.cob', '.cpy', '.zip'];
 
   /** Folder picks (webkitdirectory) return every file in the tree, including ones we don't
    * accept (README, .gitignore, etc.) and files nested in different subfolders (e.g. a
-   * carddemo layout with sibling cbl/ and cpy/ dirs) — only the browser-reported basename
-   * (not the subfolder path) is sent to the backend, so programs and their copybooks still
-   * land in the same upload bundle/directory regardless of which subfolder they came from. */
+   * carddemo layout with sibling cbl/ and cpy/ dirs). We filter to valid extensions,
+   * omit redundant nested zip archives, and gracefully deduplicate matching basenames. */
   const handleFolderSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = e.target.files ? Array.from(e.target.files) : [];
     e.target.value = '';
-    const matched = picked.filter((file) =>
-      acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
-    );
-    if (matched.length === 0) return;
-    if (matched.length < picked.length) {
-      console.warn(`Skipped ${picked.length - matched.length} file(s) with unsupported extension from folder upload`);
+    if (picked.length > 0) {
+      handleFiles(picked, true);
     }
-    void handleFiles(matched);
+  };
+
+  /** Directly triggers folder input click to use standard browser folder selector */
+  const handleOpenFolderPicker = () => {
+    folderInputRef.current?.click();
   };
 
   const failedRow = (file: File): SourceFile => ({
@@ -117,23 +205,86 @@ export const UploadSourcePage: React.FC = () => {
     status: 'Failed to parse',
   });
 
-  const handleFiles = (files: File[]) => {
-    // Check if any file has an unsupported extension for this project
-    const invalidFile = files.find(
-      (file) => !acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
-    );
-    if (invalidFile) {
-      setUploadError(
-        isProgramProject
-          ? 'Cannot upload BMS/DSPF screens to a COBOL → Java project. Please create a "BMS / DSPF → React" project to convert screen files.'
-          : 'Cannot upload COBOL/RPG programs to a BMS/DSPF → React project. Please create a "COBOL → Java" project to convert COBOL files.',
+  const handleFiles = (files: File[], isFromFolderOrDrop = false) => {
+    if (files.length === 0) return;
+
+    let candidateFiles = files;
+    if (isFromFolderOrDrop) {
+      // 1. Filter out unsupported noise files (.gitignore, README, docs, images, scripts)
+      candidateFiles = files.filter((file) =>
+        acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
       );
-      return;
+      if (candidateFiles.length === 0) {
+        setUploadError(
+          `No supported source files found in the selected folder. For ${isProgramProject ? 'COBOL' : 'BMS/DSPF'}, accepted extensions are: ${acceptedExtensions.join(', ')}`,
+        );
+        return;
+      }
+
+      // 2. If uncompressed source files exist, omit nested .zip archives (such as filezipcobol.zip)
+      const hasUncompressed = candidateFiles.some((f) => !f.name.toLowerCase().endsWith('.zip'));
+      if (hasUncompressed) {
+        candidateFiles = candidateFiles.filter((f) => !f.name.toLowerCase().endsWith('.zip'));
+      }
+
+      // 3. Intelligently deduplicate files with duplicate basenames across subfolders (e.g. app/cbl/ vs filezipcobol/cbl/)
+      const seenMap = new Map<string, File>();
+      for (const f of candidateFiles) {
+        const key = f.name.toLowerCase();
+        if (seenMap.has(key)) {
+          const existing = seenMap.get(key)!;
+          const currentRelPath = (f as any).webkitRelativePath || '';
+          const existingRelPath = (existing as any).webkitRelativePath || '';
+          // Prefer files under app/ or larger file size
+          if (
+            (currentRelPath.includes('/app/') && !existingRelPath.includes('/app/')) ||
+            f.size > existing.size
+          ) {
+            seenMap.set(key, f);
+          }
+          continue;
+        }
+        seenMap.set(key, f);
+      }
+      candidateFiles = Array.from(seenMap.values());
+      setUploadStats({
+        totalScanned: files.length,
+        ignored: Math.max(0, files.length - candidateFiles.length),
+      });
+      setUploadError(null);
+      setPendingUploadFiles(candidateFiles);
+    } else {
+      setUploadStats(null);
+      // Direct file selection from file input: validate extensions
+      const invalidFile = files.find(
+        (file) => !acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
+      );
+      if (invalidFile) {
+        setUploadError(
+          isProgramProject
+            ? 'Cannot upload BMS/DSPF screens to a COBOL → Java project. Please create a "BMS / DSPF → React" project to convert screen files.'
+            : 'Cannot upload COBOL/RPG programs to a BMS/DSPF → React project. Please create a "COBOL → Java" project to convert COBOL files.',
+        );
+        return;
+      }
+
+      setUploadError(null);
+      if (!isProgramProject) {
+        void handleUploadScreensSequentially(candidateFiles);
+      } else {
+        void handleUploadProgramBundle(candidateFiles);
+      }
     }
+  };
+
+  const confirmPendingUpload = () => {
+    if (!pendingUploadFiles || pendingUploadFiles.length === 0) return;
+    const filesToUpload = pendingUploadFiles;
+    setPendingUploadFiles(null);
     if (!isProgramProject) {
-      return handleUploadScreensSequentially(files);
+      return handleUploadScreensSequentially(filesToUpload);
     }
-    return handleUploadProgramBundle(files);
+    return handleUploadProgramBundle(filesToUpload);
   };
 
   const handleUploadScreensSequentially = async (files: File[]) => {
@@ -219,16 +370,35 @@ export const UploadSourcePage: React.FC = () => {
     }
   };
 
+  if (projectLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-xs text-slate-500 space-x-2">
+        <div className="w-5 h-5 border-2 border-[#244A70] border-t-transparent rounded-full animate-spin" />
+        <span>Loading project details...</span>
+      </div>
+    );
+  }
+
+  if (workspace === 'UNSUPPORTED' || !project) {
+    return (
+      <UnsupportedProjectState
+        conversionType={project?.conversionType}
+        backUrl={ROUTES.PROJECTS.LIST}
+        backLabel="Back to Projects List"
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title="Upload Source File"
-        subtitle={`Add legacy ${activeTab === 'screens' ? 'BMS/DSPF screen map' : 'COBOL/RPG program source'} files to start modernization pipeline.`}
+        title={isProgramProject ? 'Upload COBOL Source Files' : 'Upload Source File'}
+        subtitle={isProgramProject ? 'Upload COBOL programs, copybooks, and related application files to start the Java modernization pipeline.' : 'Add legacy BMS/DSPF screen map files to start modernization pipeline.'}
         actions={
           <Button
             onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}
-            className="bg-[#0652CC] hover:bg-[#0655FF] text-white space-x-1.5 text-xs font-bold shadow-xs"
+            className="bg-[#244A70] hover:bg-[#1B3856] text-white space-x-1.5 text-xs font-bold shadow-xs cursor-pointer"
           >
             <span>Proceed to {activeTab === 'screens' ? 'Screens List' : 'Programs List'}</span>
             <ArrowRight className="w-4 h-4" />
@@ -238,14 +408,42 @@ export const UploadSourcePage: React.FC = () => {
 
       {/* Modernization Step-by-Step Workflow Bar */}
       <ModernizationWorkflow
+        workflowType={workspace}
         currentStep="upload"
         completedSteps={[]}
         onStepClick={(stepId) => {
-          const firstScreenId = screenFiles[0]?.screenId || screenFiles[0]?.id || 'Screen';
-          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.SCREENS(projectId));
-          if (stepId === 'validation') navigate(ROUTES.PROJECTS.REVIEW(projectId, firstScreenId));
-          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, firstScreenId));
-          if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          if (isProgramProject) {
+            const firstProgramId = programFiles[0]?.screenId || programFiles[0]?.id;
+            if (stepId === 'upload') return;
+            if (stepId === 'analyze') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'convert' || stepId === 'conversion') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'validate' || stepId === 'validation') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'review' || stepId === 'result') {
+              if (firstProgramId) navigate(ROUTES.PROJECTS.RESULT(projectId, firstProgramId));
+              else navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            }
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          } else {
+            const firstScreenId = screenFiles[0]?.screenId || screenFiles[0]?.id;
+            if (stepId === 'upload') return;
+            if (stepId === 'mapping') {
+              if (firstScreenId) navigate(ROUTES.PROJECTS.MAPPING(projectId, firstScreenId));
+              else navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            }
+            if (stepId === 'conversion' || stepId === 'convert') {
+              if (firstScreenId) navigate(ROUTES.PROJECTS.CONVERT(projectId, firstScreenId));
+              else navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            }
+            if (stepId === 'validation' || stepId === 'validate' || stepId === 'review') {
+              if (firstScreenId) navigate(ROUTES.PROJECTS.REVIEW(projectId, firstScreenId));
+              else navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            }
+            if (stepId === 'result') {
+              if (firstScreenId) navigate(ROUTES.PROJECTS.RESULT(projectId, firstScreenId));
+              else navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            }
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          }
         }}
       />
 
@@ -253,10 +451,14 @@ export const UploadSourcePage: React.FC = () => {
       <div
         onClick={(e) => {
           const target = e.target as HTMLElement | null;
-          if (target?.closest?.('#folder-picker-btn')) {
+          if (target?.closest?.('button')) {
             return;
           }
-          document.getElementById('file-upload')?.click();
+          if (isProgramProject) {
+            void handleOpenFolderPicker();
+          } else {
+            document.getElementById('file-upload')?.click();
+          }
         }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleFileDrop}
@@ -265,7 +467,7 @@ export const UploadSourcePage: React.FC = () => {
         <input
           type="file"
           id="file-upload"
-          accept={isProgramProject ? '.cob,.cbl,.cpy' : '.bms,.dspf'}
+          accept={isProgramProject ? '.cbl,.cob,.cpy,.zip,application/zip,application/x-zip-compressed' : '.bms,.dspf,.zip,application/zip,application/x-zip-compressed'}
           onChange={handleFileSelect}
           multiple
           className="hidden"
@@ -273,42 +475,142 @@ export const UploadSourcePage: React.FC = () => {
         <input
           type="file"
           id="folder-upload"
+          ref={(node) => {
+            folderInputRef.current = node;
+            if (node) {
+              node.setAttribute('webkitdirectory', '');
+              node.setAttribute('directory', '');
+            }
+          }}
           onChange={handleFolderSelect}
           multiple
           className="hidden"
-          {...{ webkitdirectory: 'true', directory: 'true', mozdirectory: 'true' }}
         />
         <div className="w-16 h-16 rounded-full bg-brand-50 border border-brand-200 flex items-center justify-center mx-auto text-brand-600 group-hover:scale-110 transition-transform">
           <UploadCloud className="w-8 h-8" />
         </div>
         <div className="mt-4">
           <span className="text-base font-bold text-slate-900 block group-hover:text-brand-600 transition-colors">
-            Drag and drop your files here
+            {isProgramProject
+              ? 'Click to select COBOL Project Folder or drag & drop directory'
+              : 'Click to select screen map files, folder, or ZIP archive (or drag & drop)'}
           </span>
-          <p className="text-xs text-brand-600 font-semibold mt-1">
-            <span className="underline hover:text-brand-800">
-              click to browse from device
-            </span>
-            {' · '}
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-3">
             <button
               type="button"
-              id="folder-picker-btn"
               onClick={(e) => {
                 e.stopPropagation();
-                document.getElementById('folder-upload')?.click();
+                void handleOpenFolderPicker();
               }}
-              className="underline hover:text-brand-800 cursor-pointer bg-transparent border-0 p-0 text-xs font-semibold text-brand-600 inline"
+              className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-lg border border-[#244A70] bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
             >
-              select an entire folder
+              <FolderUp className="w-4 h-4 text-white" />
+              <span>{isProgramProject ? 'Select Entire COBOL Folder' : 'Select Entire Folder'}</span>
             </button>
-          </p>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                document.getElementById('file-upload')?.click();
+              }}
+              className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            >
+              <FileText className="w-4 h-4 text-slate-600" />
+              <span>Select Files or ZIP Archive</span>
+            </button>
+          </div>
         </div>
         <p className="text-xs text-slate-500 mt-4">
           {isProgramProject
-            ? 'Accepted: .cob, .cbl, .cpy — select the program(s) together with their copybooks, or select the whole application folder at once (max 50MB/file)'
-            : 'Accepted: .bms, .dspf — select or drop multiple screens at once (max 50MB/file)'}
+            ? 'Accepted: COBOL programs (.cbl, .cob), copybooks (.cpy), or a .zip archive (max 50MB/file). Subfolders and duplicates are auto-handled.'
+            : 'Accepted: .zip archive, .bms, .dspf — select or drop screens or a .zip archive (max 50MB/file)'}
         </p>
       </div>
+
+      {/* Upload Confirmation Modal */}
+      <Modal
+        isOpen={pendingUploadFiles !== null}
+        onClose={() => !isUploading && setPendingUploadFiles(null)}
+        title="Confirm Source Upload"
+        maxWidth="lg"
+      >
+        <div className="space-y-4">
+          <div className="bg-[#F8FAFC] border border-[#DCE3EC] rounded-xl p-4 flex items-start space-x-3.5 shadow-xs">
+            <div className="w-9 h-9 rounded-lg bg-[#EEF1F6] border border-[#DCE3EC] flex items-center justify-center shrink-0">
+              <UploadCloud className="w-5 h-5 text-[#244A70]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-[#17263A]">
+                {pendingUploadFiles?.length === 1 && pendingUploadFiles[0].name.toLowerCase().endsWith('.zip')
+                  ? `ZIP Archive Ready to Upload: ${pendingUploadFiles[0].name}`
+                  : `Ready to upload ${pendingUploadFiles?.length} ${isProgramProject ? 'files (programs & copybooks)' : 'screens'}`}
+              </p>
+              <p className="text-xs text-[#8491A3] mt-0.5">
+                Target Project: <span className="font-semibold text-[#17263A]">{project?.name}</span> ({isProgramProject ? 'COBOL → Java Modernization' : 'BMS/DSPF → React Modernization'})
+              </p>
+              {uploadStats && uploadStats.ignored > 0 && (
+                <div className="mt-2.5 text-xs text-[#244A70] bg-[#EEF1F6] px-3 py-1.5 rounded-lg border border-[#DCE3EC] flex items-center space-x-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    Auto-filtered: <strong className="text-[#17263A]">{pendingUploadFiles?.length}</strong> valid COBOL files selected ({uploadStats.ignored} non-source assets ignored).
+                  </span>
+                </div>
+              )}
+              {pendingUploadFiles?.length === 1 && pendingUploadFiles[0].name.toLowerCase().endsWith('.zip') && (
+                <p className="text-xs text-[#244A70] mt-2 font-medium bg-[#EEF1F6] p-2.5 rounded-lg border border-[#DCE3EC]">
+                  ALSM will automatically extract this ZIP archive, flatten subfolders (e.g. cbl/ and cpy/), and index all COBOL programs and copybooks into your modernization pipeline.
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="max-h-56 overflow-y-auto border border-[#DCE3EC] rounded-xl divide-y divide-[#DCE3EC] bg-[#F8FAFC]/40">
+            {pendingUploadFiles?.slice(0, 50).map((file, i) => (
+              <div key={i} className="flex items-center justify-between px-3.5 py-2 text-xs hover:bg-[#EEF1F6]/50 transition-colors">
+                <span className="font-mono text-[#17263A] truncate" title={(file as any).webkitRelativePath || file.name}>
+                  {(file as any).webkitRelativePath || file.name}
+                </span>
+                <span className="text-[#8491A3] font-mono shrink-0 ml-3">
+                  {(file.size / 1024).toFixed(1)} KB
+                </span>
+              </div>
+            ))}
+            {(pendingUploadFiles?.length ?? 0) > 50 && (
+              <div className="px-3.5 py-2 text-xs text-[#8491A3] font-semibold bg-[#EEF1F6] text-center">
+                + {(pendingUploadFiles?.length ?? 0) - 50} more files
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-[#DCE3EC]">
+            <span className="text-xs text-[#8491A3] font-medium">
+              Total size: <span className="font-semibold text-[#17263A]">{pendingUploadFiles ? (pendingUploadFiles.reduce((sum, f) => sum + f.size, 0) / 1024).toFixed(1) : 0} KB</span>
+            </span>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setPendingUploadFiles(null)}
+                disabled={isUploading}
+                className="text-xs font-semibold border-[#DCE3EC] text-[#17263A] hover:bg-[#EEF1F6]"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmPendingUpload}
+                isLoading={isUploading}
+                className="bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold space-x-1.5 shadow-xs"
+              >
+                <UploadCloud className="w-4 h-4" />
+                <span>
+                  {pendingUploadFiles?.length === 1 && pendingUploadFiles[0].name.toLowerCase().endsWith('.zip')
+                    ? 'Extract & Upload Archive'
+                    : `Upload ${pendingUploadFiles?.length} Files`}
+                </span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Modal>
 
       {uploadError && (
         <div className="bg-rose-50 border border-rose-200 p-4 rounded-xl text-rose-700 text-xs font-medium flex items-start space-x-3">
@@ -362,7 +664,9 @@ export const UploadSourcePage: React.FC = () => {
                 <tr
                   key={file.id}
                   onClick={() => {
-                    if (file.screenId) {
+                    if (isProgramProject) {
+                      navigate(ROUTES.PROJECTS.SCREENS(projectId));
+                    } else if (file.screenId) {
                       navigate(ROUTES.PROJECTS.CONVERT(projectId, file.screenId));
                     }
                   }}
@@ -370,8 +674,8 @@ export const UploadSourcePage: React.FC = () => {
                 >
                   <td className="py-3.5 px-4 font-mono text-xs font-bold text-[#091E42]">
                     <div className="flex items-center space-x-2.5 min-w-0">
-                      <FileText className="w-4 h-4 text-[#0652CC] flex-shrink-0" />
-                      <span className="group-hover:text-[#0652CC] group-hover:underline truncate">
+                      <FileText className="w-4 h-4 text-[#244A70] flex-shrink-0" />
+                      <span className="group-hover:text-[#244A70] group-hover:underline truncate">
                         {file.fileName}
                       </span>
                     </div>
@@ -386,18 +690,26 @@ export const UploadSourcePage: React.FC = () => {
                       {file.screenId && (
                         <>
                           <Link
-                            to={ROUTES.PROJECTS.MAPPING(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#0652CC] hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
-                            title="Inspect Field Mapping"
+                            to={
+                              isProgramProject
+                                ? ROUTES.PROJECTS.METHOD_MAPPING(projectId, file.screenId)
+                                : ROUTES.PROJECTS.MAPPING(projectId, file.screenId)
+                            }
+                            className="inline-flex items-center space-x-1 text-xs text-[#42526E] font-semibold hover:text-[#244A70] hover:bg-slate-100 px-2.5 py-1 rounded-md transition-colors"
+                            title={isProgramProject ? 'Inspect Paragraph-to-Method Mapping' : 'Inspect Field Mapping'}
                           >
                             <Code2 className="w-4 h-4" />
-                            <span>Mapping</span>
+                            <span>{isProgramProject ? 'Method Mapping' : 'Mapping'}</span>
                           </Link>
 
                           <Link
-                            to={ROUTES.PROJECTS.CONVERT(projectId, file.screenId)}
-                            className="inline-flex items-center space-x-1 text-xs text-[#0652CC] font-semibold hover:bg-blue-100 bg-[#E8F1FF] px-2.5 py-1 rounded-md transition-colors"
-                            title="Run Conversion Algorithm"
+                            to={
+                              isProgramProject
+                                ? ROUTES.PROJECTS.SCREENS(projectId)
+                                : ROUTES.PROJECTS.CONVERT(projectId, file.screenId)
+                            }
+                            className="inline-flex items-center space-x-1 text-xs text-[#244A70] font-semibold hover:bg-slate-100 bg-[#F0F4F8] px-2.5 py-1 rounded-md border border-[#DCE3EC] transition-colors"
+                            title={isProgramProject ? 'Go to Programs Modernization Pipeline' : 'Run Conversion Algorithm'}
                           >
                             <Play className="w-4 h-4" />
                             <span>Convert</span>
@@ -471,7 +783,7 @@ export const UploadSourcePage: React.FC = () => {
                   onClick={() => setCurrentPage(pageNum)}
                   className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${
                     currentPage === pageNum
-                      ? 'bg-[#0652CC] text-white shadow-2xs'
+                      ? 'bg-[#244A70] text-white shadow-2xs'
                       : 'bg-white border border-[#D9E2EC] text-[#42526E] hover:bg-slate-50'
                   }`}
                 >
@@ -508,18 +820,24 @@ export const UploadSourcePage: React.FC = () => {
           Save for Later
         </Button>
         <div className="flex space-x-3">
-          <label htmlFor="file-upload">
-            <Button type="button" variant="outline" className="space-x-1.5 cursor-pointer font-semibold">
-              <FolderPlus className="w-4 h-4 text-slate-600" />
-              <span>Add More Files</span>
-            </Button>
-          </label>
-          <label htmlFor="folder-upload">
-            <Button type="button" variant="outline" className="space-x-1.5 cursor-pointer font-semibold">
-              <FolderUp className="w-4 h-4 text-slate-600" />
-              <span>Add Folder</span>
-            </Button>
-          </label>
+          <Button
+            type="button"
+            variant="outline"
+            className="space-x-1.5 cursor-pointer font-semibold"
+            onClick={() => document.getElementById('file-upload')?.click()}
+          >
+            <FolderPlus className="w-4 h-4 text-slate-600" />
+            <span>Add More Files</span>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="space-x-1.5 cursor-pointer font-semibold"
+            onClick={() => void handleOpenFolderPicker()}
+          >
+            <FolderUp className="w-4 h-4 text-slate-600" />
+            <span>Add Folder</span>
+          </Button>
           <Button onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))} className="space-x-2 font-semibold">
             <span>Proceed to Conversion</span>
             <ArrowRight className="w-4 h-4" />
@@ -530,3 +848,4 @@ export const UploadSourcePage: React.FC = () => {
   );
 };
 export default UploadSourcePage;
+
