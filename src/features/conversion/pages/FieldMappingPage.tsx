@@ -13,12 +13,18 @@ import { CodeEditor } from '../components/CodeEditor';
 import { isDisplayableCodeFile } from '../utils/screenGenerator';
 import { conversionKeys } from '../queries/conversionKeys';
 import { validationKeys } from '../queries/validationKeys';
+import { projectService } from '@/features/projects/services/project.service';
+import { resolveWorkspace } from '@/features/projects/utils/conversionTypeResolver';
+import { UnsupportedProjectState } from '@/features/projects/components/UnsupportedProjectState';
+import type { Project } from '@/features/projects/types/project';
 
 export const FieldMappingPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const [project, setProject] = useState<Project | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [mappings, setMappings] = useState<FieldMapping[]>([]);
   const [mappingsLoading, setMappingsLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string>('');
@@ -30,6 +36,35 @@ export const FieldMappingPage: React.FC = () => {
   const [codeFilename, setCodeFilename] = useState('');
   const [metadata, setMetadata] = useState<any>(null);
   const [editMode, setEditMode] = useState<'form' | 'code'>('form');
+
+  useEffect(() => {
+    let cancelled = false;
+    setProjectLoading(true);
+    projectService
+      .getProjectById(projectId)
+      .then((p) => {
+        if (cancelled) return;
+        setProject(p ?? null);
+        setProjectLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectLoading(false);
+      });
+
+  return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const workspace = resolveWorkspace(project?.conversionType);
+
+  useEffect(() => {
+    if (!projectLoading && project) {
+      if (workspace === 'PROGRAMS') {
+        navigate(ROUTES.PROJECTS.METHOD_MAPPING(projectId, screenId), { replace: true });
+      }
+    }
+  }, [projectLoading, project, workspace, projectId, screenId, navigate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,7 +124,7 @@ export const FieldMappingPage: React.FC = () => {
       });
     });
 
-    return () => {
+  return () => {
       cancelled = true;
     };
   }, [projectId, screenId]);
@@ -214,6 +249,16 @@ export const FieldMappingPage: React.FC = () => {
     return patched;
   }, [metadata, mappings]);
 
+  if (!projectLoading && project && workspace === 'UNSUPPORTED') {
+    return (
+      <UnsupportedProjectState
+        conversionType={project.conversionType}
+        backUrl={ROUTES.PROJECTS.LIST}
+        backLabel="Back to Projects List"
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
 
@@ -238,7 +283,7 @@ export const FieldMappingPage: React.FC = () => {
             <Button
               onClick={handleSaveCode}
               isLoading={loading}
-              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+              className="space-x-1.5 text-xs font-semibold bg-[#244A70] hover:bg-[#1B3856]"
             >
               <Save className="w-4 h-4" />
               <span>Save Code & Proceed to AI Validation</span>
@@ -248,7 +293,7 @@ export const FieldMappingPage: React.FC = () => {
               onClick={handleSave}
               isLoading={loading}
               disabled={mappingsLoading}
-              className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+              className="space-x-1.5 text-xs font-semibold bg-[#244A70] hover:bg-[#1B3856]"
             >
               <Save className="w-4 h-4" />
               <span>Save & Re-convert (Create Version v2)</span>
@@ -311,7 +356,7 @@ export const FieldMappingPage: React.FC = () => {
                   size="sm"
                   onClick={handleSaveCode}
                   isLoading={loading}
-                  className="text-xs font-semibold px-3 py-1 bg-[#0652CC] hover:bg-[#0655FF] text-white space-x-1"
+                  className="text-xs font-semibold px-3 py-1 bg-[#244A70] hover:bg-[#1B3856] text-white space-x-1"
                 >
                   <Save className="w-4 h-4" />
                   <span>Save Code & Proceed to AI Validation &rarr;</span>

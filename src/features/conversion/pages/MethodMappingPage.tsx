@@ -6,6 +6,10 @@ import type { MethodMappingEntry } from '../types/conversion';
 import { ROUTES } from '@/shared/constants/routes';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
+import { projectService } from '@/features/projects/services/project.service';
+import { resolveWorkspace } from '@/features/projects/utils/conversionTypeResolver';
+import { UnsupportedProjectState } from '@/features/projects/components/UnsupportedProjectState';
+import type { Project } from '@/features/projects/types/project';
 
 const JAVA_IDENTIFIER_PATTERN = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 
@@ -17,6 +21,8 @@ export const MethodMappingPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
 
+  const [project, setProject] = useState<Project | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [entries, setEntries] = useState<MethodMappingEntry[]>([]);
   const [hasGeneratedCode, setHasGeneratedCode] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -24,6 +30,34 @@ export const MethodMappingPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [savedMsg, setSavedMsg] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    setProjectLoading(true);
+    projectService
+      .getProjectById(projectId)
+      .then((p) => {
+        if (cancelled) return;
+        setProject(p ?? null);
+        setProjectLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const workspace = resolveWorkspace(project?.conversionType);
+
+  useEffect(() => {
+    if (!projectLoading && project) {
+      if (workspace === 'SCREENS') {
+        navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId), { replace: true });
+      }
+    }
+  }, [projectLoading, project, workspace, projectId, screenId, navigate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,6 +122,16 @@ export const MethodMappingPage: React.FC = () => {
     }
   };
 
+  if (!projectLoading && project && workspace === 'UNSUPPORTED') {
+    return (
+      <UnsupportedProjectState
+        conversionType={project.conversionType}
+        backUrl={ROUTES.PROJECTS.LIST}
+        backLabel="Back to Projects List"
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white border border-slate-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
@@ -105,7 +149,7 @@ export const MethodMappingPage: React.FC = () => {
             onClick={handleSave}
             isLoading={saving}
             disabled={loading || !hasGeneratedCode || invalidNames.length > 0}
-            className="space-x-1.5 text-xs font-semibold bg-[#0652CC] hover:bg-[#0655FF]"
+            className="space-x-1.5 text-xs font-semibold bg-[#244A70] hover:bg-[#1B3856]"
           >
             <Save className="w-4 h-4" />
             <span>Save Mapping</span>
