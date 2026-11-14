@@ -59,7 +59,7 @@ export const JavaExportSettings: React.FC<JavaExportSettingsProps> = ({ options,
                   <div className="flex items-start space-x-3.5">
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                        active ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600'
+                        active ? 'bg-[#244A70] text-white shadow-xs' : 'bg-slate-100 text-slate-600'
                       }`}
                     >
                       {format.icon}

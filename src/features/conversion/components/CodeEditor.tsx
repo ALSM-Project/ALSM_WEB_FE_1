@@ -93,7 +93,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           {onSave && (
             <button
               onClick={onSave}
-              className="flex items-center space-x-1.5 px-3 py-1 rounded bg-[#0652CC] hover:bg-[#0655FF] text-white font-semibold transition-colors shadow-sm"
+              className="flex items-center space-x-1.5 px-3 py-1 rounded bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold transition-colors shadow-xs"
               title="Save TSX code"
             >
               <Save className="w-4 h-4" />
