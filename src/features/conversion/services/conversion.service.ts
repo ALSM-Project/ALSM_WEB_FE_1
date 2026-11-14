@@ -149,6 +149,14 @@ export class ConversionService {
     return apiClient.post<ConversionJob[]>(`/projects/${projectId}/conversions/bulk`, { screenIds });
   }
 
+  async getProjectConversions(projectId: string): Promise<ConversionJob[]> {
+    try {
+      return await apiClient.get<ConversionJob[]>(`/projects/${projectId}/conversions`);
+    } catch {
+      return [];
+    }
+  }
+
   async getLatestConversion(projectId: string, screenId: string): Promise<ConversionJob | null> {
     try {
       const jobs = await apiClient.get<ConversionJob[]>(

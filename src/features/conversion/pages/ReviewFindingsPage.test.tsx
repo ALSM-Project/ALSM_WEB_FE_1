@@ -19,6 +19,7 @@ const mocks = vi.hoisted(() => ({
   useValidationFindings: vi.fn(),
   useTriggerAiValidation: vi.fn(),
   useReviewValidationFinding: vi.fn(),
+  useApplyAiFix: vi.fn(),
 }));
 
 vi.mock('../queries/useConversionJob', () => ({ useConversionJob: mocks.useConversionJob }));
@@ -31,6 +32,7 @@ vi.mock('../queries/useValidation', () => ({
   useValidationFindings: mocks.useValidationFindings,
   useTriggerAiValidation: mocks.useTriggerAiValidation,
   useReviewValidationFinding: mocks.useReviewValidationFinding,
+  useApplyAiFix: mocks.useApplyAiFix,
 }));
 
 const conversion: ConversionJob = {
@@ -101,6 +103,11 @@ beforeEach(() => {
   });
   mocks.useReviewValidationFinding.mockReturnValue({
     mutate: vi.fn(),
+    isPending: false,
+    error: null,
+  });
+  mocks.useApplyAiFix.mockReturnValue({
+    mutateAsync: vi.fn(),
     isPending: false,
     error: null,
   });

@@ -134,7 +134,7 @@ export const DiagnosticsPage: React.FC = () => {
         actions={
           <Button
             onClick={handleDownloadFullLog}
-            className="bg-[#0652CC] hover:bg-[#0655FF] text-white space-x-1.5 text-xs font-bold shadow-xs shrink-0 cursor-pointer"
+            className="bg-[#244A70] hover:bg-[#1B3856] text-white space-x-1.5 text-xs font-bold shadow-xs shrink-0 cursor-pointer"
           >
             <Download className="w-4 h-4" aria-hidden="true" />
             <span>Download Full Log</span>
@@ -424,7 +424,7 @@ export const DiagnosticsPage: React.FC = () => {
                 onClick={handleApplyPatch}
                 isLoading={patching}
                 disabled={selectedLog.resolved}
-                className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white px-4 py-2 rounded-xl shadow-xs cursor-pointer"
+                className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#244A70] hover:bg-[#1B3856] text-white px-4 py-2 rounded-xl shadow-xs cursor-pointer"
               >
                 <Wrench className="w-4 h-4" aria-hidden="true" />
                 <span>{selectedLog.resolved ? 'Patch Applied & Retried' : 'Apply Patch & Retry'}</span>
@@ -459,7 +459,7 @@ export const DiagnosticsPage: React.FC = () => {
         <Button
           variant="primary"
           onClick={handleDownloadFullLog}
-          className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white px-5 py-2 rounded-xl shadow-xs cursor-pointer"
+          className="w-full sm:w-auto space-x-1.5 text-xs font-bold bg-[#244A70] hover:bg-[#1B3856] text-white px-5 py-2 rounded-xl shadow-xs cursor-pointer"
         >
           <Download className="w-4 h-4" aria-hidden="true" />
           <span>Download Log Archive</span>

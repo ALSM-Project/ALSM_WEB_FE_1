@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Download, RefreshCw, Sliders, FileCode, Files, Eye, RotateCw, History } from 'lucide-react';
+import { Download, RefreshCw, Sliders, FileCode, Files, Eye, RotateCw, History, Bot } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { ConversionJob } from '../services/conversion.service';
 import { useConversionJob } from '../queries/useConversionJob';
@@ -10,10 +10,15 @@ import { useRetryConversionJob } from '../queries/useRetryConversionJob';
 import type { LegacyScreen } from '@/features/screens/types/screen';
 import { ROUTES } from '@/shared/constants/routes';
 import { CodeViewer } from '../components/CodeViewer';
+import { CobolReviewResultsView } from '../components/CobolReviewResultsView';
 import { Button } from '@/shared/ui/Button';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { generateScreenBundle, isDisplayableCodeFile } from '../utils/screenGenerator';
+import { projectService } from '@/features/projects/services/project.service';
+import { resolveWorkspace } from '@/features/projects/utils/conversionTypeResolver';
+import { UnsupportedProjectState } from '@/features/projects/components/UnsupportedProjectState';
+import type { Project } from '@/features/projects/types/project';
 
 const JOB_STATUS_LABELS: Record<ConversionJob['status'], string> = {
   QUEUED: 'Queued',
@@ -39,9 +44,32 @@ export const ResultInspectionPage: React.FC = () => {
   // UC-19: viewing a specific historical version from the Version History page passes
   // ?jobId=; without it, this page keeps behaving exactly as before (the screen's latest job).
   const viewingJobId = searchParams.get('jobId') ?? undefined;
+  const [project, setProject] = useState<Project | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [validating, setValidating] = useState(false);
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
   const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setProjectLoading(true);
+    projectService
+      .getProjectById(projectId)
+      .then((p) => {
+        if (cancelled) return;
+        setProject(p ?? null);
+        setProjectLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const workspace = resolveWorkspace(project?.conversionType);
+  const isCobol = workspace === 'PROGRAMS' || screen?.sourceType === 'COBOL';
 
   useEffect(() => {
     let cancelled = false;
@@ -88,18 +116,39 @@ export const ResultInspectionPage: React.FC = () => {
     setTimeout(() => setValidating(false), 800);
   };
 
+  if (!projectLoading && project && workspace === 'UNSUPPORTED') {
+    return (
+      <UnsupportedProjectState
+        conversionType={project.conversionType}
+        backUrl={ROUTES.PROJECTS.LIST}
+        backLabel="Back to Projects List"
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
 
       {/* Modernization Workflow Step Bar */}
       <ModernizationWorkflow
-        currentStep="result"
-        completedSteps={['upload', 'conversion']}
+        currentStep={isCobol ? 'review' : 'result'}
+        workflowType={isCobol ? 'PROGRAMS' : 'SCREENS'}
+        completedSteps={isCobol ? ['upload', 'analyze', 'convert', 'validate'] : ['upload', 'conversion', 'validation']}
         onStepClick={(stepId) => {
-          if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
-          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
-          if (stepId === 'validation') navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
-          if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          if (isCobol) {
+            if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
+            if (stepId === 'analyze') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'convert' || stepId === 'conversion') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'validate' || stepId === 'validation') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'review' || stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, screenId));
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          } else {
+            if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
+            if (stepId === 'conversion' || stepId === 'convert') navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
+            if (stepId === 'validation' || stepId === 'validate') navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
+            if (stepId === 'result' || stepId === 'review') navigate(ROUTES.PROJECTS.RESULT(projectId, screenId));
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          }
         }}
       />
 
@@ -119,20 +168,31 @@ export const ResultInspectionPage: React.FC = () => {
         <div className="flex items-center space-x-3">
           <Button
             variant="outline"
+            onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))}
+            className="space-x-1.5 text-xs font-bold border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 shadow-2xs"
+            title="Inspect AI code analysis, violations and suggested fixes"
+          >
+            <Bot className="w-4 h-4 text-indigo-600" />
+            <span>AI Code Validator</span>
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
             className="space-x-1.5 text-xs font-semibold"
           >
             <History className="w-4 h-4" />
             <span>Version History</span>
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
-            className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
-          >
-            <Eye className="w-4 h-4 text-brand-600" />
-            <span>Open UI Screen Preview</span>
-          </Button>
+          {!isCobol && (
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
+              className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
+            >
+              <Eye className="w-4 h-4 text-brand-600" />
+              <span>Open UI Screen Preview</span>
+            </Button>
+          )}
           <Button onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))} disabled={!hasRealResult} className="space-x-1.5 text-xs font-semibold">
             <Download className="w-4 h-4" />
             <span>Download</span>
@@ -141,7 +201,7 @@ export const ResultInspectionPage: React.FC = () => {
       </div>
 
       {viewingJobId && (
-        <div className="bg-[#E8F1FF] border border-[#B3D4FF] p-3 rounded-xl text-[#0652CC] text-xs font-medium flex items-center justify-between">
+        <div className="bg-[#F0F4F8] border border-[#DCE3EC] p-3 rounded-xl text-[#244A70] text-xs font-medium flex items-center justify-between">
           <span>Viewing a past version from {job ? new Date(job.createdAt).toLocaleString() : '…'}.</span>
           <Link to={ROUTES.PROJECTS.RESULT(projectId, screenId)} className="font-semibold hover:underline">
             View latest instead
@@ -200,6 +260,21 @@ export const ResultInspectionPage: React.FC = () => {
         </div>
       </div>
 
+      {isCobol ? (
+        <CobolReviewResultsView
+          projectId={projectId}
+          programName={screenName}
+          files={files}
+          selectedFileIndex={selectedFileIndex}
+          onSelectFileIndex={setSelectedFileIndex}
+          onProceedToExport={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))}
+          onRunAiValidation={() =>
+            navigate(`${ROUTES.PROJECTS.REVIEW(projectId, screenId)}?autoRun=true`, {
+              state: { autoRun: true },
+            })
+          }
+        />
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-3">
           <div className="flex justify-between items-center text-xs font-semibold text-slate-700">
@@ -265,6 +340,7 @@ export const ResultInspectionPage: React.FC = () => {
           )}
         </div>
       </div>
+      )}
 
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-100">
         <Button variant="outline" onClick={handleReRunValidator} isLoading={validating} className="space-x-1.5 text-xs font-semibold">
@@ -273,19 +349,21 @@ export const ResultInspectionPage: React.FC = () => {
         </Button>
 
         <div className="flex flex-wrap gap-3">
-          <Button
-            variant="outline"
-            onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
-            className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
-          >
-            <Eye className="w-4 h-4 text-brand-600" />
-            <span>Open UI Screen Preview</span>
-          </Button>
+          {!isCobol && (
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.PREVIEW(projectId, screenId))}
+              className="space-x-1.5 text-xs font-bold border-brand-300 text-brand-700 bg-brand-50 hover:bg-brand-100"
+            >
+              <Eye className="w-4 h-4 text-brand-600" />
+              <span>Open UI Screen Preview</span>
+            </Button>
+          )}
           <Button
             variant="secondary"
             onClick={() =>
               navigate(
-                screen?.sourceType === 'COBOL'
+                isCobol
                   ? ROUTES.PROJECTS.METHOD_MAPPING(projectId, screenId)
                   : ROUTES.PROJECTS.MAPPING(projectId, screenId),
               )
@@ -293,11 +371,11 @@ export const ResultInspectionPage: React.FC = () => {
             className="space-x-1.5 text-xs font-semibold"
           >
             <Sliders className="w-4 h-4" />
-            <span>{screen?.sourceType === 'COBOL' ? 'Edit Method Mapping' : 'Edit Field Mapping'}</span>
+            <span>{isCobol ? 'Edit Method Mapping' : 'Edit Field Mapping'}</span>
           </Button>
           <Button
             onClick={() => navigate(ROUTES.PROJECTS.QUALITY_REVIEW(projectId, screenId))}
-            className="space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white"
+            className="space-x-1.5 text-xs font-bold bg-[#244A70] hover:bg-[#1B3856] text-white"
           >
             <span>Review Initial Quality &rarr;</span>
           </Button>
