@@ -391,7 +391,7 @@ export const PublicNavbar: React.FC = () => {
                     onClick={() => setProfileOpen(!profileOpen)}
                     className="flex items-center space-x-2 p-1.5 rounded-full hover:bg-slate-100 transition-colors border border-slate-200"
                   >
-                    <div className="w-8 h-8 rounded-full bg-[#0652CC] text-white font-bold flex items-center justify-center text-xs shadow-xs">
+                    <div className="w-8 h-8 rounded-full bg-[#244A70] text-white font-bold flex items-center justify-center text-xs shadow-xs">
                       {getInitials(user?.fullName)}
                     </div>
                     <span className="hidden sm:inline font-semibold text-xs text-[#091E42] max-w-[120px] truncate">

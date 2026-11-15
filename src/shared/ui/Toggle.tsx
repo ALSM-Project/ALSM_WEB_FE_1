@@ -27,8 +27,8 @@ export const Toggle: React.FC<ToggleProps> = ({
         aria-checked={checked}
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
-        className={`relative inline-flex ${switchWidth} shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#0652CC] focus:ring-offset-2 ${
-          checked ? 'bg-[#0652CC]' : 'bg-[#D9E2EC]'
+        className={`relative inline-flex ${switchWidth} shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-[#244A70] focus:ring-offset-1 ${
+          checked ? 'bg-[#244A70]' : 'bg-[#DCE3EC]'
         }`}
       >
         <span className={`inline-block ${dotSize} transform rounded-full bg-white transition-transform duration-200 shadow-xs ${translate}`} />

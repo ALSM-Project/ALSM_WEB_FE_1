@@ -118,9 +118,9 @@ export function getBreadcrumbsFromRoute(
     return [{ label: 'Resources' }, { label: 'Contact & Support' }];
   }
 
-  // Handle Enterprise Contracts routes & detail view
+  // Handle Enterprise Contracts routes & detail view (CONTRACT & BILLING)
   if (cleanPath === '/account/contracts' || cleanPath === '/contracts') {
-    return [{ label: 'Account', path: '/account/profile' }, { label: 'Contracts' }];
+    return [{ label: 'Contract & Billing' }, { label: 'Enterprise Contracts' }];
   }
 
   const contractDetailMatch = cleanPath.match(/^(?:\/account)?\/contracts\/([^/]+)/);
@@ -128,8 +128,8 @@ export function getBreadcrumbsFromRoute(
     const rawId = contractDetailMatch[1];
     const contractDisplayLabel = rawId.length > 15 ? 'Contract Details' : rawId;
     return [
-      { label: 'Account', path: '/account/profile' },
-      { label: 'Contracts', path: '/account/contracts' },
+      { label: 'Contract & Billing', path: '/contracts' },
+      { label: 'Enterprise Contracts', path: '/contracts' },
       { label: contractDisplayLabel },
     ];
   }
@@ -152,21 +152,37 @@ export function getBreadcrumbsFromRoute(
 
   if (cleanPath.startsWith('/billing/invoices/') && cleanPath.endsWith('/pay')) {
     return [
-      { label: 'Account', path: '/account/profile' },
-      { label: 'Contracts', path: '/account/contracts' },
+      { label: 'Contract & Billing', path: '/billing/invoices' },
+      { label: 'Invoices & Payments', path: '/billing/invoices' },
       { label: 'Invoice Payment' },
     ];
   }
   if (cleanPath.startsWith('/billing/contracts/') && cleanPath.endsWith('/pay')) {
     return [
-      { label: 'Account', path: '/account/profile' },
-      { label: 'Contracts', path: '/account/contracts' },
+      { label: 'Contract & Billing', path: '/contracts' },
+      { label: 'Enterprise Contracts', path: '/contracts' },
       { label: 'Contract Payment' },
     ];
   }
 
+  if (cleanPath === '/billing/usage') {
+    return [{ label: 'Contract & Billing' }, { label: 'Service Usage & Quotas' }];
+  }
+
+  if (cleanPath === '/billing/invoices') {
+    return [{ label: 'Contract & Billing' }, { label: 'Invoices & Payments' }];
+  }
+
+  if (cleanPath === '/billing/upgrade') {
+    return [{ label: 'Contract & Billing' }, { label: 'Upgrade to Enterprise' }];
+  }
+
+  if (cleanPath === '/billing/pricing') {
+    return [{ label: 'Contract & Billing' }, { label: 'Pricing Plans' }];
+  }
+
   if (cleanPath.startsWith('/billing')) {
-    return [{ label: 'Account' }, { label: 'Subscription & Billing' }];
+    return [{ label: 'Contract & Billing' }, { label: 'Subscription & Billing' }];
   }
 
   // Fallback segment parser

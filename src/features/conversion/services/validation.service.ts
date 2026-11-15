@@ -44,6 +44,23 @@ export class ValidationService {
       input,
     );
   }
+
+  applyAiFix(
+    projectId: string,
+    validationRunId: string,
+    findingId: string,
+  ): Promise<{
+    success: boolean;
+    findingId: string;
+    status: string;
+    filePath: string;
+    fixedCode: string;
+    explanation: string;
+  }> {
+    return apiClient.post(
+      `/projects/${projectId}/validation-runs/${validationRunId}/findings/${findingId}/ai-fix`,
+    );
+  }
 }
 
 export const validationService = new ValidationService();

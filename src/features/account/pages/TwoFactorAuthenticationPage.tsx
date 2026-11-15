@@ -260,22 +260,22 @@ export const TwoFactorAuthenticationPage: React.FC = () => {
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Setup Progress</h3>
             <div className="space-y-3">
               <div className="flex items-center space-x-3 text-xs">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${step >= 1 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${step >= 1 ? 'bg-[#244A70] text-white' : 'bg-slate-200 text-slate-600'}`}>
                   {step > 1 ? <Check className="w-3.5 h-3.5" /> : '1'}
                 </span>
-                <span className={step === 1 ? 'font-bold text-blue-700' : 'text-slate-700'}>1. Scan Secret QR Code</span>
+                <span className={step === 1 ? 'font-bold text-[#244A70]' : 'text-slate-700'}>1. Scan Secret QR Code</span>
               </div>
               <div className="flex items-center space-x-3 text-xs">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${step >= 2 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${step >= 2 ? 'bg-[#244A70] text-white' : 'bg-slate-200 text-slate-600'}`}>
                   {step > 2 ? <Check className="w-3.5 h-3.5" /> : '2'}
                 </span>
-                <span className={step === 2 ? 'font-bold text-blue-700' : 'text-slate-700'}>2. Verify 6-Digit TOTP Code</span>
+                <span className={step === 2 ? 'font-bold text-[#244A70]' : 'text-slate-700'}>2. Verify 6-Digit TOTP Code</span>
               </div>
               <div className="flex items-center space-x-3 text-xs">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${step >= 3 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${step >= 3 ? 'bg-[#244A70] text-white' : 'bg-slate-200 text-slate-600'}`}>
                   {step === 3 ? <Check className="w-3.5 h-3.5" /> : '3'}
                 </span>
-                <span className={step === 3 ? 'font-bold text-blue-700' : 'text-slate-700'}>3. Save Emergency Backup Codes</span>
+                <span className={step === 3 ? 'font-bold text-[#244A70]' : 'text-slate-700'}>3. Save Emergency Backup Codes</span>
               </div>
             </div>
           </div>

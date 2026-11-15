@@ -103,7 +103,7 @@ export const AvailablePagesPanel: React.FC<AvailablePagesPanelProps> = ({ onAddP
               <button
                 type="button"
                 onClick={() => onAddPageToMenu(page)}
-                className="w-7 h-7 rounded-lg bg-[#0652CC] hover:bg-[#0655FF] text-white flex items-center justify-center transition-colors shadow-xs"
+                className="w-7 h-7 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white flex items-center justify-center transition-colors shadow-xs"
                 title={`Add ${page.label} to menu structure`}
               >
                 <Plus className="w-4 h-4 font-bold" />

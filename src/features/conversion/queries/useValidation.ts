@@ -91,3 +91,20 @@ export function useReviewValidationFinding(projectId: string, validationRunId: s
     onSettled: () => queryClient.invalidateQueries({ queryKey: findingsKey }),
   });
 }
+
+export function useApplyAiFix(projectId: string, validationRunId: string | undefined) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (findingId: string) =>
+      validationService.applyAiFix(projectId, validationRunId as string, findingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: validationKeys.findings(projectId, validationRunId ?? 'none'),
+      });
+      queryClient.invalidateQueries({ queryKey: ['conversion-result'] });
+      queryClient.invalidateQueries({ queryKey: ['conversions'] });
+      queryClient.invalidateQueries({ queryKey: ['screens'] });
+    },
+  });
+}

@@ -947,7 +947,7 @@ export const OrganizationTeamsPage: React.FC = () => {
                           key={idx}
                           className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] rounded-md font-medium"
                         >
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#0652CC]" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#244A70]" />
                           {mName}
                         </span>
                       ))}
@@ -1962,7 +1962,7 @@ export const OrganizationAnalyticsPage: React.FC = () => {
           {data?.contractNumber && (
             <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-white border border-blue-200/80 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#0652CC] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
+                <div className="w-10 h-10 rounded-xl bg-[#244A70] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-xs">
                   <ShieldCheck className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -2044,7 +2044,7 @@ export const OrganizationAnalyticsPage: React.FC = () => {
                     count: 1,
                     unit: 'Engagements',
                     progressPct: 100,
-                    color: 'bg-[#0652CC]',
+                    color: 'bg-[#244A70]',
                   },
                   {
                     stageNumber: 2,
@@ -2093,7 +2093,7 @@ export const OrganizationAnalyticsPage: React.FC = () => {
                     </div>
                     <div className="w-full bg-[#E5EAF0] rounded-full h-2">
                       <div
-                        className={`${stage.color || 'bg-[#0652CC]'} h-2 rounded-full transition-all`}
+                        className={`${stage.color || 'bg-[#244A70]'} h-2 rounded-full transition-all`}
                         style={{ width: `${Math.max(4, stage.progressPct)}%` }}
                       />
                     </div>
@@ -2125,7 +2125,7 @@ export const OrganizationAnalyticsPage: React.FC = () => {
                     <div key={t.period} className="flex-1 flex flex-col items-center gap-1.5">
                       <span className="text-[10px] font-bold text-[#42526E]">{t.count}</span>
                       <div
-                        className="w-full bg-[#0652CC] rounded-t-md hover:bg-[#0655FF] transition-all opacity-85"
+                        className="w-full bg-[#244A70] rounded-t-md hover:bg-[#1B3856] transition-all opacity-85"
                         style={{ height: `${heightPx}px` }}
                         title={`${t.count} screens delivered in ${t.period}`}
                       />

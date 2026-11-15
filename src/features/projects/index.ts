@@ -6,5 +6,6 @@ export { DeleteProjectPage } from './pages/DeleteProjectPage';
 export { CreateProjectModal } from './components/CreateProjectModal';
 export { DeleteProjectModal } from './components/DeleteProjectModal';
 export { projectService } from './services/project.service';
+export * from './utils/conversionTypeResolver';
 export type * from './types/project';
 

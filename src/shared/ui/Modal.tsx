@@ -7,8 +7,22 @@ export interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | string;
+  className?: string;
 }
+
+const maxWidths = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+  '3xl': 'max-w-3xl',
+  '4xl': 'max-w-4xl',
+  '5xl': 'max-w-5xl',
+  '6xl': 'max-w-6xl',
+};
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
@@ -16,6 +30,8 @@ export const Modal: React.FC<ModalProps> = ({
   title,
   children,
   maxWidth = 'md',
+  size,
+  className = '',
 }) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -33,39 +49,32 @@ export const Modal: React.FC<ModalProps> = ({
 
   if (!isOpen) return null;
 
-  const maxWidths = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
-    '2xl': 'max-w-2xl',
-  };
+  const effectiveMaxWidth = (size && size in maxWidths ? size : maxWidth) as keyof typeof maxWidths;
 
   return createPortal(
     <div
-      className="fixed inset-0 w-screen h-screen top-0 left-0 right-0 bottom-0 bg-[#091E42]/40 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-fadeIn"
-      style={{ zIndex: 999999 }}
+      className="fixed inset-0 z-[999999] flex items-center justify-center p-4 sm:p-6 bg-[#14263F]/70 backdrop-blur-xs animate-fade-in"
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidths[maxWidth]} bg-white border border-[#D9E2EC] rounded-3xl shadow-[0_20px_60px_rgba(9,30,66,0.15)] overflow-hidden flex flex-col my-auto animate-scaleUp`}
+        className={`w-full ${maxWidths[effectiveMaxWidth] || 'max-w-xl'} bg-white border border-[#DCE3EC] rounded-xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] my-auto ${className}`}
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 py-5 border-b border-[#D9E2EC]">
-            <h3 className="text-lg font-bold text-[#091E42] tracking-tight">{title}</h3>
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#DCE3EC] shrink-0 bg-[#F8FAFC]">
+            <h3 className="text-sm sm:text-base font-bold text-[#17263A] tracking-tight">{title}</h3>
             <button
               onClick={onClose}
-              className="text-[#42526E] hover:text-[#091E42] p-1.5 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+              className="text-[#8491A3] hover:text-[#17263A] p-1.5 rounded-md hover:bg-[#EEF1F6] transition-colors cursor-pointer"
               aria-label="Close modal"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
-        <div className="p-6 overflow-y-auto max-h-[85vh]">{children}</div>
+        <div className="p-5 sm:p-6 overflow-y-auto">{children}</div>
       </div>
     </div>,
     document.body

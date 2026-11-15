@@ -457,6 +457,31 @@ export const InitialQualityReviewPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Trial to Web 3 Upgrade Banner (UC-37, Screen S23) */}
+      <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-2xl border border-blue-200 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#244A70] text-white">
+              TRIAL REVIEW (UC-37)
+            </span>
+            <h3 className="font-bold text-sm text-[#091E42]">
+              Satisfied with the modernization quality?
+            </h3>
+          </div>
+          <p className="text-xs text-slate-600">
+            Submit your feedback and request an upgrade to Web 3 for enterprise scope, unlimited conversion quotas, and production contracts.
+          </p>
+        </div>
+
+        <Button
+          onClick={() => navigate('/billing/upgrade')}
+          className="whitespace-nowrap px-4 py-2 bg-[#244A70] hover:bg-[#1B3856] text-white font-bold text-xs rounded-xl shadow-xs inline-flex items-center gap-1.5 shrink-0"
+        >
+          <span>Upgrade to Web 3</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+
       {/* Bottom Navigation Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-slate-200">
         <Button
@@ -479,7 +504,7 @@ export const InitialQualityReviewPage: React.FC = () => {
 
           <Button
             onClick={() => navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId))}
-            className="space-x-1.5 text-xs font-bold bg-[#0652CC] hover:bg-[#0655FF] text-white"
+            className="space-x-1.5 text-xs font-bold bg-[#244A70] hover:bg-[#1B3856] text-white"
           >
             <span>Continue to AI Validation</span>
             <ArrowRight className="w-4 h-4" />

@@ -128,7 +128,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
         {/* Selected Summary Card */}
         <div className="p-3 mb-4 rounded-2xl bg-[#E8F1FF]/60 border border-[#0652CC]/30 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-[#0652CC] text-white flex items-center justify-center shadow-xs">
+            <div className="w-9 h-9 rounded-xl bg-[#244A70] text-white flex items-center justify-center shadow-xs">
               <DynamicIcon name={formState.icon} className="w-5 h-5" />
             </div>
             <div>
@@ -138,7 +138,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
               </span>
             </div>
           </div>
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#0652CC] text-white font-semibold">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#244A70] text-white font-semibold">
             {isTopLevel ? 'Main Menu' : 'Sub Menu'}
           </span>
         </div>

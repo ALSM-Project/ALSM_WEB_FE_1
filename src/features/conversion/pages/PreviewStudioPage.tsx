@@ -11,13 +11,47 @@ import { useConversionJob } from '../queries/useConversionJob';
 import { useConversionResult } from '../queries/useConversionResult';
 import { LiveTsxRenderer } from '../components/LiveTsxRenderer';
 import { isDisplayableCodeFile } from '../utils/screenGenerator';
+import { projectService } from '@/features/projects/services/project.service';
+import { resolveWorkspace } from '@/features/projects/utils/conversionTypeResolver';
+import { UnsupportedProjectState } from '@/features/projects/components/UnsupportedProjectState';
+import type { Project } from '@/features/projects/types/project';
 
 export const PreviewStudioPage: React.FC = () => {
   const { projectId = 'proj-acme', screenId = 'scr-login' } = useParams();
   const navigate = useNavigate();
+  const [project, setProject] = useState<Project | null>(null);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [deviceMode, setDeviceMode] = useState<DeviceMode>('desktop');
   const [zoom] = useState(100);
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setProjectLoading(true);
+    projectService
+      .getProjectById(projectId)
+      .then((p) => {
+        if (cancelled) return;
+        setProject(p ?? null);
+        setProjectLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const workspace = resolveWorkspace(project?.conversionType);
+
+  useEffect(() => {
+    if (!projectLoading && project) {
+      if (workspace === 'PROGRAMS') {
+        navigate(ROUTES.PROJECTS.RESULT(projectId, screenId), { replace: true });
+      }
+    }
+  }, [projectLoading, project, workspace, projectId, screenId, navigate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +118,16 @@ export const PreviewStudioPage: React.FC = () => {
     tablet: 'w-[768px]',
     mobile: 'w-[375px]',
   };
+
+  if (!projectLoading && project && workspace === 'UNSUPPORTED') {
+    return (
+      <UnsupportedProjectState
+        conversionType={project.conversionType}
+        backUrl={ROUTES.PROJECTS.LIST}
+        backLabel="Back to Projects List"
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

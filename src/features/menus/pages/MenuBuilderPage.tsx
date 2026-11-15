@@ -69,7 +69,7 @@ export const MenuBuilderPage: React.FC = () => {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-[#0652CC] flex items-center justify-center text-white font-bold shadow-xs">
+          <div className="w-10 h-10 rounded-xl bg-[#244A70] flex items-center justify-center text-white font-bold shadow-xs">
             <Workflow className="w-6 h-6" />
           </div>
           <div>

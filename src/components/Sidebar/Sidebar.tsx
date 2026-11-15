@@ -191,13 +191,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       section.items.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
 
-    // Section ordering priority: '' (0) -> ORGANIZATION (1) -> CONTRACT & BILLING (2) -> COLLABORATION (3) -> ACCOUNT (4)
+    // Section ordering priority: '' (0) -> WORKSPACE (1) -> ORGANIZATION (2) -> CONTRACT & BILLING (3) -> COLLABORATION (4) -> ACCOUNT (5)
     const getSectionPriority = (title: string): number => {
       if (title === '' || title === 'TOP') return 0;
-      if (title === 'ORGANIZATION') return 1;
-      if (title === 'CONTRACT & BILLING') return 2;
-      if (title === 'COLLABORATION') return 3;
-      if (title === 'ACCOUNT') return 4;
+      if (title === 'WORKSPACE') return 1;
+      if (title === 'ORGANIZATION') return 2;
+      if (title === 'CONTRACT & BILLING') return 3;
+      if (title === 'COLLABORATION') return 4;
+      if (title === 'ACCOUNT') return 5;
       if (sectionOrderMap.has(title)) return sectionOrderMap.get(title)!;
       return 10;
     };

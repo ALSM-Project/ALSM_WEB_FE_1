@@ -104,6 +104,28 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({ allowedRoles }) => {
   return <Outlet />;
 };
 
+/** General OAuth/SSO handoff callback from Web 3 or Web 2 */
+export const AuthCallbackPage = () => {
+  const handled = useRef(false);
+  useEffect(() => {
+    if (handled.current) return;
+    handled.current = true;
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const searchParams = new URLSearchParams(window.location.search);
+    const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+    window.history.replaceState(null, '', '/auth/callback');
+    if (accessToken && refreshToken) {
+      void tokenStore.acceptTokens({ accessToken, refreshToken })
+        .then(() => window.location.replace('/dashboard'))
+        .catch(() => window.location.replace('/login'));
+    } else {
+      window.location.replace('/login');
+    }
+  }, []);
+  return <RouteLoading />;
+};
+
 /** Remediation handoff from the staff portal. Credentials never enter a query log. */
 export const PasswordCallbackPage = () => {
   const handled = useRef(false);

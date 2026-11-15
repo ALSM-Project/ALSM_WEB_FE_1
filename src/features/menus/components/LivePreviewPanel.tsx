@@ -49,7 +49,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
           {/* Miniature App Header */}
           <div className="bg-white border-b border-[#D9E2EC] px-3 py-2 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-5 h-5 rounded bg-[#0652CC] flex items-center justify-center text-white font-bold">
+              <div className="w-5 h-5 rounded bg-[#244A70] flex items-center justify-center text-white font-bold">
                 <Cpu className="w-3 h-3" />
               </div>
               <span className="text-xs font-extrabold text-[#091E42]">ALSM</span>
@@ -90,8 +90,8 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                       <div
                         className={`flex items-center space-x-1.5 px-2 py-1 rounded text-[10px] transition-colors ${
                           isSelected
-                            ? 'bg-[#0652CC] text-white font-semibold'
-                            : 'text-[#94A3B8] hover:bg-[#0652CC]/20'
+                            ? 'bg-[#244A70] text-white font-semibold'
+                            : 'text-[#94A3B8] hover:bg-[#244A70]/20'
                         }`}
                       >
                         <DynamicIcon name={item.icon} className="w-3 h-3 shrink-0" />
@@ -100,7 +100,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
 
                       {/* Render Children indented if present */}
                       {hasChildren && (
-                        <div className="ml-2 pl-1 border-l border-[#0652CC]/30 space-y-0.5 mt-0.5">
+                        <div className="ml-2 pl-1 border-l border-[#244A70]/30 space-y-0.5 mt-0.5">
                           {item.children
                             ?.filter((c) => c.isVisible !== false)
                             .map((child) => {
@@ -110,7 +110,7 @@ export const LivePreviewPanel: React.FC<LivePreviewPanelProps> = ({
                                   key={child.id}
                                   className={`flex items-center space-x-1 px-1.5 py-0.5 rounded text-[9px] ${
                                     isChildSelected
-                                      ? 'bg-[#0652CC] text-white font-semibold'
+                                      ? 'bg-[#244A70] text-white font-semibold'
                                       : 'text-[#64748B] hover:text-white'
                                   }`}
                                 >

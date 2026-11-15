@@ -10,7 +10,7 @@ import {
   Loader2,
   ArrowRight,
 } from 'lucide-react';
-import { useAuth, isUserStaffOrAdmin, isUserPartner, getTargetHandoffUrl } from '@/app/providers';
+import { useAuth, isUserStaffOrAdmin, getTargetHandoffUrl } from '@/app/providers';
 
 import { ROUTES } from '@/shared/constants/routes';
 import { ApiError } from '@/services/api/apiError';
@@ -182,9 +182,9 @@ export const LoginPage: React.FC = () => {
 
       if (user) {
         const handoff = getTargetHandoffUrl(user);
-        if (handoff || isUserStaffOrAdmin(user) || isUserPartner(user) || user.hasWeb3Access) {
+        if (handoff) {
           setRedirectLabel(
-            handoff?.includes('3002') || isUserStaffOrAdmin(user)
+            handoff.includes('3002') || isUserStaffOrAdmin(user)
               ? 'Redirecting to Staff Portal...'
               : 'Redirecting to ALSM Partner Portal...'
           );
@@ -220,9 +220,9 @@ export const LoginPage: React.FC = () => {
           persistRememberMeCredentials(user.email);
         }
         const handoff = getTargetHandoffUrl(user);
-        if (handoff || isUserStaffOrAdmin(user) || isUserPartner(user) || user.hasWeb3Access) {
+        if (handoff) {
           setRedirectLabel(
-            handoff?.includes('3002') || isUserStaffOrAdmin(user)
+            handoff.includes('3002') || isUserStaffOrAdmin(user)
               ? 'Redirecting to Staff Portal...'
               : 'Redirecting to ALSM Partner Portal...'
           );
@@ -423,7 +423,7 @@ export const LoginPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full h-11 mt-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full h-11 mt-2 bg-[#244A70] hover:bg-[#1B3856] active:bg-[#13283E] text-white font-semibold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#244A70] disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">

@@ -224,7 +224,7 @@ public interface CustomerMasterRepository extends JpaRepository<CustomerEntity, 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mt-8 w-full max-w-md">
             <Link
               to={ROUTES.PUBLIC.CONTACT}
-              className="w-full sm:w-auto h-12 px-7 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm transition-colors shadow-xs flex items-center justify-center gap-2"
+              className="w-full sm:w-auto h-12 px-7 rounded-xl bg-[#244A70] hover:bg-[#1B3856] active:bg-[#13283E] text-white font-semibold text-sm transition-colors shadow-xs flex items-center justify-center gap-2"
             >
               <span>Request Enterprise Demo</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />
@@ -264,7 +264,7 @@ public interface CustomerMasterRepository extends JpaRepository<CustomerEntity, 
                   onClick={() => setActiveLegacyNode(nodeKey)}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold font-mono transition-colors cursor-pointer ${
                     activeLegacyNode === nodeKey
-                      ? 'bg-blue-600 text-white border border-blue-500'
+                      ? 'bg-[#244A70] text-white border border-[#1B3856]'
                       : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
                   }`}
                 >
@@ -652,7 +652,7 @@ public interface CustomerMasterRepository extends JpaRepository<CustomerEntity, 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 mt-8 max-w-md mx-auto">
             <Link
               to={ROUTES.PUBLIC.CONTACT}
-              className="w-full sm:w-auto h-12 px-7 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm transition-colors shadow-xs flex items-center justify-center gap-2"
+              className="w-full sm:w-auto h-12 px-7 rounded-xl bg-[#244A70] hover:bg-[#1B3856] active:bg-[#13283E] text-white font-semibold text-sm transition-colors shadow-xs flex items-center justify-center gap-2"
             >
               <span>Request Enterprise Demo</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />

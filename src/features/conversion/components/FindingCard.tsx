@@ -66,12 +66,13 @@ function formatCodeLocation(location: CodeLocation | undefined): string {
   return `${file} : Ln ${range}`;
 }
 
-import { Sparkles } from 'lucide-react';
+import { Sparkles, LoaderCircle } from 'lucide-react';
 
 export interface FindingCardProps {
   finding: ValidationFinding;
   isSelected?: boolean;
   isSubmitting?: boolean;
+  isFixing?: boolean;
   onSelect?: () => void;
   onReview: (finding: ValidationFinding, status: HumanReviewTargetStatus) => void;
   onMarkNotApplicable: (finding: ValidationFinding) => void;
@@ -82,6 +83,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
   finding,
   isSelected = false,
   isSubmitting = false,
+  isFixing = false,
   onSelect,
   onReview,
   onMarkNotApplicable,
@@ -176,12 +178,21 @@ export const FindingCard: React.FC<FindingCardProps> = ({
         {onAcceptAiFix && finding.suggestion && finding.status !== ValidationFindingStatus.RESOLVED && (
           <button
             type="button"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isFixing}
             onClick={() => onAcceptAiFix(finding)}
             className="inline-flex items-center space-x-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Accept AI Fix</span>
+            {isFixing ? (
+              <>
+                <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
+                <span>Applying AI Fix…</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Accept AI Fix</span>
+              </>
+            )}
           </button>
         )}
         {allowedTransitions.map((status) => (

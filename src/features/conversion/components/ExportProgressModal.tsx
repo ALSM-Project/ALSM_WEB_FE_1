@@ -103,7 +103,7 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
               </div>
               <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                 <div
-                  className="bg-blue-600 h-full rounded-full transition-all duration-300 ease-out"
+                  className="bg-[#244A70] h-full rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>

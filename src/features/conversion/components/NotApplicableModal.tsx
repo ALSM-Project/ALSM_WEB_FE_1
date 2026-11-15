@@ -69,7 +69,7 @@ export const NotApplicableModal: React.FC<NotApplicableModalProps> = ({
             type="button"
             onClick={() => onConfirm(trimmedReason)}
             disabled={!trimmedReason || isSubmitting}
-            className="w-full rounded-2xl bg-[#0052CC] px-6 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#0047BA] disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-2xl bg-[#244A70] px-6 py-3.5 text-center text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#1B3856] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isSubmitting ? 'Saving decision…' : 'Confirm'}
           </button>

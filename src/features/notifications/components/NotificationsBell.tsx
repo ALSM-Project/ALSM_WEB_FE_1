@@ -74,7 +74,7 @@ export const NotificationsBell: React.FC = () => {
       >
         <Bell className="w-4.5 h-4.5" />
         {notifications.unreadCount > 0 && (
-          <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-[#0652CC] text-white text-[9px] font-extrabold flex items-center justify-center">
+          <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-[#244A70] text-white text-[9px] font-extrabold flex items-center justify-center">
             {notifications.unreadCount > 99 ? '99+' : notifications.unreadCount}
           </span>
         )}
@@ -106,7 +106,7 @@ export const NotificationsBell: React.FC = () => {
                   className={`w-full text-left px-4 py-3 border-b border-[#F1F5F9] hover:bg-[#F7F9FC] ${item.isRead ? '' : 'bg-blue-50/70'}`}
                 >
                   <span className="flex items-start gap-2.5">
-                    <span className={`mt-1.5 w-2 h-2 shrink-0 rounded-full ${item.isRead ? 'bg-transparent' : 'bg-[#0652CC]'}`} />
+                    <span className={`mt-1.5 w-2 h-2 shrink-0 rounded-full ${item.isRead ? 'bg-transparent' : 'bg-[#244A70]'}`} />
                     <span className="min-w-0">
                       <span className="block text-xs font-semibold text-[#091E42]">{item.title}</span>
                       <span className="mt-1 block text-xs leading-5 text-[#42526E]">{item.message}</span>
