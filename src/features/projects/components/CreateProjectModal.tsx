@@ -23,7 +23,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [conversionType, setConversionType] = useState<ConversionType>('BMS_DSPF_TO_REACT');
+  const [conversionType, setConversionType] = useState<ConversionType>('BMS_DSPF_TO_FRONTEND');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -32,7 +32,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     if (isOpen) {
       setName('');
       setDescription('');
-      setConversionType('BMS_DSPF_TO_REACT');
+      setConversionType('BMS_DSPF_TO_FRONTEND');
       setError('');
       document.body.style.overflow = 'hidden';
     } else {
@@ -133,7 +133,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div
-                onClick={() => setConversionType('BMS_DSPF_TO_REACT')}
+                onClick={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
                 className={`p-3 rounded-xl border cursor-pointer transition-all ${
                   conversionType === 'BMS_DSPF_TO_REACT' || conversionType === 'BMS_DSPF_TO_FRONTEND'
                     ? 'bg-[#F0F4F8] border-[#244A70] ring-2 ring-[#244A70]/20'
@@ -151,7 +151,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                     type="radio"
                     name="conversionType"
                     checked={conversionType === 'BMS_DSPF_TO_REACT' || conversionType === 'BMS_DSPF_TO_FRONTEND'}
-                    onChange={() => setConversionType('BMS_DSPF_TO_REACT')}
+                    onChange={() => setConversionType('BMS_DSPF_TO_FRONTEND')}
                     className="mt-0.5 text-[#244A70] focus:ring-[#244A70]"
                   />
                 </div>

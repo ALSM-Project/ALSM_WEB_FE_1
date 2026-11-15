@@ -13,6 +13,7 @@ import { conversionTargetFor } from '../utils/conversionTarget';
 const mocks = vi.hoisted(() => ({
   getScreens: vi.fn(),
   bulkConvertScreens: vi.fn(),
+  getProjectConversions: vi.fn().mockResolvedValue([]),
   getProjectById: vi.fn().mockResolvedValue(null),
 }));
 
@@ -24,6 +25,7 @@ vi.mock('../services/conversion.service', () => ({
   conversionService: {
     getScreens: mocks.getScreens,
     bulkConvertScreens: mocks.bulkConvertScreens,
+    getProjectConversions: mocks.getProjectConversions,
   },
 }));
 
