@@ -32,7 +32,7 @@ export const WORKSPACE_METADATA = {
     description: 'Analyze, convert, validate, and inspect legacy COBOL business logic programs.',
     badgeLabel: 'COBOL → Java',
     sourceLabel: 'COBOL',
-    targetFramework: 'Java 21 + Spring Boot',
+    targetFramework: 'Java 17 + Spring Boot',
     itemNoun: 'program',
     itemNounPlural: 'programs',
   },
