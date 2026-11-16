@@ -169,7 +169,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   <div>
                     <h3 className="text-xs font-bold text-[#091E42]">COBOL &rarr; Java</h3>
                     <p className="text-[11px] text-[#6B778C] mt-0.5">
-                      COBOL programs to Java 21 + Spring Boot.
+                      COBOL programs to Java 17 + Spring Boot.
                     </p>
                   </div>
                   <input
