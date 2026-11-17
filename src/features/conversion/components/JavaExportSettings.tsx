@@ -110,7 +110,7 @@ export const JavaExportSettings: React.FC<JavaExportSettingsProps> = ({ options,
               className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-600 font-medium cursor-not-allowed"
             />
             <p className="text-[11px] text-slate-500">
-              Code built on the converter runtime needs Spring Boot 2.4 and Java 11; newer code gets Spring Boot 3.3 and Java 21.
+              Code built on the converter runtime needs Spring Boot 2.4 and Java 11; newer code gets Spring Boot 3.3 and Java 17.
             </p>
           </div>
           <div className="space-y-1.5">
