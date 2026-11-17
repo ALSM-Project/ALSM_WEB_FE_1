@@ -172,7 +172,7 @@ export const Web1WorkspacePreviewContent: React.FC = () => {
                   placeholder="Enter screen name..."
                   className="pl-8"
                 />
-                <FileText className="w-4 h-4 text-[#6B778C] absolute left-2.5 top-2.5" />
+                <FileText className="w-4 h-4 text-[#6B778C] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               </div>
             </div>
 
