@@ -178,7 +178,7 @@ export const MenuItemEditor: React.FC<MenuItemEditorProps> = ({
           <div>
             <label className="text-xs font-semibold text-[#091E42] mb-1 block">Route / URL *</label>
             <div className="relative">
-              <LinkIcon className="w-4 h-4 text-[#6B778C] absolute left-3 top-2.5 pointer-events-none" />
+              <LinkIcon className="w-4 h-4 text-[#6B778C] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               <Input
                 value={formState.path || ''}
                 onChange={(e) => handleChange('path', e.target.value)}

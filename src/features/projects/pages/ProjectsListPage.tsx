@@ -74,13 +74,13 @@ export const ProjectsListPage: React.FC = () => {
       {/* Filters and Search Bar */}
       <div className="bg-white border border-[#D9E2EC] rounded-xl p-4 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
           <input
             type="text"
             placeholder="Search projects by name, legacy system type..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#244A70] transition-colors"
+            className="w-full h-8 pl-10 pr-4 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#244A70] transition-colors"
           />
         </div>
 

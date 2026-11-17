@@ -223,7 +223,7 @@ export const OrganizationMembersPage: React.FC = () => {
               <span>Refresh</span>
             </Button>
             <Button variant="primary" size="sm" onClick={() => setIsInviteOpen(true)}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>Invite Member</span>
             </Button>
           </div>
@@ -281,13 +281,13 @@ export const OrganizationMembersPage: React.FC = () => {
       <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 shadow-2xs space-y-3">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B778C]" />
+            <Search className="w-4 h-4 text-[#6B778C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Search members by name or email address..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+              className="w-full h-8 pl-10 pr-4 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
             />
           </div>
 
@@ -295,7 +295,7 @@ export const OrganizationMembersPage: React.FC = () => {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl px-3 py-2 text-xs text-[#091E42] focus:outline-none"
+              className="h-8 px-3 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none"
             >
               <option value="ALL">All Roles</option>
               <option value="Partner Lead">Partner Lead</option>
@@ -308,7 +308,7 @@ export const OrganizationMembersPage: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl px-3 py-2 text-xs text-[#091E42] focus:outline-none"
+              className="h-8 px-3 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none"
             >
               <option value="ALL">All Statuses</option>
               <option value="Active">Active</option>
@@ -812,7 +812,7 @@ export const OrganizationTeamsPage: React.FC = () => {
               <span>Refresh</span>
             </Button>
             <Button variant="primary" size="sm" onClick={() => setIsCreateOpen(true)}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>Create Team</span>
             </Button>
           </div>
@@ -870,13 +870,13 @@ export const OrganizationTeamsPage: React.FC = () => {
       <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 shadow-2xs">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B778C]" />
+            <Search className="w-4 h-4 text-[#6B778C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Search teams by name or squad lead..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+              className="w-full h-8 pl-10 pr-4 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
             />
           </div>
 
@@ -884,7 +884,7 @@ export const OrganizationTeamsPage: React.FC = () => {
             <select
               value={kindFilter}
               onChange={(e) => setKindFilter(e.target.value)}
-              className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl px-3 py-2 text-xs text-[#091E42] focus:outline-none"
+              className="h-8 px-3 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none"
             >
               <option value="ALL">All Disciplines</option>
               <option value="CONVERSION">Conversion & Code Generation</option>
@@ -1222,7 +1222,7 @@ export const OrganizationProjectsPage: React.FC = () => {
               <span>Refresh</span>
             </Button>
             <Button variant="primary" size="sm" onClick={() => setIsCreateOpen(true)}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>New Project</span>
             </Button>
           </div>
@@ -1233,13 +1233,13 @@ export const OrganizationProjectsPage: React.FC = () => {
       <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 shadow-2xs">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B778C]" />
+            <Search className="w-4 h-4 text-[#6B778C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Search organisation projects..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+              className="w-full h-8 pl-10 pr-4 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
             />
           </div>
 
@@ -1247,7 +1247,7 @@ export const OrganizationProjectsPage: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl px-3 py-2 text-xs text-[#091E42] focus:outline-none"
+              className="h-8 px-3 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none"
             >
               <option value="ALL">All Statuses</option>
               <option value="ACTIVE">Active</option>
@@ -1509,7 +1509,7 @@ export const OrganizationRolesPage: React.FC = () => {
               <span>Refresh</span>
             </Button>
             <Button variant="primary" size="sm" onClick={() => setIsCreateRoleOpen(true)}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>Create Custom Role</span>
             </Button>
           </div>
@@ -1747,13 +1747,13 @@ export const OrganizationRolesPage: React.FC = () => {
         <div className="space-y-4">
           <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 shadow-2xs">
             <div className="relative w-full">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B778C]" />
+              <Search className="w-4 h-4 text-[#6B778C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               <input
                 type="text"
                 placeholder="Search permissions by key, module, or description..."
                 value={permSearch}
                 onChange={(e) => setPermSearch(e.target.value)}
-                className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+                className="w-full h-8 pl-10 pr-4 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
               />
             </div>
           </div>
@@ -1937,7 +1937,7 @@ export const OrganizationAnalyticsPage: React.FC = () => {
             <select
               value={timeframe}
               onChange={(e) => setTimeframe(e.target.value)}
-              className="bg-white border border-[#D9E2EC] rounded-xl px-3 py-1.5 text-xs text-[#091E42] focus:outline-none"
+              className="h-8 px-3 py-0 bg-white border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none"
             >
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
@@ -2217,13 +2217,13 @@ export const OrganizationAuditLogsPage: React.FC = () => {
       <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 shadow-2xs">
         <div className="flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B778C]" />
+            <Search className="w-4 h-4 text-[#6B778C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Filter audit events by actor, action name, or IP address..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl pl-10 pr-4 py-2 text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
+              className="w-full h-8 pl-10 pr-4 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] placeholder-[#6B778C] focus:outline-none focus:ring-2 focus:ring-[#0652CC]"
             />
           </div>
 
@@ -2234,7 +2234,7 @@ export const OrganizationAuditLogsPage: React.FC = () => {
                 setActionFilter(e.target.value);
                 setPage(1);
               }}
-              className="bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl px-3 py-2 text-xs text-[#091E42] focus:outline-none"
+              className="h-8 px-3 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none"
             >
               <option value="ALL">All Event Types</option>
               <option value="PROJECT_CREATED">Project Creation</option>
@@ -2314,7 +2314,7 @@ export const OrganizationAuditLogsPage: React.FC = () => {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
             >
-              <ChevronLeft className="w-3.5 h-3.5 mr-1" />
+              <ChevronLeft className="w-3.5 h-3.5 shrink-0" />
               <span>Previous</span>
             </Button>
             <Button
@@ -2324,7 +2324,7 @@ export const OrganizationAuditLogsPage: React.FC = () => {
               disabled={page >= totalPages}
             >
               <span>Next</span>
-              <ChevronRight className="w-3.5 h-3.5 ml-1" />
+              <ChevronRight className="w-3.5 h-3.5 shrink-0" />
             </Button>
           </div>
         </div>

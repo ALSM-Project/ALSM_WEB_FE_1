@@ -188,13 +188,13 @@ public class AccountProcessorService {
           <div className="bg-white border border-[#D9E2EC] rounded-2xl p-4 space-y-4 sticky top-4 shadow-2xs">
             {/* Search Input */}
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               <input
                 type="text"
                 placeholder="Search docs..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] outline-none"
+                className="w-full h-8 pl-9 pr-3 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:bg-white focus:border-[#0652CC] outline-none"
               />
             </div>
 

@@ -252,13 +252,13 @@ export const InvoicesPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-[#6B778C] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#6B778C] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <Input
               type="text"
               placeholder="Search by invoice #, organization, or item..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9 text-xs py-2 bg-[#F7F9FC] border-[#D9E2EC] focus:bg-white"
+              className="h-8 pl-9 text-xs py-0 bg-[#F7F9FC] border-[#D9E2EC] focus:bg-white"
             />
           </div>
 

@@ -19,7 +19,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles =
-    'inline-flex items-center justify-center font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#244A70] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs';
+    'inline-flex items-center justify-center gap-1.5 font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#244A70] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs whitespace-nowrap';
 
   const variants = {
     primary:

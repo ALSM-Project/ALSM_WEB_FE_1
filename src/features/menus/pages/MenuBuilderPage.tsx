@@ -159,9 +159,9 @@ export const MenuBuilderPage: React.FC = () => {
                   placeholder="Filter menu tree..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 text-xs py-1.5"
+                  className="h-8 pl-8 text-xs py-0"
                 />
-                <Search className="w-4 h-4 text-[#6B778C] absolute left-2.5 top-2.5 pointer-events-none" />
+                <Search className="w-4 h-4 text-[#6B778C] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-[#6B778C]">

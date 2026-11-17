@@ -512,13 +512,13 @@ export const CustomerContractsPage: React.FC = () => {
         {/* Search & Mode Filters */}
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
           <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by contract #, organization..."
-              className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
+              className="w-full h-8 pl-9 pr-4 py-0 text-xs sm:text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-slate-400"
             />
           </form>
 
@@ -530,7 +530,7 @@ export const CustomerContractsPage: React.FC = () => {
             <select
               value={serviceModeFilter}
               onChange={(e) => setServiceModeFilter(e.target.value)}
-              className="text-xs sm:text-sm border border-slate-200 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-8 px-3 py-0 text-xs sm:text-sm border border-slate-200 rounded-lg bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="ALL">All Modes</option>
               <option value="SELF_SERVICE">Platform-Based Modernization</option>
@@ -695,7 +695,7 @@ export const CustomerContractsPage: React.FC = () => {
                               onClick={() => navigate(`/contracts/${contract.id}`)}
                               className="bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold text-xs px-3 py-1.5 shadow-xs flex items-center gap-1"
                             >
-                              <PenTool className="w-3.5 h-3.5" />
+                              <PenTool className="w-3.5 h-3.5 shrink-0" />
                               <span>Review & Sign</span>
                             </Button>
                           ) : (
@@ -705,7 +705,7 @@ export const CustomerContractsPage: React.FC = () => {
                               onClick={() => navigate(`/contracts/${contract.id}`)}
                               className="text-slate-700 hover:text-blue-600 border-slate-300 text-xs px-2.5 py-1 flex items-center gap-1"
                             >
-                              <ExternalLink className="w-3.5 h-3.5" />
+                              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                               <span>View Contract & Payment</span>
                             </Button>
                           )}
@@ -726,7 +726,7 @@ export const CustomerContractsPage: React.FC = () => {
                             onClick={() => handleDownloadPdf(contract.id)}
                             className="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1 mt-0.5 cursor-pointer"
                           >
-                            <Download className="w-3 h-3" />
+                            <Download className="w-3 h-3 shrink-0" />
                             <span>Download PDF</span>
                           </button>
                         </div>
