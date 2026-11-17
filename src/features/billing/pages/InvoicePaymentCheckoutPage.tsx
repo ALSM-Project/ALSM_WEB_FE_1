@@ -266,9 +266,9 @@ export const InvoicePaymentCheckoutPage: React.FC = () => {
               rel="noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-emerald-700 font-extrabold text-sm hover:bg-emerald-50 transition shadow-lg shadow-black/10"
             >
-              <Sparkles className="w-5 h-5 text-emerald-600" />
-              Log In to ALSM Partner Portal (Web 3)
-              <ExternalLink className="w-4 h-4 ml-1" />
+              <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
+              <span>Log In to ALSM Partner Portal (Web 3)</span>
+              <ExternalLink className="w-4 h-4 shrink-0" />
             </a>
             <Button
               variant="outline"

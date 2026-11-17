@@ -354,8 +354,8 @@ export const ContractPreviewModal: React.FC<ContractPreviewModalProps> = ({
             onClick={onDownloadPdf}
             className="text-xs border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white h-8"
           >
-            <Download className="w-3.5 h-3.5 mr-1.5" />
-            Download PDF
+            <Download className="w-3.5 h-3.5 shrink-0" />
+            <span>Download PDF</span>
           </Button>
 
           {!isCustomerSigned && (

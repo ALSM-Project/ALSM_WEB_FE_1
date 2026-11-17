@@ -660,8 +660,8 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
               onClick={() => setShowPreviewModal(true)}
               className="border-amber-300 text-amber-900 hover:bg-amber-100 text-xs font-bold"
             >
-              <Eye className="w-3.5 h-3.5 mr-1" />
-              Review Contract
+              <Eye className="w-3.5 h-3.5 shrink-0" />
+              <span>Review Contract</span>
             </Button>
           </div>
         </div>
@@ -682,8 +682,8 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
             onClick={() => setShowPreviewModal(true)}
             className="bg-[#244A70] hover:bg-[#1B3856] text-white font-bold text-xs whitespace-nowrap"
           >
-            <Eye className="w-3.5 h-3.5 mr-1.5" />
-            Preview Full Contract Agreement
+            <Eye className="w-3.5 h-3.5 shrink-0" />
+            <span>Preview Full Contract Agreement</span>
           </Button>
         </div>
       )}
@@ -843,8 +843,8 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
                 onClick={() => setShowPreviewModal(true)}
                 className="text-xs text-blue-600 border-blue-200 hover:bg-blue-50"
               >
-                <Eye className="w-3.5 h-3.5 mr-1" />
-                Preview Contract Full
+                <Eye className="w-3.5 h-3.5 shrink-0" />
+                <span>Preview Contract Full</span>
               </Button>
             </div>
 

@@ -88,8 +88,8 @@ export const ContractPreviewPage: React.FC = () => {
             onClick={() => billingService.downloadContractPdf(contractId!, contract.contractNumber)}
             className="text-xs px-3.5 py-2 border-slate-300 text-slate-700"
           >
-            <Download className="w-3.5 h-3.5 mr-1.5" />
-            Download Official PDF
+            <Download className="w-3.5 h-3.5 shrink-0" />
+            <span>Download Official PDF</span>
           </Button>
           <Button
             onClick={() => navigate(`/contracts/${contractId}`)}
