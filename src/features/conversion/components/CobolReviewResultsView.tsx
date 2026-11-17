@@ -75,7 +75,7 @@ export const CobolReviewResultsView: React.FC<CobolReviewResultsViewProps> = ({
 
 ## 2. Java Code Generation (Pass 2.5)
 - **Engine**: Deterministic Cobol2Java & ExecSql2Java Transpiler
-- **Target Runtime**: Java 21 LTS / Spring Boot 3.2.x / Spring Batch 5.x
+- **Target Runtime**: Java 17 LTS / Spring Boot 3.2.x / Spring Batch 5.x
 - **Total Java Classes Generated**: ${files.length > 0 ? files.length : 3}
 - **State Machine Runner**: Implemented with paragraph-level state dispatchers
 - **Data Representation**: BigDecimal for COMP-3 packed-decimal fields; Fixed-length ASCII record buffers
