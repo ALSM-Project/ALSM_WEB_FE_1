@@ -415,13 +415,13 @@ export const FieldMappingPage: React.FC = () => {
           <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Legacy Source Fields</h3>
 
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" />
             <input
               type="text"
               placeholder="Search fields..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600 shadow-xs"
+              className="w-full h-8 pl-9 pr-3 py-0 bg-white border border-slate-300 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-600 shadow-xs"
             />
           </div>
 

@@ -189,12 +189,12 @@ export const DiagnosticsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-[#D9E2EC] shadow-2xs">
         <div className="flex items-center space-x-3 w-full sm:w-auto">
           <div className="relative flex items-center">
-            <Filter className="w-4 h-4 absolute left-3 text-[#6B778C] pointer-events-none" aria-hidden="true" />
+            <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0 text-[#6B778C]" aria-hidden="true" />
             <select
               aria-label="Filter by Severity"
               value={severityFilter}
               onChange={(e) => setSeverityFilter(e.target.value)}
-              className="pl-8 pr-8 py-2 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
+              className="h-8 pl-8 pr-8 py-0 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
             >
               <option value="ALL">All Severities</option>
               <option value="FATAL">Fatal</option>
@@ -204,12 +204,12 @@ export const DiagnosticsPage: React.FC = () => {
           </div>
 
           <div className="relative flex items-center">
-            <Clock className="w-4 h-4 absolute left-3 text-[#6B778C] pointer-events-none" aria-hidden="true" />
+            <Clock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none shrink-0 text-[#6B778C]" aria-hidden="true" />
             <select
               aria-label="Filter by Time Range"
               value={timeFilter}
               onChange={(e) => setTimeFilter(e.target.value)}
-              className="pl-8 pr-8 py-2 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
+              className="h-8 pl-8 pr-8 py-0 bg-[#F7F9FC] border border-[#D9E2EC] text-[#091E42] text-xs font-semibold rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0652CC] cursor-pointer"
             >
               <option value="24h">Last 24 Hours</option>
               <option value="7d">Last 7 Days</option>
@@ -219,13 +219,13 @@ export const DiagnosticsPage: React.FC = () => {
         </div>
 
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3.5 top-2.5 text-[#6B778C] pointer-events-none" aria-hidden="true" />
+          <Search className="w-4 h-4 text-[#6B778C] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none shrink-0" aria-hidden="true" />
           <input
             type="text"
             placeholder="Search error codes, screens..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC] placeholder-[#6B778C]"
+            className="w-full h-8 pl-9 pr-4 py-0 bg-[#F7F9FC] border border-[#D9E2EC] rounded-xl text-xs text-[#091E42] focus:outline-none focus:ring-2 focus:ring-[#0652CC] placeholder-[#6B778C]"
           />
         </div>
       </div>
