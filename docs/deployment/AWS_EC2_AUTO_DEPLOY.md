@@ -1,98 +1,150 @@
-# ALSM AWS EC2 automatic frontend deployment
+# ALSM — vận hành CI/CD Frontend trên EC2
 
-This guide applies to `ALSM_WEB_FE_1`, `ALSM_WEB_FE_2`, and `ALSM_WEB_FE_3`.
+Trạng thái ngày 18/11/2026 (Asia/Bangkok): **đang chuẩn bị, CHƯA bật auto deploy**. Ba PR phải giữ Draft cho tới khi hoàn tất kiểm thử EC2. Không coi kiểm thử sandbox là một lần deploy production thành công.
 
-## Overview
+## Phạm vi và các PR
 
-Each repository has `.github/workflows/deploy-ec2.yml`, triggered on `push` to `develop` or manual workflow dispatch:
+| Portal | Repository | PR | Nhánh |
+| --- | --- | --- | --- |
+| User | ALSM-Project/ALSM_WEB_FE_1 | https://github.com/ALSM-Project/ALSM_WEB_FE_1/pull/73 | feat/ci-aws-ec2-auto-deploy |
+| Staff | ALSM-Project/ALSM_WEB_FE_2 | https://github.com/ALSM-Project/ALSM_WEB_FE_2/pull/80 | feat/ci-aws-ec2-auto-deploy |
+| Web3 | ALSM-Project/ALSM_WEB_FE_3 | https://github.com/ALSM-Project/ALSM_WEB_FE_3/pull/2 | feat/ci-aws-ec2-auto-deploy |
 
-1. GitHub-hosted runner: Node 22, `npm ci`, lint, tests where existing CI requires tests, Vite production build, upload artifact.
-2. A **dedicated self-hosted runner on the EC2 instance** downloads the artifact, publishes it as an immutable release and switches an atomic `current` symlink.
-3. A public HTTPS GET smoke test runs; failures restore the previous symlink.
+Backend, MongoDB Atlas, Redis và converter không thuộc phạm vi triển khai. Không chạy migration, seed, đổi image, restart container, xóa volume hay mở thêm cổng Internet.
 
-The server's existing Nginx `root /var/www/alsm/user|staff|web3` stays unchanged, as these paths are changed once to symlinks during bootstrap.
+## Kết quả audit đã xác minh
 
-**Do not enable deployment until the initial EC2 setup below is done.** Do not make port 22 public for GitHub-hosted runners.
+- Tài khoản GitHub CLI: `hoanghuync`, có quyền admin cả ba repo và vai trò admin tổ chức. Token hiện tại chưa có `admin:org`; API runner group trả HTTP 403. Không có token nào được ghi vào repository.
+- Ban đầu cả ba repo public đều chưa có runner, Actions Variables, Environment hoặc branch protection.
+- Đã tạo Environment `production` chỉ nhận **branch** `develop`, không nhận tag trùng tên. Đã bảo vệ `develop`: CI `Build & Validate` phải đạt trên base mới nhất; ít nhất một approval; bỏ approval cũ khi push thêm; phải giải quyết conversation; áp dụng cả admin; cấm force push và xóa nhánh.
+- Chưa thêm `Production build` làm required check vì Variables/HTTPS chưa sẵn sàng; tránh khóa các PR khác bởi một check chưa được cài trên develop. Sau khi workflow được đưa vào develop an toàn, thêm `Deployment safety tests` và `Production build` vào required checks.
+- Người dùng xác nhận IP hiện tại: **52.64.192.103**, Sydney. HTTP tới IP mới trả 200. Chưa có quyền AWS API để xác nhận trạng thái Running bằng control plane.
+- SSH tới `52.64.192.103:22` timeout từ IP quản trị quan sát được `171.231.177.7`. Không thay Security Group, không thêm host key không được xác minh.
+- DNS các tên `*.3-27-190-25.sslip.io` cố định theo IP cũ. Không dùng chúng làm cấu hình deploy mới.
+- Kiểm tra chẩn đoán bằng `curl --resolve <hostname-cũ>:443:52.64.192.103`: ba giao diện trả 200 và TLS hợp lệ; cả ba `/api/v1/health` trả **502 Bad Gateway**. Phép đo này không thay DNS và không chứng minh người dùng Internet truy cập được qua domain cũ.
+- `https://user.52-64-192-103.sslip.io`, `https://staff.52-64-192-103.sslip.io`, `https://web3.52-64-192-103.sslip.io` đều chưa có chứng chỉ khớp tên. Không tắt xác minh TLS và chưa đưa các URL này vào Variables.
+- Do SSH bị chặn, Nginx config, Docker/Redis, quyền thư mục, image đang chạy và trạng thái worker trên máy chủ **chưa được kiểm tra trực tiếp**. Chưa có thay đổi nào được thực hiện trên EC2.
 
-## GitHub Actions repository variables
+## Kiến trúc workflow
 
-Set these **in all three repositories** under Settings → Secrets and variables → Actions → Variables:
+`.github/workflows/ci.yml` hiện có được giữ nguyên. Nó chỉ build/test, không deploy, nên không tranh ghi website với workflow mới.
 
-| Variable | Initial value (change when using a custom domain) |
+Workflow `deploy-ec2.yml` chạy kiểm thử trên GitHub-hosted Ubuntu 24.04/Node 22 khi PR tới develop, push develop, hoặc push nhánh chuẩn bị CI/CD. Chỉ push/dispatch trên `refs/heads/develop` của đúng repository mới được vào job deploy. Dispatch trên nhánh khác và mọi PR đều không được vào EC2.
+
+1. Kiểm tra YAML/expressions bằng actionlint có checksum; kiểm thử deploy/rollback trong thư mục tạm.
+2. `npm ci`, lint, **test cả ba repo**, `tsc -b`, kiểm tra URL production, Vite production build.
+3. Tạo `_alsm/release.json`: portal, commit, ba origins và SHA256 của từng file. Chặn symlink, đường dẫn xuyên thư mục, file ẩn và các loại private key trong artifact.
+4. Upload artifact immutable, download bằng artifact ID của cùng run. Pin mọi Action tới full commit SHA đã đối chiếu với official release.
+5. Runner không checkout code, không chạy npm và không thực thi script trong artifact. Nó chỉ gọi deployer đã được admin cài vào `/usr/local/lib/alsm-deploy/deploy.py`; SHA256 của deployer phải khớp code đã kiểm thử trên hosted runner.
+6. Khóa `flock` riêng portal; xác minh toàn bộ artifact và origins khớp cấu hình root-owned; publish theo full commit SHA. Không ghi đè SHA đã tồn tại, kể cả rerun.
+7. Chuyển `current` bằng `os.replace` atomic. Kiểm tra HTTPS marker, index, JS/CSS và API health `status=ok`; không chỉ kiểm tra HTTP 200.
+8. Lỗi/TERM/INT khôi phục link trước và kiểm tra HTTPS lại. Journal được timer độc lập kiểm tra mỗi 30 giây để phục hồi sau SIGKILL/power loss. Không thể bảo đảm truy cập trong thời gian EC2/nginx/mạng ngừng hoạt động.
+9. Giữ năm release gần nhất, thêm current/previous/initial nếu cần. Backup gốc không bị dọn. Staging bỏ dở được dọn sau một ngày khi có lần deploy thành công; cần giám sát disk vì còn có work/cache của runner.
+
+Artifact tối đa 250 MiB/10.000 file; artifact GitHub giữ 7 ngày. Đổi deployer cần admin cập nhật bản cài trên EC2 trước khi workflow mới deploy; mismatch sẽ dừng trước khi tải artifact.
+
+## Biến build đã đối chiếu source
+
+Cả ba repo cần các repository Actions Variables `ALSM_USER_URL`, `ALSM_STAFF_URL`, `ALSM_WEB3_URL`, chỉ đặt sau khi public DNS/TLS và API hoạt động. Không commit `.env.production`. Không có URL mặc định dùng để báo deploy thành công.
+
+| Repo | Ánh xạ Vite |
 | --- | --- |
-| `ALSM_USER_URL` | `https://user.3-27-190-25.sslip.io` |
-| `ALSM_STAFF_URL` | `https://staff.3-27-190-25.sslip.io` |
-| `ALSM_WEB3_URL` | `https://web3.3-27-190-25.sslip.io` |
-| `ALSM_GOOGLE_CLIENT_ID` | Optional public OAuth client ID if Google login is configured |
+| FE1 | `VITE_API_BASE_URL=ALSM_USER_URL`; staff/web3 portal URLs tương ứng |
+| FE2 | `VITE_API_BASE_URL=ALSM_STAFF_URL`; `VITE_USER_PORTAL_URL` và **`VITE_CONVERSION_WORKSPACE_URL`** = ALSM_USER_URL; mock support false; local-only support HTTP trống |
+| FE3 | `VITE_API_BASE_URL` và **`VITE_API_URL`** = ALSM_WEB3_URL; user/staff/web3 portal URLs tương ứng |
 
-URLs are built into each Vite bundle, so changing any URL requires a new deployment. The sslip.io hostnames incorporate the instance's **ephemeral** public IP; an EC2 Stop/Start may break them. Prefer Elastic IP and a registered domain before depending on fully automatic updates.
+FE1/FE3 còn đọc `VITE_API_TIMEOUT_MS`, mặc định 30000 ms. `VITE_GOOGLE_CLIENT_ID` lấy từ `ALSM_GOOGLE_CLIENT_ID` nếu có giá trị thật đã xác minh. Ví dụ trong source chưa đủ để xác nhận cấu hình OAuth production; không sao chép bừa vào Variables. Mọi `VITE_*` đều công khai trong bundle.
 
-No SSH key or API password should be committed to a repository. The frontend deployment does not need any AWS access key or MongoDB URI.
+## Việc cần thực hiện trên Ubuntu trước
 
-## 1. Bootstrap release directories on the EC2 instance (once)
-
-Connect to Ubuntu via SSH as `ubuntu`. Verify the existing sites are healthy before proceeding. Create a **non-sudo** runner account first:
+Có thể cho phép SSH **chỉ IP quản trị hiện tại `/32`** sau khi xác minh lại IP egress; không mở `0.0.0.0/0`. Nếu không cho phép SSH, quản trị viên chạy script đã review bằng phiên Ubuntu hiện có:
 
 ```bash
-sudo id alsmrunner >/dev/null 2>&1 || sudo useradd --system --create-home --shell /bin/bash alsmrunner
-sudo apt-get update
-sudo apt-get install -y rsync curl
+bash .github/deployment/audit-ec2.sh
 ```
 
-Next, convert the existing Nginx web directories to links without losing their original content:
+Script chỉ đọc metadata public, service/container status, quyền thư mục, Nginx, SAN/ngày hạn của certificate, cổng lắng nghe và health; không đọc `.env`, private key hay Docker environment. Đối chiếu output trước khi cài đặt. Không đặt tên thư mục chứa script trùng `/opt/alsm` nếu ảnh hưởng quyền Backend.
+
+**Dừng tại đây khi API vẫn 502.** Quản trị viên cần xác định nguyên nhân upstream riêng. Bộ công cụ frontend không khởi động lại/sửa Backend để vượt qua điều kiện này.
+
+Sau khi audit Nginx, cần một phương án URL được duyệt: domain ổn định đang sở hữu hoặc tên sslip theo IP mới. Nếu thêm tên mới, sao lưu cấu hình, thêm server_name/HTTP challenge tương ứng, cấp certificate mới với tên riêng để giữ nguyên certificate cũ, chạy `nginx -t`, rồi reload có kiểm soát. Chỉ làm sau khi biết config thật và có phương án khôi phục config/certificate. Chưa có thao tác TLS/DNS nào được thực hiện trong lần chuẩn bị này.
+
+## Chuẩn bị release — chỉ sau khi baseline khỏe
+
+Review toàn bộ `.github/deployment/bootstrap.py`. Nó yêu cầu root, ba URL hợp lệ, nginx/docker active, HTTP body đúng build local và API HTTPS khỏe cho cả ba site trước khi thay website.
 
 ```bash
-set -eu
-for site in user staff web3; do
-  base="/var/www/alsm/releases/$site"
-  sudo install -d -o alsmrunner -g alsmrunner -m 755 "$base"
-
-  if [ -d "/var/www/alsm/$site" ] && [ ! -L "/var/www/alsm/$site" ]; then
-    sudo cp -a "/var/www/alsm/$site" "$base/initial"
-    sudo ln -sfn "$base/initial" "$base/current"
-    sudo mv "/var/www/alsm/$site" "/var/www/alsm/$site.before-cicd"
-    sudo ln -s "$base/current" "/var/www/alsm/$site"
-  fi
-
-  test -L "/var/www/alsm/$site"
-  test -s "/var/www/alsm/$site/index.html"
-  sudo chown alsmrunner:alsmrunner "$base" "$base/current"
-done
-sudo nginx -t
-sudo systemctl reload nginx
+# Cài chỉ khi thiếu; không upgrade toàn hệ thống hoặc restart dịch vụ Backend.
+sudo env NEEDRESTART_MODE=l apt-get install -y rsync curl python3
+# Ba giá trị này phải là origins đã xác minh, không dùng domain đang lỗi chứng chỉ.
+sudo python3 .github/deployment/bootstrap.py \
+  --user-url "$ALSM_USER_URL" --staff-url "$ALSM_STAFF_URL" --web3-url "$ALSM_WEB3_URL"
 ```
 
-The original directories are kept as `/var/www/alsm/<site>.before-cicd`. The Nginx configuration files and TLS certificates are not modified. Do not run this script again until reviewing existing directories; if a `before-cicd` directory already exists, stop and inspect to avoid replacing backups.
+Bootstrap tạo account `alsmrunner` không sudo/docker, home `/var/lib/alsmrunner`, snapshot `initial`, link `current`, backup root-only `/var/www/alsm/.backups/<portal>.before-cicd`, và cấu hình root-owned `/etc/alsm-deploy/portals.json`. Linux `renameat2(RENAME_EXCHANGE)` đổi directory và symlink trong một thao tác, tránh cửa sổ thư mục root bị mất. Nếu HTTPS sau đổi lỗi, script đổi ngược lại ngay. Các backup có sẵn không bị ghi đè. Trạng thái setup dở bất thường sẽ dừng để kiểm tra thay vì xóa dữ liệu.
 
-## 2. Register one restricted self-hosted runner
+Nginx root vẫn là `/var/www/alsm/user|staff|web3`, trỏ tới `releases/<portal>/current`. Không sửa Nginx/certificate hoặc reload Nginx bởi bootstrap. Deployer và recovery service chỉ ghi cây releases; account không đọc được backup gốc. Recovery timer độc lập runner tự khởi động sau boot.
 
-**Preferred:** Create one *organization-level* self-hosted runner in the GitHub organization `ALSM-Project` and give it access only to the three frontend repositories. Select Linux x64, assign the custom label `alsm-deploy`, and use the installation and registration commands shown by GitHub itself (runner version/download/token are short-lived or change).
+## Runner và public repository
 
-On the EC2 host, install the runner under a directory owned by `alsmrunner`, and register/run it under that non-sudo account; do not register or run it as root or the sudo-capable `ubuntu` account. Install the systemd runner service so it starts when EC2 starts. Confirm in GitHub that the runner status is **Idle**.
+GitHub cảnh báo self-hosted runner trong public repo có thể bị workflow PR chiếm quyền. Label và `if` trong một workflow **không phải** ranh giới truy cập: người tạo PR có thể thêm workflow khác. Không cài repo-level production runner chỉ để vượt lỗi quyền quản trị tổ chức.
 
-If organization-level runners are unavailable, each repository needs its own repo-level runner, registered separately (different directories/services), using the same `alsm-deploy` label. A single repo-level runner cannot run jobs from three different repositories.
+Điều kiện bắt buộc của runner group `alsm-frontend-production`:
 
-**Security:** These repositories are public. Self-hosted runners can be dangerous with untrusted PR code. The deploy workflow accepts only `develop` pushes and manual dispatch, but you must protect `develop` from unauthorized merges and protect the `production` Environment (restrict deployment branches to `develop`; optional required reviewers). Do not let unreviewed workflow changes reach `develop`. Dedicated non-sudo account, directory permissions, and restricted runner repository access are essential.
+- `visibility=selected`, chỉ ba repository IDs: FE1 `1330979095`, FE2 `1360316550`, FE3 `1451449741`.
+- `allows_public_repositories=true` chỉ trong group đã giới hạn này.
+- `restricted_to_workflows=true`, chính xác ba workflow:
+  - `ALSM-Project/ALSM_WEB_FE_1/.github/workflows/deploy-ec2.yml@refs/heads/develop`
+  - `ALSM-Project/ALSM_WEB_FE_2/.github/workflows/deploy-ec2.yml@refs/heads/develop`
+  - `ALSM-Project/ALSM_WEB_FE_3/.github/workflows/deploy-ec2.yml@refs/heads/develop`
+- Xác minh API trả đúng toàn bộ giới hạn; nếu plan/API không hỗ trợ giới hạn workflow, **không đăng ký runner production**, dùng phương án SSM bên dưới.
 
-## 3. Enable and test
+Cấp quyền CLI chính thức bằng `gh auth refresh -h github.com -s admin:org` nếu người quản trị lựa chọn. Một lựa chọn ít quyền hơn là fine-grained token chỉ có quyền quản lý organization self-hosted runners cần thiết; không yêu cầu quyền repo/backend/credentials khác. Không đưa token vào chat hoặc log.
 
-For each repo, merge its deployment pull request only **after** EC2 bootstrap, GitHub variables, runner access and branch/environment protection are configured.
+`install-runner.sh` dùng official runner v2.338.2, kiểm SHA256, nhận official registration token ngắn hạn trên stdin, không in token. Chỉ chạy sau khi group được kiểm tra. Chuyển token từ `gh api orgs/ALSM-Project/actions/runners/registration-token` qua một kênh SSH đã xác thực; không truyền trong command line hay file repository. Không dùng lệnh `echo` chứa token trong terminal history.
 
-Then in GitHub → Actions → Deploy ALSM <Portal> to AWS EC2, run `workflow_dispatch` on `develop` to confirm:
+Installer tạo root-owned systemd unit, chạy `runsvc.sh` bằng alsmrunner, không chạy file do runner sở hữu với quyền root. `runner-hardening.conf` chặn ghi toàn hệ thống ngoài runner home/releases; ẩn `/opt/alsm`, Docker socket và certificate private; chặn loopback, private networks và IMDS. Phải kiểm tra systemd áp dụng IP filtering và xác nhận runner không truy cập Backend/Redis/IMDS được trước khi cho nhận job. Runner vẫn có quyền thay đổi cả ba Frontend; review quyền push và workflow là điều kiện vận hành bắt buộc.
 
-- Build job runs on GitHub-hosted runner and uploads `dist`.
-- Deploy job runs on EC2 runner and changes the `current` symlink.
-- HTTPS GET works and returns 200.
+Xác nhận service tự khởi động, GitHub hiển thị Online/Idle và label `alsm-deploy`. Runner tự cập nhật theo cơ chế chính thức; kiểm tra lại service sau update. Không để token đăng ký tồn tại lâu hơn cần thiết. Chưa có runner nào được đăng ký ở thời điểm audit.
 
-Any later merge/push to `develop` automatically repeats the process for that repository. A frontend deployment does **not** update the Backend or converter JAR/Python. Those require a separate, controlled deployment workflow because of shared MongoDB Atlas, running queues, Java/Python runtime and backend init/seed effects.
+Tài liệu gốc: [runner groups](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/manage-access), [runner group API](https://docs.github.com/en/rest/actions/self-hosted-runner-groups).
 
-## 4. Troubleshooting and rollback
+## Phương án SSM khi không dùng được workflow-restricted group
 
-- `Queued` forever: runner Offline, missing `alsm-deploy` label, repository not granted access, or a GitHub Environment approval is pending.
-- Build failure: resolve lint/test/Vite errors before deploy; deployed files remain untouched.
-- `EC2 portal bootstrap incomplete`: initialize the release symlink.
-- Permission denied: `alsmrunner` must own `/var/www/alsm/releases/<site>`; it does not require sudo privileges.
-- HTTPS health check fails: workflow attempts to restore the last `current` symlink. If the runner itself fails midway, inspect server manually.
-- To manually roll back: find the last good directory in `/var/www/alsm/releases/<site>`; as `alsmrunner`, point `current` to that full path using `ln -sfn` followed by `mv -Tf` (same atomic procedure).
+Giữ toàn bộ build trên GitHub-hosted runner. Dùng GitHub OIDC với IAM role riêng từng portal, trust giới hạn đúng repo + environment production; Environment chỉ cho branch develop. Không lưu AWS access key.
 
-Since the runner is hosted on EC2, a stopped instance cannot deploy. Jobs will queue until the runner comes online. Rotate URL variables and redeploy if instance public IP changes.
+Upload artifact/manifest vào S3 private prefix riêng portal (block public access, encryption, lifecycle). Role chỉ được ghi prefix đó và gọi `ssm:SendCommand` tới đúng instance bằng **custom SSM document cố định**; không cấp `AWS-RunShellScript` tùy ý. Document chỉ nhận portal/commit/object identity đã validate, gọi deployer root-owned dưới account alsmrunner, không cho truyền shell script. Instance role chỉ đọc các prefix artifact; agent/document cần được audit. Giữ manifest digest, release lock, atomic switch, HTTPS verification và rollback như thiết kế hiện tại.
+
+SSM không cần mở SSH inbound. Cần quyền AWS/IAM để triển khai phương án này và kiểm tra SSM agent; chưa được cấu hình. [AWS Session Manager](https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html).
+
+## Kiểm thử và điều kiện merge
+
+1. Actionlint, sandbox rollback/isolation, lint, toàn bộ test, TypeScript, production build phải thành công trên commit chuẩn bị mới nhất.
+2. Cả ba URL public truy cập HTTPS hợp lệ và `/api/v1/health` healthy trước deploy; config root-owned khớp Variables.
+3. Bootstrap, account permissions, runner group restrictions, service và Online/Idle được kiểm tra thực tế.
+4. Kiểm thử lỗi trên cây release tạm của Ubuntu bằng `python3 .github/deployment/test_deploy.py` và test bootstrap; không bẻ health/đổi link production để giả lập lỗi cho người dùng.
+5. Chỉ sau các điều kiện trên và approval của reviewer mới merge một PR được kiểm soát; push develop kích hoạt deploy. Các PR vẫn Draft cho tới lúc đó. Không force push develop.
+6. Ghi run URL, artifact ID/digest, current target, marker commit, HTTPS cả ba site, Backend health trước/sau. Xác minh hai current links còn lại không đổi.
+7. Sau deploy thành công đầu tiên, bật thêm hai required checks mới trên develop. Lặp lại cho hai portal còn lại.
+
+`workflow_dispatch` trên branch chuẩn bị chỉ kiểm thử hosted CI, không deploy; workflow phải hiện diện trên default branch theo cơ chế GitHub để dùng nút Run workflow. Không đổi guard hay cấp runner cho branch PR để lách điều kiện kiểm thử.
+
+## Rollback sau khi đã cài đặt
+
+Trên Ubuntu, admin có thể gọi cùng deployer với quyền runner, nhận cùng lock và kiểm tra HTTPS:
+
+```bash
+sudo -u alsmrunner python3 /usr/local/lib/alsm-deploy/deploy.py rollback \
+  --portal user --revision initial
+# Hoặc --revision là full SHA của release tốt còn được giữ lại.
+```
+
+Chọn đúng user/staff/web3. Không dùng rsync --delete vào current; không sửa nội dung release theo SHA; không đổi các portal khác. Rollback bình thường yêu cầu baseline và bản mục tiêu phục vụ khỏe. Khi API/mạng đang hỏng khiến kiểm tra baseline không đạt, admin phải đánh giá khôi phục hạ tầng trước; công cụ không báo rollback thành công khi health còn lỗi.
+
+Nếu runner bị kill giữa giao dịch, `alsm-deploy-recovery.timer` đọc journal, khôi phục trước đó và kiểm tra lại; xem `journalctl -u alsm-deploy-recovery.service` bằng tài khoản admin. Nếu health không hồi phục, journal được giữ để cảnh báo/kiểm tra lại. Backup root-only vẫn giữ nguyên để admin phục hồi thủ công nếu cần.
+
+## Danh sách file
+
+Cả ba repo: `.github/workflows/deploy-ec2.yml`, `.github/actionlint.yaml`, `.github/deployment/.gitattributes`, `.github/deployment/deploy.py`, `.github/deployment/test_deploy.py`.
+
+Riêng FE1: `.github/deployment/audit-ec2.sh`, `bootstrap.py`, `test_bootstrap.py`, `install-runner.sh`, `runner-hardening.conf`; tài liệu này và `BACKEND_CICD_PLAN.md`. Không sửa code nghiệp vụ hoặc workflow CI cũ.
