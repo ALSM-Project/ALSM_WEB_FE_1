@@ -199,11 +199,15 @@ export const tokenStore = {
     }); // On failure retain the proof + fence so logout can be retried truthfully.
   },
   async handoff(navigate: (tokens: AuthTokens) => void): Promise<void> {
-    const epoch = tokenStore.epoch();
+    console.log('[tokenStore.handoff] requested, epoch:', tokenStore.epoch());
     await lock(async () => {
-      if (epoch !== tokenStore.epoch()) return;
+      console.log('[tokenStore.handoff] acquired lock, store epoch:', tokenStore.epoch());
       const tokens = currentPair();
-      if (!tokens) return;
+      if (!tokens) {
+        console.warn('[tokenStore.handoff] currentPair returned null! handoff aborted.');
+        return;
+      }
+      console.log('[tokenStore.handoff] clearing FE1 session and firing navigate callback with tokens...');
       clear();
       navigate(tokens);
     });
