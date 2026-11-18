@@ -2,7 +2,7 @@ name: Deploy ALSM User Portal to AWS EC2
 
 on:
   push:
-    branches: [develop, feat/ci-aws-ec2-auto-deploy]
+    branches: [develop]
   pull_request:
     branches: [develop]
   workflow_dispatch:

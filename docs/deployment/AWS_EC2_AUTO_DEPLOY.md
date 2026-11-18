@@ -29,7 +29,7 @@ Backend, MongoDB Atlas, Redis và converter không thuộc phạm vi triển kha
 
 `.github/workflows/ci.yml` hiện có được giữ nguyên. Nó chỉ build/test, không deploy, nên không tranh ghi website với workflow mới.
 
-Workflow `deploy-ec2.yml` chạy kiểm thử trên GitHub-hosted Ubuntu 24.04/Node 22 khi PR tới develop, push develop, hoặc push nhánh chuẩn bị CI/CD. Chỉ push/dispatch trên `refs/heads/develop` của đúng repository mới được vào job deploy. Dispatch trên nhánh khác và mọi PR đều không được vào EC2.
+Workflow `deploy-ec2.yml` chạy kiểm thử trên GitHub-hosted Ubuntu 24.04/Node 22 khi PR tới develop hoặc push develop. Các commit mới của PR Draft vẫn được kiểm thử. Chỉ push/dispatch trên `refs/heads/develop` của đúng repository mới được vào job deploy. Dispatch trên nhánh khác và mọi PR đều không được vào EC2. Trigger push nhánh chuẩn bị dùng trong lần kiểm tra đầu đã được bỏ để tránh chạy trùng với pull_request.
 
 1. Kiểm tra YAML/expressions bằng actionlint có checksum; kiểm thử deploy/rollback trong thư mục tạm.
 2. `npm ci`, lint, **test cả ba repo**, `tsc -b`, kiểm tra URL production, Vite production build.
@@ -40,6 +40,16 @@ Workflow `deploy-ec2.yml` chạy kiểm thử trên GitHub-hosted Ubuntu 24.04/N
 7. Chuyển `current` bằng `os.replace` atomic. Kiểm tra HTTPS marker, index, JS/CSS và API health `status=ok`; không chỉ kiểm tra HTTP 200.
 8. Lỗi/TERM/INT khôi phục link trước và kiểm tra HTTPS lại. Journal được timer độc lập kiểm tra mỗi 30 giây để phục hồi sau SIGKILL/power loss. Không thể bảo đảm truy cập trong thời gian EC2/nginx/mạng ngừng hoạt động.
 9. Giữ năm release gần nhất, thêm current/previous/initial nếu cần. Backup gốc không bị dọn. Staging bỏ dở được dọn sau một ngày khi có lần deploy thành công; cần giám sát disk vì còn có work/cache của runner.
+
+## Kết quả GitHub Actions đã quan sát
+
+- FE1: [run 44311798056](https://github.com/ALSM-Project/ALSM_WEB_FE_1/actions/runs/44311798056) đạt actionlint, 14 sandbox deployment tests và một test Linux atomic bootstrap; lint/test/TypeScript đạt. Production URL validation thất bại đúng thiết kế vì Variables chưa được cấu hình; không tạo artifact production và không deploy.
+- FE3: [run 44311830797](https://github.com/ALSM-Project/ALSM_WEB_FE_3/actions/runs/44311830797) đạt actionlint, 14 sandbox deployment tests, lint/test/TypeScript; bị chặn ở URL validation tương tự.
+- FE2: [run chẩn đoán 44309646664](https://github.com/ALSM-Project/ALSM_WEB_FE_2/actions/runs/44309646664) đã ghi nhận ít nhất 14 test lỗi trong sáu file bên dưới, rồi không kết thúc. Run commit cũ đã được hủy sau khi lấy đủ bằng chứng để nhường runner hosted cho commit mới. Safety tests đạt. CI cũ FE2 đạt vì chỉ lint/typecheck/build, không gọi test; kết quả xanh của CI cũ không chứng minh đủ điều kiện deploy.
+
+Các tệp test FE2 có lỗi: `DatabaseDrivenNavigationPermissions.test.tsx` (2), `LeadDetailPage.test.tsx` (5), `UploadSourceFilesPage.test.tsx` (1), `ConversionItemReviewPage.test.tsx` (2), `PartnerProjectWorkspacePage.test.tsx` (3), `CreatePartnerProjectModal.test.tsx` (1). Không sửa nghiệp vụ, fixtures hoặc bỏ test trong PR hạ tầng. Bước test FE2 dùng `npm run test -- --bail=1` và timeout 10 phút để trả lỗi sớm; khi hết lỗi thì toàn bộ suite vẫn phải chạy qua. Cần nhóm FE2 sửa/xác nhận các lỗi và hiện tượng treo trong một thay đổi được review riêng trước khi bật deploy.
+
+Đây là kiểm thử GitHub-hosted thật, **chưa có lần deploy GitHub Actions lên EC2**, chưa có artifact production đúng URL và chưa kiểm thử rollback trên EC2. Luôn xem run của HEAD mới nhất trong PR; không dùng run cũ làm căn cứ merge.
 
 Artifact tối đa 250 MiB/10.000 file; artifact GitHub giữ 7 ngày. Đổi deployer cần admin cập nhật bản cài trên EC2 trước khi workflow mới deploy; mismatch sẽ dừng trước khi tải artifact.
 
@@ -75,7 +85,7 @@ Review toàn bộ `.github/deployment/bootstrap.py`. Nó yêu cầu root, ba URL
 
 ```bash
 # Cài chỉ khi thiếu; không upgrade toàn hệ thống hoặc restart dịch vụ Backend.
-sudo env NEEDRESTART_MODE=l apt-get install -y rsync curl python3
+sudo env NEEDRESTART_MODE=l apt-get install -y --no-upgrade rsync curl python3
 # Ba giá trị này phải là origins đã xác minh, không dùng domain đang lỗi chứng chỉ.
 sudo python3 .github/deployment/bootstrap.py \
   --user-url "$ALSM_USER_URL" --staff-url "$ALSM_STAFF_URL" --web3-url "$ALSM_WEB3_URL"

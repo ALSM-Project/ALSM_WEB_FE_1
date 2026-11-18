@@ -32,7 +32,8 @@ printf 'BACKEND HEALTH\n'
 curl -fsS --max-time 10 http://127.0.0.1:3000/api/v1/health
 printf '\nNGINX CONFIGURATION\n'
 sudo -n nginx -t
-sudo -n cat /etc/nginx/sites-available/alsm-portals
+# Only emit routing/TLS file-path directives, not arbitrary header/auth values.
+sudo -n awk '/^[[:space:]]*(listen|server_name|root|ssl_certificate|ssl_certificate_key)[[:space:]]/ { print } /^[[:space:]]*proxy_pass[[:space:]]+http:\/\/127\.0\.0\.1/ { print }' /etc/nginx/sites-available/alsm-portals
 printf '\nCERTIFICATE IDENTITIES (no private keys)\n'
 sudo -n find /etc/letsencrypt/live -maxdepth 2 -name cert.pem -exec openssl x509 -in '{}' -noout -dates -ext subjectAltName \; 2>/dev/null || true
 printf 'TOOLS\n'
