@@ -1300,7 +1300,7 @@ export const OrganizationProjectsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-4 py-3.5 font-medium text-[#42526E]">
-                      {p.conversionType === 'BMS_DSPF_TO_FRONTEND' ? 'BMS/DSPF → React 19' : 'COBOL → Java 21'}
+                      {p.conversionType === 'BMS_DSPF_TO_FRONTEND' ? 'BMS/DSPF → React 19' : 'COBOL → Java 17'}
                     </td>
                     <td className="px-4 py-3.5 font-semibold text-[#091E42]">12</td>
                     <td className="px-4 py-3.5">
