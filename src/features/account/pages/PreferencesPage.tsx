@@ -145,7 +145,7 @@ export const PreferencesPage: React.FC = () => {
                     className="w-full h-11 bg-white border border-slate-200 text-slate-900 rounded-lg px-3 text-sm focus:outline-none focus:border-blue-600 focus:ring-[3px] focus:ring-blue-100 transition-all shadow-xs"
                   >
                     <option value="REACT">React 19 (TypeScript)</option>
-                    <option value="JAVA">Java 21 (Spring Boot)</option>
+                    <option value="JAVA">Java 17 (Spring Boot)</option>
                   </select>
                 </div>
 
