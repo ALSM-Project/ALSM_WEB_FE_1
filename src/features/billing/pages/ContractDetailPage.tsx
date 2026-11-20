@@ -10,7 +10,6 @@ import {
   CreditCard,
   QrCode,
   Copy,
-  ExternalLink,
   Download,
   Check,
   Lock,
@@ -18,7 +17,6 @@ import {
   RefreshCw,
   AlertTriangle,
   Eye,
-  Sparkles,
   ArrowRight,
   Eraser,
   PenTool,
@@ -573,51 +571,42 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
 
       {/* Top Banner: Stage-based Guidance */}
       {isPaymentVerified ? (
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 sm:p-7 text-white shadow-xl space-y-4">
+        <div className="bg-[#EEF1F6] border border-[#DCE3EC] rounded-2xl p-6 sm:p-7 shadow-xs space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-full bg-white text-emerald-600 flex items-center justify-center shrink-0 font-bold text-2xl shadow-inner">
-                ✓
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h3 className="text-xl sm:text-2xl font-bold text-[#14263F] tracking-tight">
+                  Service Activated & Resources Allocated Successfully
+                </h3>
+                <span className="px-2.5 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-[#244A70] text-white">
+                  ACTIVE
+                </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xl sm:text-2xl font-black text-white">
-                    Service Activated & Resources Allocated Successfully!
-                  </h3>
-                  <span className="px-2.5 py-0.5 rounded text-xs font-extrabold uppercase bg-emerald-200 text-emerald-950">
-                    ACTIVE
-                  </span>
-                </div>
-                <p className="text-sm text-emerald-100 mt-1 max-w-2xl">
-                  Payment transaction has been confirmed. Contract <strong className="font-mono text-white">{contract?.contractNumber}</strong> is legally active. Your Web 3 Partner Workspace is ready.
-                </p>
-              </div>
+              <p className="text-sm text-[#475569] mt-1.5 max-w-2xl leading-relaxed">
+                Payment transaction has been confirmed. Contract <strong className="font-mono text-[#14263F] font-semibold">{contract?.contractNumber}</strong> is legally active. Your Web 3 Partner Workspace is ready.
+              </p>
             </div>
             <a
               href={getWeb3HandoffUrl(web3PortalUrl)}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-emerald-700 font-extrabold text-sm hover:bg-emerald-50 transition shadow-lg whitespace-nowrap"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold text-xs transition-colors shadow-xs whitespace-nowrap"
             >
-              <Sparkles className="w-4 h-4 text-emerald-600" />
-              Access ALSM Partner Portal (Web 3)
-              <ExternalLink className="w-4 h-4" />
+              <span>Access ALSM Partner Portal (Web 3)</span>
+              <ArrowRight className="w-4 h-4" />
             </a>
           </div>
 
           {/* Automatic Redirection Countdown Banner */}
-          <div className="bg-emerald-950/40 border border-emerald-400/40 rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-300"></span>
-              </span>
+          <div className="bg-white border border-[#DCE3EC] rounded-xl p-3.5 flex items-center justify-between flex-wrap sm:flex-nowrap gap-3 text-xs shadow-2xs">
+            <div className="flex items-center gap-2.5 text-[#14263F]">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#244A70]" />
               <span>
-                Redirecting automatically to <strong>ALSM Partner Portal (Web 3)</strong> in{' '}
-                <strong className="text-white text-sm font-mono underline">{redirectCountdown ?? 3} seconds</strong>...
+                Redirecting automatically to <strong className="font-semibold text-[#14263F]">ALSM Partner Portal (Web 3)</strong> in{' '}
+                <strong className="text-[#244A70] font-mono font-bold">{redirectCountdown ?? 3}s</strong>...
               </span>
             </div>
             <a
               href={getWeb3HandoffUrl(web3PortalUrl)}
-              className="px-3.5 py-1.5 bg-white text-emerald-800 rounded-lg font-bold hover:bg-emerald-100 transition whitespace-nowrap shadow-xs flex items-center gap-1.5 text-xs"
+              className="px-3.5 py-1.5 bg-[#EEF1F6] hover:bg-[#E2E8F0] text-[#244A70] border border-[#DCE3EC] rounded-lg font-semibold transition-colors whitespace-nowrap text-xs flex items-center gap-1.5"
             >
               <span>Go to Web 3 now</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -1141,27 +1130,26 @@ export const ContractDetailPage: React.FC<ContractDetailPageProps> = ({ initialS
                     </p>
                   </div>
                 ) : isPaymentVerified ? (
-                  <div className="p-6 bg-emerald-50/80 border border-emerald-200 rounded-2xl text-center space-y-3">
-                    <div className="w-14 h-14 bg-emerald-600 text-white rounded-2xl flex items-center justify-center mx-auto shadow-xs">
-                      <CheckCircle2 className="w-8 h-8" />
+                  <div className="p-6 bg-[#EEF1F6] border border-[#DCE3EC] rounded-2xl text-center space-y-3">
+                    <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-white border border-[#DCE3EC] text-[#244A70] text-xs font-semibold">
+                      Auto-Reconciled
                     </div>
-                    <h4 className="text-base font-bold text-emerald-950">
+                    <h4 className="text-base font-bold text-[#14263F]">
                       Payment Confirmed & Fully Reconciled
                     </h4>
-                    <p className="text-xs text-emerald-800 leading-relaxed max-w-sm mx-auto">
+                    <p className="text-xs text-[#475569] leading-relaxed max-w-sm mx-auto">
                       Bank transfer transaction has been verified and settled. The payment QR code for this invoice is now archived.
                     </p>
-                    <div className="pt-2 text-[11px] text-emerald-900 font-mono space-y-0.5">
+                    <div className="pt-2 text-[11px] text-[#64748B] font-mono space-y-0.5">
                       <div>Confirmed At: {new Date(invoice?.paidAt || Date.now()).toLocaleString('en-US')}</div>
                       <div>Reconciliation Ref: {qrPayment?.referenceCode || invoice?.invoiceNumber}</div>
                     </div>
                     <div className="pt-3">
                       <a
                         href={getWeb3HandoffUrl(web3PortalUrl)}
-                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs"
+                        className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-semibold transition-colors shadow-xs"
                       >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        Open ALSM Partner Portal (Web 3)
+                        <span>Open ALSM Partner Portal (Web 3)</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </a>
                     </div>
