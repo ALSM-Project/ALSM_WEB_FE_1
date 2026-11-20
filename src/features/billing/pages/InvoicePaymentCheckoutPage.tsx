@@ -6,7 +6,6 @@ import {
   AlertCircle,
   Copy,
   Clock,
-  Sparkles,
   ExternalLink,
   RefreshCw,
   Building,
@@ -220,59 +219,59 @@ export const InvoicePaymentCheckoutPage: React.FC = () => {
 
       {/* Success Banner if Paid */}
       {isPaid && (
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-2xl p-6 sm:p-8 text-white shadow-xl space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-white text-emerald-600 flex items-center justify-center font-bold text-2xl shadow-inner">
-              ✓
-            </div>
+        <div className="bg-[#EEF1F6] border border-[#DCE3EC] rounded-2xl p-6 sm:p-7 shadow-xs space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-emerald-200">
-                TRANSACTION CONFIRMED SUCCESSFULLY
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black">
-                Web 3 Partner Portal Has Been Automatically Activated!
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#244A70]">
+                  TRANSACTION CONFIRMED
+                </span>
+                <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-[#244A70] text-white">
+                  ACTIVE
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold text-[#14263F] mt-1">
+                Web 3 Partner Portal Has Been Automatically Activated
               </h2>
+              <p className="text-sm text-[#475569] mt-1.5 max-w-3xl leading-relaxed">
+                ALSM system has received full payment for invoice <strong className="font-mono text-[#14263F]">{data.invoiceNumber}</strong>. Contract{' '}
+                <strong className="font-mono text-[#14263F]">{data.contractNumber}</strong> has transitioned to <strong>ACTIVE</strong>. Your conversion quotas and enterprise account on Web 3 are now active and ready for immediate use.
+              </p>
             </div>
           </div>
 
-          <p className="text-sm text-emerald-100 max-w-3xl">
-            ALSM system has received full payment for invoice <strong>{data.invoiceNumber}</strong>. Contract{' '}
-            <strong>{data.contractNumber}</strong> has transitioned to <strong>ACTIVE</strong>. Your conversion quotas and enterprise account on Web 3 are now active and ready for immediate use.
-          </p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/20">
-              <div className="text-xs text-emerald-200">Service Model</div>
-              <div className="text-base font-bold text-white mt-0.5">{data.serviceMode}</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+            <div className="bg-white rounded-xl p-3 border border-[#DCE3EC]">
+              <div className="text-xs text-[#64748B]">Service Model</div>
+              <div className="text-sm font-bold text-[#14263F] mt-0.5">{data.serviceMode}</div>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/20">
-              <div className="text-xs text-emerald-200">Screen Quota</div>
-              <div className="text-base font-bold text-white mt-0.5">{data.screensQuota} screens</div>
+            <div className="bg-white rounded-xl p-3 border border-[#DCE3EC]">
+              <div className="text-xs text-[#64748B]">Screen Quota</div>
+              <div className="text-sm font-bold text-[#14263F] mt-0.5">{data.screensQuota} screens</div>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/20">
-              <div className="text-xs text-emerald-200">Web 3 Access</div>
-              <div className="text-base font-bold text-white mt-0.5">ORGANIZATION_OWNER</div>
+            <div className="bg-white rounded-xl p-3 border border-[#DCE3EC]">
+              <div className="text-xs text-[#64748B]">Web 3 Access</div>
+              <div className="text-sm font-bold text-[#14263F] mt-0.5">ORGANIZATION_OWNER</div>
             </div>
-            <div className="bg-white/10 backdrop-blur rounded-xl p-3 border border-white/20">
-              <div className="text-xs text-emerald-200">Provisioning Status</div>
-              <div className="text-base font-bold text-white mt-0.5">PROVISIONED</div>
+            <div className="bg-white rounded-xl p-3 border border-[#DCE3EC]">
+              <div className="text-xs text-[#64748B]">Provisioning Status</div>
+              <div className="text-sm font-bold text-[#14263F] mt-0.5">PROVISIONED</div>
             </div>
           </div>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4">
+          <div className="pt-2 flex flex-wrap items-center gap-3">
             <a
               href={getWeb3HandoffUrl(web3PortalUrl)}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-emerald-700 font-extrabold text-sm hover:bg-emerald-50 transition shadow-lg shadow-black/10"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-[#244A70] hover:bg-[#1B3856] text-white font-semibold text-xs transition-colors shadow-xs"
             >
-              <Sparkles className="w-5 h-5 text-emerald-600 shrink-0" />
               <span>Log In to ALSM Partner Portal (Web 3)</span>
               <ExternalLink className="w-4 h-4 shrink-0" />
             </a>
             <Button
               variant="outline"
-              className="text-white border-white/40 hover:bg-white/10"
+              className="text-xs font-semibold text-[#14263F] border-[#DCE3EC] bg-white hover:bg-[#F8FAFC]"
               onClick={() => navigate('/billing/invoices')}
             >
               View Invoice Receipt
@@ -280,20 +279,17 @@ export const InvoicePaymentCheckoutPage: React.FC = () => {
           </div>
 
           {/* Automatic Redirection Countdown */}
-          <div className="bg-emerald-950/40 border border-emerald-400/40 rounded-xl p-3 flex items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-300"></span>
-              </span>
+          <div className="bg-white border border-[#DCE3EC] rounded-xl p-3.5 flex items-center justify-between flex-wrap sm:flex-nowrap gap-3 text-xs shadow-2xs">
+            <div className="flex items-center gap-2.5 text-[#14263F]">
+              <span className="inline-block w-2 h-2 rounded-full bg-[#244A70]" />
               <span>
-                System is automatically redirecting to <strong>ALSM Partner Portal (Web 3)</strong> in{' '}
-                <strong className="text-white text-sm font-mono underline">{redirectCountdown ?? 3} seconds</strong>...
+                System is automatically redirecting to <strong className="font-semibold text-[#14263F]">ALSM Partner Portal (Web 3)</strong> in{' '}
+                <strong className="text-[#244A70] font-mono font-bold">{redirectCountdown ?? 3}s</strong>...
               </span>
             </div>
             <a
               href={getWeb3HandoffUrl(web3PortalUrl)}
-              className="px-3 py-1 bg-white text-emerald-800 rounded-lg font-bold hover:bg-emerald-100 transition whitespace-nowrap shadow-xs flex items-center gap-1"
+              className="px-3.5 py-1.5 bg-[#EEF1F6] hover:bg-[#E2E8F0] text-[#244A70] border border-[#DCE3EC] rounded-lg font-semibold transition-colors whitespace-nowrap text-xs flex items-center gap-1.5"
             >
               <span>Access Web 3 Now</span>
               <ArrowRight className="w-3.5 h-3.5" />
