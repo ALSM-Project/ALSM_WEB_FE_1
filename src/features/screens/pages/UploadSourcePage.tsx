@@ -169,11 +169,19 @@ export const UploadSourcePage: React.FC = () => {
     ? ['.bms', '.dspf', '.zip']
     : ['.cbl', '.cob', '.cpy', '.zip'];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = e.target.files ? Array.from(e.target.files) : [];
     e.target.value = '';
     if (picked.length > 0) {
-      handleFiles(picked);
+      handleFiles(picked, false);
+    }
+  };
+
+  const handleFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files ? Array.from(e.target.files) : [];
+    e.target.value = '';
+    if (picked.length > 0) {
+      handleFiles(picked, true);
     }
   };
 
@@ -182,14 +190,14 @@ export const UploadSourcePage: React.FC = () => {
     try {
       const extractedFiles = await extractFilesFromDataTransfer(e.dataTransfer);
       if (extractedFiles.length > 0) {
-        handleFiles(extractedFiles);
+        handleFiles(extractedFiles, true);
         return;
       }
     } catch {
       // fallback
     }
     if (e.dataTransfer.files.length) {
-      handleFiles(Array.from(e.dataTransfer.files));
+      handleFiles(Array.from(e.dataTransfer.files), true);
     }
   };
 
@@ -201,53 +209,72 @@ export const UploadSourcePage: React.FC = () => {
     status: 'Failed to parse',
   });
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = (files: File[], isFromFolderOrDrop = false) => {
     if (!files || files.length === 0) return;
 
-    // 1. Lọc các file theo đuôi file được hỗ trợ của dự án
-    let candidateFiles = files.filter((file) =>
-      acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
-    );
-
-    if (candidateFiles.length === 0) {
-      setUploadError(
-        `Không tìm thấy file nguồn hợp lệ trong ${files.length} file đã chọn. Đuôi file được chấp nhận: ${acceptedExtensions.join(', ')}. Gợi ý: Hãy chọn đúng thư mục chứa mã nguồn (ví dụ: ${isProgramProject ? 'app/cbl, app/cpy' : 'app/bms'}).`,
+    if (isFromFolderOrDrop) {
+      // 1. Lọc các file theo đuôi file được hỗ trợ của dự án
+      let candidateFiles = files.filter((file) =>
+        acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
       );
-      return;
-    }
 
-    // 2. Nếu có file nguồn dạng thường (uncompressed), bỏ qua các file .zip lồng bên trong
-    const hasUncompressed = candidateFiles.some((f) => !f.name.toLowerCase().endsWith('.zip'));
-    if (hasUncompressed) {
-      candidateFiles = candidateFiles.filter((f) => !f.name.toLowerCase().endsWith('.zip'));
-    }
-
-    // 3. Khử trùng lặp tên file (giữ file nằm trong thư mục app/ hoặc file có dung lượng lớn hơn)
-    const seenMap = new Map<string, File>();
-    for (const f of candidateFiles) {
-      const key = f.name.toLowerCase();
-      if (seenMap.has(key)) {
-        const existing = seenMap.get(key)!;
-        const currentRelPath = (f as any).webkitRelativePath || '';
-        const existingRelPath = (existing as any).webkitRelativePath || '';
-        if (
-          (currentRelPath.includes('/app/') && !existingRelPath.includes('/app/')) ||
-          f.size > existing.size
-        ) {
-          seenMap.set(key, f);
-        }
-        continue;
+      if (candidateFiles.length === 0) {
+        setUploadError(
+          `Không tìm thấy file nguồn hợp lệ trong ${files.length} file đã chọn. Đuôi file được chấp nhận: ${acceptedExtensions.join(', ')}. Gợi ý: Hãy chọn đúng thư mục chứa mã nguồn (ví dụ: ${isProgramProject ? 'app/cbl, app/cpy' : 'app/bms'}).`,
+        );
+        return;
       }
-      seenMap.set(key, f);
-    }
-    candidateFiles = Array.from(seenMap.values());
 
-    setUploadStats({
-      totalScanned: files.length,
-      ignored: Math.max(0, files.length - candidateFiles.length),
-    });
-    setUploadError(null);
-    setPendingUploadFiles(candidateFiles);
+      // 2. Nếu có file nguồn dạng thường (uncompressed), bỏ qua các file .zip lồng bên trong
+      const hasUncompressed = candidateFiles.some((f) => !f.name.toLowerCase().endsWith('.zip'));
+      if (hasUncompressed) {
+        candidateFiles = candidateFiles.filter((f) => !f.name.toLowerCase().endsWith('.zip'));
+      }
+
+      // 3. Khử trùng lặp tên file (giữ file nằm trong thư mục app/ hoặc file có dung lượng lớn hơn)
+      const seenMap = new Map<string, File>();
+      for (const f of candidateFiles) {
+        const key = f.name.toLowerCase();
+        if (seenMap.has(key)) {
+          const existing = seenMap.get(key)!;
+          const currentRelPath = (f as any).webkitRelativePath || '';
+          const existingRelPath = (existing as any).webkitRelativePath || '';
+          if (
+            (currentRelPath.includes('/app/') && !existingRelPath.includes('/app/')) ||
+            f.size > existing.size
+          ) {
+            seenMap.set(key, f);
+          }
+          continue;
+        }
+        seenMap.set(key, f);
+      }
+      candidateFiles = Array.from(seenMap.values());
+
+      setUploadStats({
+        totalScanned: files.length,
+        ignored: Math.max(0, files.length - candidateFiles.length),
+      });
+      setUploadError(null);
+      setPendingUploadFiles(candidateFiles);
+    } else {
+      setUploadStats(null);
+      // Direct file selection from file input: validate extensions
+      const invalidFile = files.find(
+        (file) => !acceptedExtensions.some((ext) => file.name.toLowerCase().endsWith(ext)),
+      );
+      if (invalidFile) {
+        setUploadError(
+          isProgramProject
+            ? 'Cannot upload BMS/DSPF screens to a COBOL → Java project. Please create a "BMS / DSPF → React" project to convert screen files.'
+            : 'Cannot upload COBOL/RPG programs to a BMS/DSPF → React project. Please create a "COBOL → Java" project to convert COBOL files.',
+        );
+        return;
+      }
+
+      setUploadError(null);
+      void handleUploadBundle(files);
+    }
   };
 
   const confirmPendingUpload = () => {
@@ -399,7 +426,7 @@ export const UploadSourcePage: React.FC = () => {
           type="file"
           id="folder-upload"
           ref={setFolderInputRef}
-          onChange={handleInputChange}
+          onChange={handleFolderChange}
           multiple
           className="hidden"
         />
@@ -412,7 +439,7 @@ export const UploadSourcePage: React.FC = () => {
               ? '.cbl,.cob,.cpy,.zip,application/zip,application/x-zip-compressed'
               : '.bms,.dspf,.zip,application/zip,application/x-zip-compressed'
           }
-          onChange={handleInputChange}
+          onChange={handleFileChange}
           multiple
           className="hidden"
         />

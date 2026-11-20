@@ -234,8 +234,8 @@ export const AppLayoutContent: React.FC = () => {
               )}
             </div>
 
-            {/* Upgrade Button — hidden when user is Enterprise */}
-            {!isEnterprise && !isEnterpriseSuspended && (
+            {/* Upgrade Button — hidden when user has upgraded to Web 3 / Enterprise */}
+            {!isEnterprise && !user?.hasWeb3Access && !isEnterpriseSuspended && (
               <button
                 type="button"
                 onClick={() => navigate(ROUTES.BILLING.UPGRADE_ENTERPRISE)}

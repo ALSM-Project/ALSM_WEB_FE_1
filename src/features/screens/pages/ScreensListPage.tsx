@@ -7,6 +7,7 @@ import { useBulkConvert } from '@/features/conversion/queries/useBulkConvert';
 import type { Project } from '@/features/projects/types/project';
 import type { LegacyScreen } from '../types/screen';
 import { ROUTES } from '@/shared/constants/routes';
+import { Tabs } from '@/shared/ui/Tabs';
 import { StatusBadge } from '@/shared/ui/Badge';
 import { Button } from '@/shared/ui/Button';
 import { Modal } from '@/shared/ui/Modal';
@@ -375,6 +376,18 @@ export const ScreensListPage: React.FC = () => {
             Stage 4 — Validate & Build (Pass 3)
           </button>
         </div>
+      )}
+
+      {/* Screen vs Program Tabs */}
+      {!isDedicatedProgramProject && (
+        <Tabs
+          tabs={[
+            { id: 'screens', label: 'Screens' },
+            { id: 'programs', label: 'COBOL Programs' },
+          ]}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+        />
       )}
 
       {/* STAGE 2: Analyze & Prepare Transpiler Passes */}
