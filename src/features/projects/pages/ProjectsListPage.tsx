@@ -16,7 +16,7 @@ const LEGACY_TYPE_LABEL: Record<string, string> = {
 const TARGET_FRAMEWORK_LABEL: Record<string, string> = {
   BMS_DSPF_TO_REACT: 'React 19 + TypeScript',
   BMS_DSPF_TO_FRONTEND: 'React 19 + TypeScript',
-  COBOL_TO_JAVA: 'Java 21 + Spring Boot',
+  COBOL_TO_JAVA: 'Java 17 + Spring Boot',
 };
 
 export const ProjectsListPage: React.FC = () => {

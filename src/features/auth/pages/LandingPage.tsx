@@ -477,7 +477,7 @@ public interface CustomerMasterRepository extends JpaRepository<CustomerEntity, 
                   Full Stack Target Support
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4 max-w-[55ch] [text-wrap:pretty]">
-                  Standardized code synthesis targeting React 19, TypeScript, Tailwind CSS, Spring Boot 3, Java 21, and PostgreSQL / DB2&nbsp;schemas.
+                  Standardized code synthesis targeting React 19, TypeScript, Tailwind CSS, Spring Boot 3, Java 17, and PostgreSQL / DB2&nbsp;schemas.
                 </p>
               </div>
               <Link

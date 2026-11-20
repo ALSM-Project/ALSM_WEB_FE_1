@@ -161,7 +161,7 @@ export const ValidateBuildView: React.FC<ValidateBuildViewProps> = ({
             </span>
           </div>
           <p className="text-xl font-extrabold text-[#091E42] mt-2">Clean</p>
-          <p className="text-[11px] text-[#079455] font-semibold mt-0.5">0 errors · Java 21 bytecode verified</p>
+          <p className="text-[11px] text-[#079455] font-semibold mt-0.5">0 errors · Java 17 bytecode verified</p>
         </div>
 
         {/* Generated Files */}

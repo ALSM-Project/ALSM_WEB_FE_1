@@ -167,6 +167,7 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[LoginPage] handleSubmit start', { email: email.trim(), hasPassword: Boolean(password) });
     setError('');
     setUnverifiedEmail('');
 
@@ -178,10 +179,13 @@ export const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
+      console.log('[LoginPage] calling login()...');
       const user = await login({ email: email.trim(), password });
+      console.log('[LoginPage] login() returned user:', user);
 
       if (user) {
         const handoff = getTargetHandoffUrl(user);
+        console.log('[LoginPage] handoff target:', handoff);
         if (handoff) {
           setRedirectLabel(
             handoff.includes('3002') || isUserStaffOrAdmin(user)
@@ -197,6 +201,7 @@ export const LoginPage: React.FC = () => {
         setError('Unable to retrieve account information. Please try again.');
       }
     } catch (err: any) {
+      console.error('[LoginPage] login error caught:', err);
       if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
         setUnverifiedEmail(email.trim());
       } else if (err?.code === 'EMAIL_NOT_VERIFIED' || err?.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
@@ -205,6 +210,7 @@ export const LoginPage: React.FC = () => {
         setError(toErrorMessage(err));
       }
     } finally {
+      console.log('[LoginPage] handleSubmit finally block, setLoading(false)');
       setLoading(false);
     }
   };

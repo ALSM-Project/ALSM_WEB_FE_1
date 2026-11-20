@@ -31,7 +31,7 @@ const LEGACY_TYPE_LABEL: Record<string, string> = {
 const TARGET_FRAMEWORK_LABEL: Record<string, string> = {
   BMS_DSPF_TO_REACT: 'React 19 (TypeScript + Tailwind)',
   BMS_DSPF_TO_FRONTEND: 'React 19 (TypeScript + Tailwind)',
-  COBOL_TO_JAVA: 'Java 21 + Spring Boot Batch',
+  COBOL_TO_JAVA: 'Java 17 + Spring Boot Batch',
 };
 
 export const ProjectOverviewPage: React.FC = () => {
@@ -236,7 +236,7 @@ export const ProjectOverviewPage: React.FC = () => {
             <div className="flex items-center space-x-3 text-xs text-[#42526E] font-mono">
               <span>Legacy: <strong className="text-[#091E42]">{LEGACY_TYPE_LABEL[project.conversionType] || 'COBOL / Legacy'}</strong></span>
               <span>&rarr;</span>
-              <span>Target: <strong className="text-[#244A70]">{TARGET_FRAMEWORK_LABEL[project.conversionType] || 'Java 21'}</strong></span>
+              <span>Target: <strong className="text-[#244A70]">{TARGET_FRAMEWORK_LABEL[project.conversionType] || 'Java 17'}</strong></span>
             </div>
           </div>
 

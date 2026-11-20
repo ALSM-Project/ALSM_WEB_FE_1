@@ -31,6 +31,7 @@ export function isUserStaffOrAdmin(u: User | null | undefined): boolean {
     'ADMIN',
     'SYSTEM_ADMIN',
     'TEAM_LEAD',
+    'STAFF',
     'CONVERSION_STAFF',
     'SALES_MANAGER',
     'INTERNAL_SALES',
@@ -123,7 +124,9 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
 export async function redirectUserToPortal(targetUrl?: string | null): Promise<void> {
   const staffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || "http://localhost:3002";
   const target = targetUrl || `${staffUrl}/auth/callback`;
+  console.log('[providers] redirectUserToPortal called with target:', target);
   await tokenStore.handoff(({ accessToken, refreshToken }) => {
+    console.log('[providers] tokenStore.handoff callback executing! Navigating to target portal...');
     if (target.includes('3003') || target.includes('web3')) {
       window.location.href = `${target}#access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
     } else {

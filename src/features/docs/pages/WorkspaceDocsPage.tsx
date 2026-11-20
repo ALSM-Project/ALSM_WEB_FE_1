@@ -65,7 +65,7 @@ const PIPELINE_STEPS = [
   { step: '01', name: 'Legacy Input', desc: 'Raw BMS, DSPF & COBOL source files' },
   { step: '02', name: 'Analyze', desc: 'AST parsing & screen analysis' },
   { step: '03', name: 'Map', desc: 'Field & paragraph mapping by algorithm' },
-  { step: '04', name: 'Generate', desc: 'React 19 JSX & Java 21 code' },
+  { step: '04', name: 'Generate', desc: 'React 19 JSX & Java 17 code' },
   { step: '05', name: 'Validate', desc: 'Rule validation & optional AI assistance' },
   { step: '06', name: 'Export', desc: 'Production-ready project bundle' },
 ];
@@ -176,7 +176,7 @@ public class AccountProcessorService {
             Technical Documentation & Developer Guide
           </h1>
           <p className="text-sm text-slate-200 leading-relaxed max-w-2xl">
-            Complete technical reference for analyzing, converting, validating, and exporting IBM BMS, AS/400 DSPF screen maps, and COBOL applications into modern React UI and Java 21 microservices.
+            Complete technical reference for analyzing, converting, validating, and exporting IBM BMS, AS/400 DSPF screen maps, and COBOL applications into modern React UI and Java 17 microservices.
           </p>
         </div>
       </div>
@@ -291,7 +291,7 @@ public class AccountProcessorService {
                 <strong className="text-[#091E42]">Review Screen Maps:</strong> Inspect auto-detected fields, coordinates, attributes, and labels in the Screens list.
               </li>
               <li>
-                <strong className="text-[#091E42]">Execute Conversion:</strong> Run the deterministic conversion algorithm to produce React 19 JSX and Java 21 REST services.
+                <strong className="text-[#091E42]">Execute Conversion:</strong> Run the deterministic conversion algorithm to produce React 19 JSX and Java 17 REST services.
               </li>
               <li>
                 <strong className="text-[#091E42]">Validate & Export:</strong> Inspect generated code in the Preview Studio and download the full production zip bundle.
@@ -362,7 +362,7 @@ public class AccountProcessorService {
               <h2 className="text-xl font-bold text-[#091E42] tracking-tight">COBOL Business Logic Conversion</h2>
             </div>
             <p className="text-xs text-[#42526E] leading-relaxed max-w-2xl">
-              COBOL DATA DIVISION variables and PROCEDURE DIVISION paragraphs are parsed into structured Java 21 domain classes and Spring Boot services.
+              COBOL DATA DIVISION variables and PROCEDURE DIVISION paragraphs are parsed into structured Java 17 domain classes and Spring Boot services.
             </p>
 
             {/* COBOL Code Box */}

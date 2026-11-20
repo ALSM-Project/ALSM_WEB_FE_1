@@ -69,7 +69,7 @@ const PIPELINE_STEPS = [
   { step: '01', name: 'Legacy Input', desc: 'Raw BMS, DSPF & COBOL source files' },
   { step: '02', name: 'Analyze', desc: 'AST parsing & screen analysis' },
   { step: '03', name: 'Map', desc: 'Field & paragraph mapping by algorithm' },
-  { step: '04', name: 'Generate', desc: 'React 19 JSX & Java 21 code' },
+  { step: '04', name: 'Generate', desc: 'React 19 JSX & Java 17 code' },
   { step: '05', name: 'Validate', desc: 'Rule validation & optional AI assistance' },
   { step: '06', name: 'Export', desc: 'Production-ready project bundle' },
 ];
@@ -406,7 +406,7 @@ public class AccountProcessorService {
             <h3 className="alsm-docs-h3">Generated Java Service Output</h3>
             <div className="alsm-docs-code-block">
               <div className="alsm-docs-code-header">
-                <span className="alsm-docs-code-lang">Java 21 / Spring Boot</span>
+                <span className="alsm-docs-code-lang">Java 17 / Spring Boot</span>
                 <button
                   type="button"
                   className="alsm-docs-copy-btn"

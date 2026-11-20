@@ -33,29 +33,22 @@ export class BillingService {
     if (import.meta.env.VITEST) {
       return mockSubscriptionPlans;
     }
-    try {
-      const plans = await apiClient.get<SubscriptionPlan[]>('/billing/plans');
-      if (plans && Array.isArray(plans) && plans.length > 0) {
-        return plans;
-      }
-      return mockSubscriptionPlans;
-    } catch (err) {
-      console.warn('[BillingService] API GET /billing/plans failed, using fallback mock data:', err);
-      return mockSubscriptionPlans;
-    }
+    const plans = await apiClient.get<SubscriptionPlan[]>('/billing/plans');
+    return Array.isArray(plans) ? plans : [];
   }
 
 
   // ─── Subscription ────────────────────────────────────────
 
   async getCurrentSubscription(): Promise<Subscription | LegacySubscription | null> {
+    if (import.meta.env.VITEST) {
+      return mockCurrentSubscription;
+    }
     try {
       const sub = await apiClient.get<Subscription | null>('/billing/subscription');
-      if (sub) return sub;
-      return mockCurrentSubscription;
-    } catch (err) {
-      console.warn('[BillingService] API GET /billing/subscription failed, using fallback mock data:', err);
-      return mockCurrentSubscription;
+      return sub || null;
+    } catch {
+      return null;
     }
   }
 
@@ -357,14 +350,10 @@ export class BillingService {
   // ─── Usage ───────────────────────────────────────────────
 
   async getUsageStats(): Promise<UsageStatistics> {
-    try {
-      const stats = await apiClient.get<UsageStatistics>('/billing/usage');
-      if (stats) return stats;
-      return mockUsageStats as unknown as UsageStatistics;
-    } catch (err) {
-      console.warn('[BillingService] API GET /billing/usage failed, using fallback mock data:', err);
+    if (import.meta.env.VITEST) {
       return mockUsageStats as unknown as UsageStatistics;
     }
+    return apiClient.get<UsageStatistics>('/billing/usage');
   }
 }
 

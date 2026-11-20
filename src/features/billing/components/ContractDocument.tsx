@@ -113,7 +113,7 @@ export const ContractDocument: React.FC<ContractDocumentProps> = ({ contract, on
   }
 
   const sourceTechVi = contract.scope?.sourceCodeType || 'IBM 3270 BMS / AS400 DSPF screens and COBOL business programs';
-  const targetTechVi = contract.scope?.targetTechnology || 'React 19, TypeScript UI and Spring Boot 3 Java 21 business services';
+  const targetTechVi = contract.scope?.targetTechnology || 'React 19, TypeScript UI and Spring Boot 3 Java 17 business services';
 
   const effectiveDate = contract.effectiveDate ? new Date(contract.effectiveDate) : new Date();
   const year = effectiveDate.getFullYear();
@@ -257,7 +257,7 @@ export const ContractDocument: React.FC<ContractDocumentProps> = ({ contract, on
           </p>
           <div className="pl-6 space-y-1">
             <p>a) UI source code: Restructured into independent components (React 19, TypeScript), preserving 100% of display properties, data fields, and input validation constraints from source screens.</p>
-            <p>b) Backend business processing code: Converted to standard service architecture (Spring Boot 3 Java 21), preserving business semantics, arithmetic computations, and inherited business rules.</p>
+            <p>b) Backend business processing code: Converted to standard service architecture (Spring Boot 3 Java 17), preserving business semantics, arithmetic computations, and inherited business rules.</p>
             <p>c) AST audit dossier: Grammar and syntax reconciliation reports for each module, confirming logical equivalence between source and target systems.</p>
             <p>d) Technical documentation and operating manual: Architecture diagrams, API specifications, and complete deployment packaging instructions.</p>
           </div>

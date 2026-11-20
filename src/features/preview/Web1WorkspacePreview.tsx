@@ -182,7 +182,7 @@ export const Web1WorkspacePreviewContent: React.FC = () => {
               onChange={(e) => setSelectVal(e.target.value)}
               options={[
                 { value: 'React', label: 'React 19 (TypeScript + Tailwind v4)' },
-                { value: 'Java', label: 'Java 21 (Spring Boot Microservice)' },
+                { value: 'Java', label: 'Java 17 (Spring Boot Microservice)' },
                 { value: 'Vue', label: 'Vue 3 Composition API' },
               ]}
               helperText="Determines AST parsing rule target."
