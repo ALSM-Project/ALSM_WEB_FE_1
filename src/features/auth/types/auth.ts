@@ -9,6 +9,23 @@ export interface AuthTokens {
   refreshToken: string;
 }
 
+export interface MfaChallengeResponse {
+  requiresTwoFactor: true;
+  mfaToken: string;
+}
+
+export type LoginResult = User | MfaChallengeResponse | null;
+
+export function isMfaChallenge(result: unknown): result is MfaChallengeResponse {
+  return Boolean(
+    result &&
+      typeof result === 'object' &&
+      'requiresTwoFactor' in result &&
+      (result as MfaChallengeResponse).requiresTwoFactor === true &&
+      typeof (result as MfaChallengeResponse).mfaToken === 'string',
+  );
+}
+
 export interface RegisterResponse {
   requiresEmailVerification: boolean;
   email: string;

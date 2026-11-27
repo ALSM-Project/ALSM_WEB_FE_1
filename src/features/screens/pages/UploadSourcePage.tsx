@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, useSearchParams, Link } from 'react-router-dom';
 import { UploadCloud, FileText, CheckCircle2, ArrowRight, Trash2, FolderPlus, FolderUp, Code2, Play, Eye, AlertCircle } from 'lucide-react';
 import { conversionService } from '@/features/conversion/services/conversion.service';
 import { projectService } from '@/features/projects/services/project.service';
@@ -14,6 +14,7 @@ import { Modal } from '@/shared/ui/Modal';
 import { ProgressBar } from '@/shared/ui/ProgressBar';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { cacheProjectConversionType, getCachedProjectConversionType } from '@/shared/utils/projectCache';
 
 /** Source types that are uploaded and listed as programs rather than screens. */
 const PROGRAM_TYPES = new Set(['COBOL', 'RPG']);
@@ -88,9 +89,21 @@ async function extractFilesFromDataTransfer(dataTransfer: DataTransfer): Promise
 export const UploadSourcePage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const locationState = location.state as { workspace?: string; tab?: string } | null;
+
+  const urlTab = searchParams.get('tab') || searchParams.get('type');
+  const cachedConversionType = getCachedProjectConversionType(projectId);
+  const isInitialCobol =
+    urlTab === 'programs' ||
+    urlTab === 'cobol' ||
+    locationState?.tab === 'programs' ||
+    locationState?.workspace === 'PROGRAMS' ||
+    cachedConversionType === 'COBOL_TO_JAVA';
 
   const [project, setProject] = useState<Project | null>(null);
-  const [projectLoading, setProjectLoading] = useState(true);
+  const [projectLoading, setProjectLoading] = useState(!isInitialCobol);
   const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
   const [programFiles, setProgramFiles] = useState<SourceFile[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -99,12 +112,15 @@ export const UploadSourcePage: React.FC = () => {
   // Load project details and existing uploaded source screens for this project
   React.useEffect(() => {
     let cancelled = false;
-    setProjectLoading(true);
+    if (!isInitialCobol) {
+      setProjectLoading(true);
+    }
 
     Promise.resolve(projectService.getProjectById(projectId))
       ?.then((p) => {
         if (!cancelled) {
           setProject(p);
+          if (p?.conversionType) cacheProjectConversionType(p.id, p.conversionType);
           setProjectLoading(false);
         }
       })
@@ -132,10 +148,12 @@ export const UploadSourcePage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, isInitialCobol]);
 
-  const workspace = resolveWorkspace(project?.conversionType);
-  const isProgramProject = workspace === 'PROGRAMS';
+  const workspace = resolveWorkspace(
+    project?.conversionType || (isInitialCobol ? 'COBOL_TO_JAVA' : undefined)
+  );
+  const isProgramProject = isInitialCobol || workspace === 'PROGRAMS';
 
   const activeTab = isProgramProject ? 'programs' : 'screens';
   const files = isProgramProject ? programFiles : screenFiles;
@@ -358,15 +376,24 @@ export const UploadSourcePage: React.FC = () => {
     );
   }
 
+  const navigateToScreens = (stage: 'ANALYZE' | 'CONVERT' | 'VALIDATE' = 'ANALYZE') => {
+    if (isProgramProject) {
+      navigate(`${ROUTES.PROJECTS.SCREENS(projectId)}?tab=programs&stage=${stage.toLowerCase()}`, {
+        state: { workspace: 'PROGRAMS', tab: 'programs', stage },
+      });
+    } else {
+      navigate(ROUTES.PROJECTS.SCREENS(projectId));
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
         title={isProgramProject ? 'Upload COBOL Source Files' : 'Upload Source File'}
-        subtitle={isProgramProject ? 'Upload COBOL programs, copybooks, and related application files to start the Java modernization pipeline.' : 'Add legacy BMS/DSPF screen map files to start modernization pipeline.'}
         actions={
           <Button
-            onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}
+            onClick={() => navigateToScreens('ANALYZE')}
             className="bg-[#244A70] hover:bg-[#1B3856] text-white space-x-1.5 text-xs font-bold shadow-xs cursor-pointer"
           >
             <span>Proceed to {activeTab === 'screens' ? 'Screens List' : 'Programs List'}</span>
@@ -384,12 +411,12 @@ export const UploadSourcePage: React.FC = () => {
           if (isProgramProject) {
             const firstProgramId = programFiles[0]?.screenId || programFiles[0]?.id;
             if (stepId === 'upload') return;
-            if (stepId === 'analyze') navigate(ROUTES.PROJECTS.SCREENS(projectId));
-            if (stepId === 'convert' || stepId === 'conversion') navigate(ROUTES.PROJECTS.SCREENS(projectId));
-            if (stepId === 'validate' || stepId === 'validation') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'analyze') navigateToScreens('ANALYZE');
+            if (stepId === 'convert' || stepId === 'conversion') navigateToScreens('CONVERT');
+            if (stepId === 'validate' || stepId === 'validation') navigateToScreens('VALIDATE');
             if (stepId === 'review' || stepId === 'result') {
               if (firstProgramId) navigate(ROUTES.PROJECTS.RESULT(projectId, firstProgramId));
-              else navigate(ROUTES.PROJECTS.SCREENS(projectId));
+              else navigateToScreens('ANALYZE');
             }
             if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
           } else {
@@ -661,8 +688,13 @@ export const UploadSourcePage: React.FC = () => {
                           <Link
                             to={
                               isProgramProject
-                                ? ROUTES.PROJECTS.SCREENS(projectId)
+                                ? `${ROUTES.PROJECTS.SCREENS(projectId)}?tab=programs&stage=convert`
                                 : ROUTES.PROJECTS.CONVERT(projectId, file.screenId)
+                            }
+                            state={
+                              isProgramProject
+                                ? { workspace: 'PROGRAMS', tab: 'programs', stage: 'CONVERT' }
+                                : undefined
                             }
                             className="inline-flex items-center space-x-1 text-xs text-[#244A70] font-semibold hover:bg-slate-100 bg-[#F0F4F8] px-2.5 py-1 rounded-md border border-[#DCE3EC] transition-colors"
                             title={isProgramProject ? 'Go to Programs Modernization Pipeline' : 'Run Conversion Algorithm'}
@@ -772,7 +804,7 @@ export const UploadSourcePage: React.FC = () => {
       )}
 
       <div className="flex justify-between items-center pt-4 border-t border-slate-100">
-        <Button variant="secondary" onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))}>
+        <Button variant="secondary" onClick={() => navigateToScreens('ANALYZE')}>
           Save for Later
         </Button>
         <div className="flex space-x-3">
@@ -794,8 +826,8 @@ export const UploadSourcePage: React.FC = () => {
             <FolderUp className="w-4 h-4 text-slate-600" />
             <span>Add Folder</span>
           </Button>
-          <Button onClick={() => navigate(ROUTES.PROJECTS.SCREENS(projectId))} className="space-x-2 font-semibold">
-            <span>Proceed to Conversion</span>
+          <Button onClick={() => navigateToScreens(isProgramProject ? 'ANALYZE' : 'CONVERT')} className="space-x-2 font-semibold">
+            <span>{isProgramProject ? 'Proceed to Programs Workspace' : 'Proceed to Conversion'}</span>
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

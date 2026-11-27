@@ -9,8 +9,11 @@ import {
   AlertCircle,
   Loader2,
   ArrowRight,
+  ShieldCheck,
+  ArrowLeft,
 } from 'lucide-react';
 import { useAuth, isUserStaffOrAdmin, getTargetHandoffUrl } from '@/app/providers';
+import { isMfaChallenge, type User } from '../types/auth';
 
 import { ROUTES } from '@/shared/constants/routes';
 import { ApiError } from '@/services/api/apiError';
@@ -23,7 +26,7 @@ const REMEMBER_PASSWORD_KEY = 'alsm_remembered_password';
 const REMEMBER_ME_FLAG_KEY = 'alsm_remember_me_flag';
 
 export const LoginPage: React.FC = () => {
-  const { login, loginWithGoogle } = useAuth();
+  const { login, verifyMfaLogin, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -60,6 +63,8 @@ export const LoginPage: React.FC = () => {
   const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [mfaToken, setMfaToken] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
 
   useEffect(() => {
     try {
@@ -165,9 +170,26 @@ export const LoginPage: React.FC = () => {
     }
   };
 
+  const completeLoginNavigation = (user: User | null, failureMessage: string) => {
+    if (!user) {
+      setError(failureMessage);
+      return;
+    }
+    const handoff = getTargetHandoffUrl(user);
+    if (handoff) {
+      setRedirectLabel(
+        handoff.includes('3002') || isUserStaffOrAdmin(user)
+          ? 'Redirecting to Staff Portal...'
+          : 'Redirecting to ALSM Partner Portal...',
+      );
+      setIsRedirecting(true);
+      return;
+    }
+    navigate(getRedirectTarget(), { replace: true });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[LoginPage] handleSubmit start', { email: email.trim(), hasPassword: Boolean(password) });
     setError('');
     setUnverifiedEmail('');
 
@@ -179,29 +201,14 @@ export const LoginPage: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log('[LoginPage] calling login()...');
-      const user = await login({ email: email.trim(), password });
-      console.log('[LoginPage] login() returned user:', user);
-
-      if (user) {
-        const handoff = getTargetHandoffUrl(user);
-        console.log('[LoginPage] handoff target:', handoff);
-        if (handoff) {
-          setRedirectLabel(
-            handoff.includes('3002') || isUserStaffOrAdmin(user)
-              ? 'Redirecting to Staff Portal...'
-              : 'Redirecting to ALSM Partner Portal...'
-          );
-          setIsRedirecting(true);
-          return;
-        }
-
-        navigate(getRedirectTarget(), { replace: true });
-      } else if (!user) {
-        setError('Unable to retrieve account information. Please try again.');
+      const result = await login({ email: email.trim(), password });
+      if (isMfaChallenge(result)) {
+        setMfaToken(result.mfaToken);
+        setMfaCode('');
+        return;
       }
+      completeLoginNavigation(result, 'Unable to retrieve account information. Please try again.');
     } catch (err: any) {
-      console.error('[LoginPage] login error caught:', err);
       if (err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
         setUnverifiedEmail(email.trim());
       } else if (err?.code === 'EMAIL_NOT_VERIFIED' || err?.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
@@ -210,7 +217,27 @@ export const LoginPage: React.FC = () => {
         setError(toErrorMessage(err));
       }
     } finally {
-      console.log('[LoginPage] handleSubmit finally block, setLoading(false)');
+      setLoading(false);
+    }
+  };
+
+  const handleMfaSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaToken) return;
+    const trimmedCode = mfaCode.trim();
+    if (!trimmedCode) {
+      setError('Please enter your 6-digit authenticator code or a backup code');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+    try {
+      const user = await verifyMfaLogin(mfaToken, trimmedCode);
+      completeLoginNavigation(user, 'Unable to retrieve account information. Please try again.');
+    } catch (err) {
+      setError(toErrorMessage(err));
+    } finally {
       setLoading(false);
     }
   };
@@ -219,27 +246,16 @@ export const LoginPage: React.FC = () => {
     setError('');
     setLoading(true);
     try {
-      const user = await loginWithGoogle(idToken);
-
-      if (user) {
-        if (user.email) {
-          persistRememberMeCredentials(user.email);
-        }
-        const handoff = getTargetHandoffUrl(user);
-        if (handoff) {
-          setRedirectLabel(
-            handoff.includes('3002') || isUserStaffOrAdmin(user)
-              ? 'Redirecting to Staff Portal...'
-              : 'Redirecting to ALSM Partner Portal...'
-          );
-          setIsRedirecting(true);
-          return;
-        }
-
-        navigate(getRedirectTarget(), { replace: true });
-      } else if (!user) {
-        setError('Google sign-in failed. Please try again.');
+      const result = await loginWithGoogle(idToken);
+      if (isMfaChallenge(result)) {
+        setMfaToken(result.mfaToken);
+        setMfaCode('');
+        return;
       }
+      if (result?.email) {
+        persistRememberMeCredentials(result.email);
+      }
+      completeLoginNavigation(result, 'Google sign-in failed. Please try again.');
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
@@ -291,10 +307,12 @@ export const LoginPage: React.FC = () => {
                 </Link>
 
                 <h1 className="text-2xl sm:text-[26px] font-bold text-slate-900 tracking-tight leading-snug">
-                  Welcome Back
+                  {mfaToken ? 'Two-Factor Authentication' : 'Welcome Back'}
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
-                  Sign in to continue modernizing your legacy systems with ALSM.
+                  {mfaToken
+                    ? 'Enter the 6-digit code from your authenticator app or a backup code to continue.'
+                    : 'Sign in to continue modernizing your legacy systems with ALSM.'}
                 </p>
               </div>
 
@@ -335,8 +353,70 @@ export const LoginPage: React.FC = () => {
                 </div>
               )}
 
-              {/* SECTION 2 — LOGIN FORM */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              {/* SECTION 2 — LOGIN FORM OR 2FA CHALLENGE */}
+              {mfaToken ? (
+                <form onSubmit={handleMfaSubmit} className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="login-mfa-code"
+                      className="block text-xs font-semibold text-slate-700 mb-1.5"
+                    >
+                      Verification Code
+                    </label>
+                    <div className="relative">
+                      <ShieldCheck
+                        className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                        aria-hidden="true"
+                      />
+                      <input
+                        id="login-mfa-code"
+                        type="text"
+                        inputMode="text"
+                        autoComplete="one-time-code"
+                        autoFocus
+                        required
+                        disabled={loading}
+                        value={mfaCode}
+                        onChange={(e) => setMfaCode(e.target.value)}
+                        placeholder="6-digit code or 10-character backup code"
+                        className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-sm text-slate-800 placeholder:text-slate-500 hover:border-slate-300 focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 transition-colors disabled:opacity-60 shadow-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-11 mt-2 bg-[#244A70] hover:bg-[#1B3856] active:bg-[#13283E] text-white font-semibold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#244A70] disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {loading ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-white" aria-hidden="true" />
+                        <span>Verifying...</span>
+                      </span>
+                    ) : (
+                      <span>Verify &amp; Sign In</span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => {
+                      setMfaToken(null);
+                      setMfaCode('');
+                      setError('');
+                    }}
+                    className="w-full h-10 text-xs font-semibold text-slate-600 hover:text-slate-900 inline-flex items-center justify-center gap-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+                    <span>Back to Sign In</span>
+                  </button>
+                </form>
+              ) : (
+                <>
+                  {/* SECTION 2 — LOGIN FORM */}
+                  <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Field 1: Work Email */}
                 <div>
                   <label
@@ -454,6 +534,8 @@ export const LoginPage: React.FC = () => {
               <div className="w-full flex justify-center">
                 <GoogleSignInButton onCredential={handleGoogleCredential} />
               </div>
+                </>
+              )}
             </div>
 
             {/* SECTION 6 — REGISTRATION FOOTER */}

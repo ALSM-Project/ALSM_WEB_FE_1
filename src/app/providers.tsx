@@ -2,15 +2,24 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { authService } from '@/features/auth/services/auth.service';
 import { apiClient } from '@/services/api/apiClient';
 import { tokenStore } from '@/services/api/tokenStore';
-import type { AuthState, LoginCredentials, RegisterData, RegisterResponse, User } from '@/features/auth/types/auth';
+import {
+  isMfaChallenge,
+  type AuthState,
+  type LoginCredentials,
+  type LoginResult,
+  type RegisterData,
+  type RegisterResponse,
+  type User,
+} from '@/features/auth/types/auth';
 
 interface AuthContextType extends AuthState {
   token?: string | null;
-  login: (credentials: LoginCredentials) => Promise<User | null>;
+  login: (credentials: LoginCredentials) => Promise<LoginResult>;
+  verifyMfaLogin: (mfaToken: string, code: string) => Promise<User | null>;
   register: (data: RegisterData) => Promise<RegisterResponse>;
   verifyEmail: (email: string, code: string) => Promise<User | null>;
   resendVerification: (email: string) => Promise<void>;
-  loginWithGoogle: (idToken: string) => Promise<User | null>;
+  loginWithGoogle: (idToken: string) => Promise<LoginResult>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<User | null>;
 }
@@ -196,10 +205,26 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  const handleLogin = useCallback(async (credentials: LoginCredentials): Promise<User | null> => {
-    const loggedInUser = await authService.login(credentials);
+  const handleLogin = useCallback(async (credentials: LoginCredentials): Promise<LoginResult> => {
+    const result = await authService.login(credentials);
+    if (isMfaChallenge(result)) {
+      return result;
+    }
 
     // Internal Staff / Sales / Admin users: redirect to FE2 Staff Portal.
+    const targetHandoff = getTargetHandoffUrl(result);
+    if (targetHandoff) {
+      await redirectAdminToStaffPortal(targetHandoff);
+      return result;
+    }
+
+    setUser(result);
+    return result;
+  }, []);
+
+  const handleVerifyMfaLogin = useCallback(async (mfaToken: string, code: string): Promise<User | null> => {
+    const loggedInUser = await authService.verifyMfaLogin(mfaToken, code);
+
     const targetHandoff = getTargetHandoffUrl(loggedInUser);
     if (targetHandoff) {
       await redirectAdminToStaffPortal(targetHandoff);
@@ -229,17 +254,20 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
     await authService.resendVerification(email);
   }, []);
 
-  const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<User | null> => {
-    const loggedInUser = await authService.loginWithGoogle(idToken);
-
-    const targetHandoff = getTargetHandoffUrl(loggedInUser);
-    if (targetHandoff) {
-      await redirectUserToPortal(targetHandoff);
-      return loggedInUser;
+  const handleLoginWithGoogle = useCallback(async (idToken: string): Promise<LoginResult> => {
+    const result = await authService.loginWithGoogle(idToken);
+    if (isMfaChallenge(result)) {
+      return result;
     }
 
-    setUser(loggedInUser);
-    return loggedInUser;
+    const targetHandoff = getTargetHandoffUrl(result);
+    if (targetHandoff) {
+      await redirectUserToPortal(targetHandoff);
+      return result;
+    }
+
+    setUser(result);
+    return result;
   }, []);
 
   const handleLogout = useCallback(async () => {
@@ -283,6 +311,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({ children
         error: null,
         token: tokenStore.getAccessToken(),
         login: handleLogin,
+        verifyMfaLogin: handleVerifyMfaLogin,
         register: handleRegister,
         verifyEmail: handleVerifyEmail,
         resendVerification: handleResendVerification,

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   Download,
@@ -14,28 +14,70 @@ import {
   Clock,
   Filter,
   X,
+  ShieldCheck,
+  Lock,
 } from 'lucide-react';
+const useOptionalAuth = () => ({ user: null as any });
 import { diagnosticsService } from '../services/diagnostics.service';
 import type { DiagnosticLog } from '../types/diagnostics';
 import { Button } from '@/shared/ui/Button';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { ModernizationWorkflow } from '@/shared/ui/ModernizationWorkflow';
 import { ROUTES } from '@/shared/constants/routes';
+import { projectService } from '@/features/projects/services/project.service';
+import { resolveWorkspace } from '@/features/projects/utils/conversionTypeResolver';
+import { isCobolProjectSync } from '@/shared/utils/projectCache';
+import type { Project } from '@/features/projects/types/project';
 
 export const DiagnosticsPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const fileParam = searchParams.get('file') || searchParams.get('program') || searchParams.get('screen') || '';
+  const detailRef = useRef<HTMLDivElement>(null);
+
+  const [project, setProject] = useState<Project | null>(null);
+  const auth = useOptionalAuth();
+  const user = auth?.user;
+  const isViewerOrPartner =
+    user?.role === 'VIEWER' ||
+    user?.role === 'PARTNER' ||
+    (user?.roles || []).some((r: string) => ['VIEWER', 'PARTNER'].includes(String(r).toUpperCase()));
+
   const [logs, setLogs] = useState<DiagnosticLog[]>([]);
   const [selectedId, setSelectedId] = useState<string>('diag-1');
   const [severityFilter, setSeverityFilter] = useState('ALL');
   const [timeFilter, setTimeFilter] = useState('24h');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(fileParam);
   const [patching, setPatching] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'info' | 'warning'; message: string } | null>(
     null
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    if (projectId) {
+      projectService
+        .getProjectById(projectId)
+        .then((p) => {
+          if (!cancelled) setProject(p);
+        })
+        .catch(console.error);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  const isCobolInit = isCobolProjectSync(projectId);
+  const isCobol = Boolean(
+    isCobolInit ||
+    project?.conversionType === 'COBOL_TO_JAVA' ||
+    resolveWorkspace(project?.conversionType) === 'PROGRAMS' ||
+    project?.name?.toLowerCase().includes('cobol')
   );
 
   useEffect(() => {
@@ -48,6 +90,21 @@ export const DiagnosticsPage: React.FC = () => {
         if (cancelled) return;
         setLogs(data);
         if (data.length > 0) {
+          if (fileParam) {
+            const match = data.find(
+              (l) =>
+                l.screenName.toLowerCase().includes(fileParam.toLowerCase()) ||
+                l.offendingCode.toLowerCase().includes(fileParam.toLowerCase())
+            );
+            if (match) {
+              setSelectedId(match.id);
+              setSearch(fileParam);
+              setTimeout(() => {
+                detailRef.current?.scrollIntoView({ behavior: 'smooth' });
+              }, 200);
+              return;
+            }
+          }
           setSelectedId(data[0].id);
         }
       })
@@ -61,7 +118,7 @@ export const DiagnosticsPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, fileParam]);
 
   const selectedLog = logs.find((l) => l.id === selectedId) || logs[0];
 
@@ -129,8 +186,12 @@ export const DiagnosticsPage: React.FC = () => {
     <div className="space-y-6">
       {/* Standard Reusable PageHeader */}
       <PageHeader
-        title="Diagnostics & Error Logs"
-        subtitle="Analyze parsing failures, syntax diagnostics, and rule-based validation findings across workspace assets."
+        title={isCobol ? 'COBOL Diagnostics & AI Error Resolution' : 'Diagnostics & Error Logs'}
+        subtitle={
+          isCobol
+            ? 'Analyze COBOL transpilation syntax errors and apply AI-suggested code patches across workspace programs.'
+            : 'Analyze parsing failures, syntax diagnostics, and rule-based validation findings across workspace assets.'
+        }
         actions={
           <Button
             onClick={handleDownloadFullLog}
@@ -144,15 +205,25 @@ export const DiagnosticsPage: React.FC = () => {
 
       {/* Modernization Workflow Step Banner */}
       <ModernizationWorkflow
+        workflowType={isCobol ? 'PROGRAMS' : 'SCREENS'}
         currentStep="convert"
-        completedSteps={['upload']}
+        completedSteps={isCobol ? ['upload', 'analyze'] : ['upload']}
         onStepClick={(stepId) => {
-          if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
-          if (stepId === 'mapping') navigate(ROUTES.PROJECTS.MAPPING(projectId, 'scr-acct010'));
-          if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, 'scr-acct010'));
-          if (stepId === 'validation' || stepId === 'review') navigate(ROUTES.PROJECTS.REVIEW(projectId, 'scr-acct010'));
-          if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, 'scr-acct010'));
-          if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          if (isCobol) {
+            if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
+            if (stepId === 'analyze') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'convert') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'validate') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'review' || stepId === 'result') navigate(ROUTES.PROJECTS.REVIEW(projectId, '1'));
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          } else {
+            if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
+            if (stepId === 'mapping') navigate(ROUTES.PROJECTS.MAPPING(projectId, 'scr-acct010'));
+            if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, 'scr-acct010'));
+            if (stepId === 'validation' || stepId === 'review') navigate(ROUTES.PROJECTS.REVIEW(projectId, 'scr-acct010'));
+            if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, 'scr-acct010'));
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          }
         }}
       />
 
@@ -229,6 +300,28 @@ export const DiagnosticsPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {search && (
+        <div className="flex items-center justify-between px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 font-medium">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold">Showing error logs for:</span>
+            <span className="font-mono bg-white px-2 py-0.5 rounded border border-blue-200 text-blue-700 font-bold">
+              {search}
+            </span>
+            <span className="text-blue-600">({filteredLogs.length} matching error{filteredLogs.length === 1 ? '' : 's'})</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSearch('');
+              setSearchParams({});
+            }}
+            className="text-xs font-semibold text-blue-700 hover:text-blue-900 underline cursor-pointer"
+          >
+            Show All Program Errors
+          </button>
+        </div>
+      )}
 
       {/* Flat Data Table Container */}
       <div className="bg-white border border-[#D9E2EC] rounded-xl overflow-hidden shadow-2xs">
@@ -326,8 +419,65 @@ export const DiagnosticsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Split Details View: Source Code Snippet (Left) & AI Resolution (Right) */}
-      {selectedLog && (
+      {/* Split Details View: Source Code Snippet (Left) & AI Resolution (Right) or Partner Sanitized View (BR-59) */}
+      {selectedLog && isViewerOrPartner ? (
+        <div className="bg-white border border-[#D9E2EC] rounded-xl p-6 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between border-b border-[#E5EAF0] pb-3">
+            <div className="flex items-center space-x-2">
+              <ShieldCheck className="w-5 h-5 text-[#244A70]" />
+              <span className="text-[#091E42] font-bold text-sm">
+                Partner Error Summary (Sanitized per BR-59)
+              </span>
+            </div>
+            <span className="font-mono text-xs font-bold text-[#0652CC] bg-[#E8F1FF] px-2.5 py-1 rounded-lg border border-blue-200">
+              {selectedLog.screenName}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-2">
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <span className="text-xs text-slate-500 font-medium">Error Code</span>
+              <p className="text-sm font-bold text-[#091E42] mt-0.5">{selectedLog.errorCode}</p>
+            </div>
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <span className="text-xs text-slate-500 font-medium">Severity</span>
+              <p className="text-sm font-bold text-[#091E42] mt-0.5">{selectedLog.severity}</p>
+            </div>
+            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <span className="text-xs text-slate-500 font-medium">Remediation Status</span>
+              <p className="text-sm font-bold text-emerald-700 mt-0.5">
+                {selectedLog.resolved
+                  ? 'Remediated & Verified'
+                  : selectedLog.escalated
+                  ? 'Under Engineering Review'
+                  : 'Resolution Pending'}
+              </p>
+            </div>
+          </div>
+
+          <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-start space-x-3">
+            <Lock className="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-semibold">Internal Execution Details Restricted</p>
+              <p className="mt-0.5 text-amber-800">
+                Raw execution stack traces, underlying source code lines, and internal infrastructure paths are restricted for external partner visibility in accordance with compliance rule BR-59.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-3 border-t border-[#E5EAF0]">
+            <Button
+              variant="secondary"
+              onClick={handleEscalate}
+              disabled={selectedLog.escalated}
+              className="space-x-1.5 text-xs font-semibold border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100 px-4 py-2 rounded-xl cursor-pointer"
+            >
+              <Headphones className="w-4 h-4 text-rose-600" aria-hidden="true" />
+              <span>{selectedLog.escalated ? 'Support Ticket Active' : 'Request Engineering Support'}</span>
+            </Button>
+          </div>
+        </div>
+      ) : selectedLog ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Card 1: Source Code Snippet */}
           <div className="bg-white border border-[#D9E2EC] rounded-xl p-5 space-y-4 shadow-2xs flex flex-col justify-between">
@@ -442,7 +592,7 @@ export const DiagnosticsPage: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Bottom Global Action Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-[#E5EAF0]">

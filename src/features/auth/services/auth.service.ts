@@ -1,6 +1,15 @@
 import { apiClient } from '@/services/api/apiClient';
 import { tokenStore } from '@/services/api/tokenStore';
-import type { AuthTokens, LoginCredentials, RegisterData, RegisterResponse, User } from '../types/auth';
+import {
+  isMfaChallenge,
+  type AuthTokens,
+  type LoginCredentials,
+  type LoginResult,
+  type MfaChallengeResponse,
+  type RegisterData,
+  type RegisterResponse,
+  type User,
+} from '../types/auth';
 
 // Auth feature service (FE guideline 04 §7): owns the auth endpoints and maps
 // the backend response DTOs. No UI, no routing, no token business here —
@@ -13,8 +22,23 @@ interface AuthTokensWithUser extends AuthTokens {
 }
 
 export class AuthService {
-  async login(credentials: LoginCredentials): Promise<User | null> {
-    const response = await tokenStore.authenticate(() => apiClient.post<AuthTokensWithUser>('/auth/login', credentials, { auth: false }));
+  async login(credentials: LoginCredentials): Promise<LoginResult> {
+    const response = await apiClient.post<AuthTokensWithUser | MfaChallengeResponse>('/auth/login', credentials, { auth: false });
+    if (isMfaChallenge(response)) {
+      return response;
+    }
+    await tokenStore.acceptTokens(response);
+    if (response.mustChangePassword) return this.getCurrentUser();
+    if (response.user) {
+      return response.user;
+    }
+    return this.getCurrentUser();
+  }
+
+  async verifyMfaLogin(mfaToken: string, code: string): Promise<User | null> {
+    const response = await tokenStore.authenticate(() =>
+      apiClient.post<AuthTokensWithUser>('/auth/2fa/login', { mfaToken, code }, { auth: false }),
+    );
     if (response.mustChangePassword) return this.getCurrentUser();
     if (response.user) {
       return response.user;
@@ -39,8 +63,12 @@ export class AuthService {
     await apiClient.post<{ ok: true }>('/auth/resend-verification', { email }, { auth: false });
   }
 
-  async loginWithGoogle(idToken: string): Promise<User | null> {
-    const response = await tokenStore.authenticate(() => apiClient.post<AuthTokensWithUser>('/auth/google', { idToken }, { auth: false }));
+  async loginWithGoogle(idToken: string): Promise<LoginResult> {
+    const response = await apiClient.post<AuthTokensWithUser | MfaChallengeResponse>('/auth/google', { idToken }, { auth: false });
+    if (isMfaChallenge(response)) {
+      return response;
+    }
+    await tokenStore.acceptTokens(response);
     if (response.mustChangePassword) return this.getCurrentUser();
     if (response.user) {
       return response.user;

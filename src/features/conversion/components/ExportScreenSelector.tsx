@@ -9,6 +9,7 @@ export interface ExportScreenSelectorProps {
   onToggleScreen: (screenId: string) => void;
   onSelectAllConverted: () => void;
   onDeselectAll: () => void;
+  isCobol?: boolean;
 }
 
 export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
@@ -17,10 +18,11 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
   onToggleScreen,
   onSelectAllConverted,
   onDeselectAll,
+  isCobol = false,
 }) => {
-  const convertedScreens = screens.filter((s) => s.status === 'Completed');
+  const convertedScreens = screens.filter((s) => s.status?.toLowerCase() === 'completed');
   const hasUnreadySelected = screens.some(
-    (s) => selectedScreenIds.includes(s.id) && s.status !== 'Completed'
+    (s) => selectedScreenIds.includes(s.id) && s.status?.toLowerCase() !== 'completed'
   );
 
   return (
@@ -28,10 +30,12 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            SCREEN SELECTION ({selectedScreenIds.length}/{screens.length})
+            {isCobol ? 'PROGRAM SELECTION' : 'SCREEN SELECTION'} ({selectedScreenIds.length}/{screens.length})
           </label>
           <p className="text-xs text-slate-500">
-            Choose modernized legacy screens to bundle into this package.
+            {isCobol
+              ? 'Choose modernized legacy COBOL programs to bundle into this package.'
+              : 'Choose modernized legacy screens to bundle into this package.'}
           </p>
         </div>
 
@@ -41,7 +45,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
             onClick={onSelectAllConverted}
             className="text-brand-600 hover:text-brand-700 font-semibold transition-colors flex items-center space-x-1"
           >
-            <CheckSquare className="w-4 h-4" />
+            <CheckSquare className="w-3.5 h-3.5" />
             <span>Select Ready ({convertedScreens.length})</span>
           </button>
           <span className="text-slate-300">•</span>
@@ -59,7 +63,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
         <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start space-x-2.5 text-xs text-amber-800">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold">Notice:</span> One or more selected screens are still in review or processing. They will be included using the latest conversion candidate.
+            <span className="font-semibold">Notice:</span> One or more selected {isCobol ? 'programs' : 'screens'} are still in review or processing. They will be included using the latest conversion candidate.
           </div>
         </div>
       )}
@@ -93,7 +97,7 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
 
                 <div className="min-w-0">
                   <div className="flex items-center space-x-2">
-                    <FileCode className="w-4 h-4 text-slate-400 shrink-0" />
+                    <FileCode className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="text-xs font-bold text-slate-900 font-mono truncate">
                       {screen.name}
                     </span>
@@ -117,8 +121,8 @@ export const ExportScreenSelector: React.FC<ExportScreenSelectorProps> = ({
 
       {selectedScreenIds.length === 0 && (
         <p className="text-xs text-rose-600 flex items-center space-x-1.5 font-medium">
-          <AlertCircle className="w-4 h-4" />
-          <span>Please select at least one screen to export.</span>
+          <AlertCircle className="w-3.5 h-3.5" />
+          <span>Please select at least one {isCobol ? 'program' : 'screen'} to export.</span>
         </p>
       )}
     </div>

@@ -175,7 +175,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
         className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4"
         onClick={(event) => event.stopPropagation()}
       >
-        {onAcceptAiFix && finding.suggestion && finding.status !== ValidationFindingStatus.RESOLVED && (
+        {onAcceptAiFix && finding.status !== ValidationFindingStatus.RESOLVED && (
           <button
             type="button"
             disabled={isSubmitting || isFixing}
@@ -190,7 +190,7 @@ export const FindingCard: React.FC<FindingCardProps> = ({
             ) : (
               <>
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>Accept AI Fix</span>
+                <span>AI Quick-Fix</span>
               </>
             )}
           </button>

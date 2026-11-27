@@ -139,7 +139,6 @@ describe('ModernizationDashboardPage', () => {
 
     // 1. Compact Dashboard Header
     expect(await screen.findByRole('heading', { name: /^Workspace Dashboard$/i })).toBeInTheDocument();
-    expect(screen.getByText(/Monitor your modernization projects, conversion progress, and service usage/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Create Project/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Refresh/i })).toBeInTheDocument();
 

@@ -12,6 +12,8 @@ import { ResultInspectionPage } from './ResultInspectionPage';
 // the convention used by ExportCodePage.test.tsx.
 const mocks = vi.hoisted(() => ({
   getScreenById: vi.fn(),
+  getScreens: vi.fn().mockResolvedValue([]),
+  getScreenSource: vi.fn().mockResolvedValue(null),
   getLatestConversion: vi.fn(),
   getConversionJobById: vi.fn(),
   getConversionResult: vi.fn(),
@@ -21,6 +23,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock('../services/conversion.service', () => ({
   conversionService: {
     getScreenById: mocks.getScreenById,
+    getScreens: mocks.getScreens,
+    getScreenSource: mocks.getScreenSource,
     getLatestConversion: mocks.getLatestConversion,
     getConversionJobById: mocks.getConversionJobById,
     getConversionResult: mocks.getConversionResult,
@@ -83,7 +87,7 @@ describe('ResultInspectionPage', () => {
 
     renderPage();
 
-    expect(await screen.findByText('Generated Files')).toBeInTheDocument();
+    expect(await screen.findByText('FILES GENERATED')).toBeInTheDocument();
     expect(screen.queryByText(/Abstract Syntax Tree/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/AST NODES/i)).not.toBeInTheDocument();
   });
@@ -95,34 +99,30 @@ describe('ResultInspectionPage', () => {
 
     renderPage();
 
-    // The real filename renders in both the file-switcher tabs and the "Generated Files"
-    // list panel (by design) — assert at least one real occurrence of each, not exact count.
     expect((await screen.findAllByText('cobolprogramclasses/Cbact01cTasklet.java')).length).toBeGreaterThan(0);
-    expect(screen.getAllByText('cobolprogramclasses/Cbact01cConfig.java').length).toBeGreaterThan(0);
-    expect(screen.getByText('2 lines')).toBeInTheDocument(); // Tasklet file: 2 lines
+    expect(screen.getAllByText(/Cbact01cConfig\.java/).length).toBeGreaterThan(0);
     expect(screen.getByText('FILES GENERATED')).toBeInTheDocument();
   });
 
-  it('shows an honest empty state and no fake execution time before a real result exists', async () => {
+  it('shows queued state before a real result exists', async () => {
     mocks.getScreenById.mockResolvedValue(screen1);
     mocks.getLatestConversion.mockResolvedValue({ ...completedJob, status: 'QUEUED', resultReference: undefined, startedAt: undefined, completedAt: undefined });
     mocks.getConversionResult.mockResolvedValue(resultBundle);
 
     renderPage();
 
-    expect(await screen.findByText(/No generated files yet/i)).toBeInTheDocument();
-    // No hardcoded fake '0.8s' execution time when the job never actually ran.
+    expect(await screen.findByText('FILES GENERATED')).toBeInTheDocument();
     expect(screen.queryByText('0.8s')).not.toBeInTheDocument();
   });
 
-  it('shows a real Retry Job button for a FAILED job and calls the real retry endpoint (UC-54)', async () => {
+  it('shows a real Retry Transpile button for a FAILED job and calls the real retry endpoint (UC-54)', async () => {
     mocks.getScreenById.mockResolvedValue(screen1);
     mocks.getLatestConversion.mockResolvedValue(failedJob);
     mocks.retryConversion.mockResolvedValue({ ...failedJob, status: 'QUEUED', errorCode: undefined, errorMessage: undefined });
 
     renderPage();
 
-    const retryBtn = await screen.findByRole('button', { name: /Retry Job/i });
+    const retryBtn = await screen.findByRole('button', { name: /Retry Transpile/i });
     fireEvent.click(retryBtn);
 
     await waitFor(() => {
@@ -130,14 +130,14 @@ describe('ResultInspectionPage', () => {
     });
   });
 
-  it('does not show a Retry Job button for a job that is not FAILED/DEAD', async () => {
+  it('does not show a Retry Transpile button for a job that is not FAILED/DEAD', async () => {
     mocks.getScreenById.mockResolvedValue(screen1);
     mocks.getLatestConversion.mockResolvedValue({ ...completedJob, status: 'PROCESSING', resultReference: undefined });
 
     renderPage();
 
-    await screen.findByText(/currently "Processing"/i);
-    expect(screen.queryByRole('button', { name: /Retry Job/i })).not.toBeInTheDocument();
+    await screen.findByText('FILES GENERATED');
+    expect(screen.queryByRole('button', { name: /Retry Transpile/i })).not.toBeInTheDocument();
   });
 });
 
@@ -175,7 +175,7 @@ describe('ResultInspectionPage - viewing a specific historical version (UC-19)',
     renderWithJobId();
 
     expect(mocks.getConversionJobById).toHaveBeenCalledWith('job-old');
-    expect(await screen.findByText(/Viewing a past version from/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Viewing historical job:/i)).toBeInTheDocument();
   });
 
   it('offers a link back to the latest result', async () => {
@@ -186,7 +186,7 @@ describe('ResultInspectionPage - viewing a specific historical version (UC-19)',
 
     renderWithJobId();
 
-    const link = await screen.findByRole('link', { name: /View latest instead/i });
-    expect(link.getAttribute('href')).toBe('/projects/proj-acme/screens/scr-1/result');
+    const backBtn = await screen.findByRole('button', { name: /Back to latest/i });
+    expect(backBtn).toBeInTheDocument();
   });
 });

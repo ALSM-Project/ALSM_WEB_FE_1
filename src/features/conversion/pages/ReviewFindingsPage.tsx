@@ -1,9 +1,9 @@
-import { ValidationOutcomeNotice } from '../components/ValidationOutcomeNotice';
-import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowRight,
+  Bot,
   CheckCircle2,
   Clock3,
   Download,
@@ -11,7 +11,6 @@ import {
   LoaderCircle,
   RotateCcw,
   Sliders,
-  ScanSearch,
 } from 'lucide-react';
 import { ApiError } from '@/services/api/apiError';
 import { ROUTES } from '@/shared/constants/routes';
@@ -35,16 +34,22 @@ import {
   type ValidationFinding,
 } from '../types/validation';
 import { FindingCard } from '../components/FindingCard';
+import { ProgramSwitcher } from '../components/ProgramSwitcher';
 import { CodeViewer } from '../components/CodeViewer';
 import { NotApplicableModal } from '../components/NotApplicableModal';
+import { conversionService } from '../services/conversion.service';
+import { projectService } from '@/features/projects/services/project.service';
+import { resolveWorkspace } from '@/features/projects/utils/conversionTypeResolver';
+import { isCobolProjectSync } from '@/shared/utils/projectCache';
+import type { Project } from '@/features/projects/types/project';
+import type { LegacyScreen } from '@/features/screens/types/screen';
+import { EnsureQueryClient } from '@/shared/ui/EnsureQueryClient';
 import {
   deriveReviewOperationState,
   deriveReviewFindingsPageState,
   findResultFileForLocation,
   selectLatestValidationRun,
 } from './reviewFindingsState';
-import { conversionService } from '../services/conversion.service';
-import type { LegacyScreen } from '@/features/screens/types/screen';
 import { isDisplayableCodeFile } from '../utils/screenGenerator';
 
 const CONVERSION_STATUS_MESSAGES = {
@@ -94,7 +99,7 @@ function StatePanel({
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-6 py-12 text-center shadow-sm">
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E8F1FF] border border-[#D4E3FC] text-[#244A70] shadow-sm">
+      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-600">
         {icon}
       </div>
       <h2 className="text-base font-bold text-slate-900">{title}</h2>
@@ -104,18 +109,29 @@ function StatePanel({
   );
 }
 
-export const ReviewFindingsPage: React.FC = () => {
+const ReviewFindingsContent: React.FC = () => {
   const { projectId = '', screenId = '' } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const autoRunTriggeredRef = React.useRef(false);
 
-  const shouldAutoRun =
-    searchParams.get('autoRun') === 'true' || Boolean((location.state as any)?.autoRun);
   const [screen, setScreen] = useState<LegacyScreen | null>(null);
+  const [project, setProject] = useState<Project | null>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
+    if (!projectId) return;
+    let cancelled = false;
+    projectService
+      .getProjectById(projectId)
+      .then((p) => {
+        if (!cancelled) setProject(p);
+      })
+      .catch(console.error);
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
+  React.useEffect(() => {
+    if (!screenId) return;
     let cancelled = false;
     conversionService.getScreenById(screenId).then((screenData) => {
       if (cancelled) return;
@@ -126,7 +142,32 @@ export const ReviewFindingsPage: React.FC = () => {
     };
   }, [screenId]);
 
-  const isCobol = screen?.sourceType === 'COBOL';
+  const [legacySource, setLegacySource] = useState<{ name: string; content: string; linesOfCode: number } | null>(null);
+
+  React.useEffect(() => {
+    if (!screenId) return;
+    let cancelled = false;
+    conversionService.getScreenSource(screenId).then((src) => {
+      if (!cancelled && src && src.content) {
+        setLegacySource(src);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [screenId]);
+
+  const isCobolInit = isCobolProjectSync(projectId);
+  const isCobol = Boolean(
+    isCobolInit ||
+    project?.conversionType === 'COBOL_TO_JAVA' ||
+    resolveWorkspace(project?.conversionType) === 'PROGRAMS' ||
+    project?.name?.toLowerCase().includes('cobol') ||
+    screen?.sourceType === 'COBOL' ||
+    screen?.name?.toLowerCase().endsWith('.cbl') ||
+    screen?.name?.toLowerCase().endsWith('.cob')
+  );
+  const mappingRoute = isCobol
+    ? ROUTES.PROJECTS.METHOD_MAPPING(projectId, screenId)
+    : ROUTES.PROJECTS.MAPPING(projectId, screenId);
   const conversionQuery = useConversionJob(projectId, screenId);
   const conversion = conversionQuery.data;
   const conversionCompleted = conversion?.status === 'COMPLETED';
@@ -148,28 +189,9 @@ export const ReviewFindingsPage: React.FC = () => {
   const findingsQuery = useValidationFindings(projectId, currentRun?.id, completedRun);
   const reviewFinding = useReviewValidationFinding(projectId, currentRun?.id);
   const applyAiFix = useApplyAiFix(projectId, currentRun?.id);
-  const [fixingFindingId, setFixingFindingId] = useState<string | null>(null);
-  const [aiFixSuccessMessage, setAiFixSuccessMessage] = useState<string | null>(null);
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
   const [selectedGeneratedFilePath, setSelectedGeneratedFilePath] = useState<string | null>(null);
   const [notApplicableFinding, setNotApplicableFinding] = useState<ValidationFinding | null>(null);
-
-  const handleAcceptAiFix = async (finding: ValidationFinding) => {
-    try {
-      setFixingFindingId(finding.id);
-      setAiFixSuccessMessage(null);
-      const res = await applyAiFix.mutateAsync(finding.id);
-      setAiFixSuccessMessage(res.explanation || 'AI Fix applied successfully! Code has been updated.');
-      await conversionResultQuery.refetch();
-      if (res.filePath) {
-        setSelectedGeneratedFilePath(res.filePath);
-      }
-    } catch (err) {
-      console.error('Failed to apply AI fix', err);
-    } finally {
-      setFixingFindingId(null);
-    }
-  };
 
   const pageState = deriveReviewFindingsPageState({
     conversion,
@@ -179,7 +201,6 @@ export const ReviewFindingsPage: React.FC = () => {
     findings: findingsQuery.data,
     findingsLoading: findingsQuery.isLoading,
   });
-
   const findings = findingsQuery.data ?? [];
   const reviewedCount = findings.filter(
     (finding) => finding.status !== ValidationFindingStatus.PENDING,
@@ -192,21 +213,6 @@ export const ReviewFindingsPage: React.FC = () => {
   const continueDisabled = validationActive || triggerValidation.isPending || reviewFinding.isPending;
   const triggerError = triggerErrorMessage(triggerValidation.error);
   const reviewError = reviewErrorMessage(reviewFinding.error);
-
-  // Automatically trigger AI validation when arriving via "Run AI Code Validator"
-  useEffect(() => {
-    if (
-      shouldAutoRun &&
-      conversionCompleted &&
-      conversion?.id &&
-      !triggerValidation.isPending &&
-      !validationActive &&
-      !autoRunTriggeredRef.current
-    ) {
-      autoRunTriggeredRef.current = true;
-      triggerValidation.mutate();
-    }
-  }, [shouldAutoRun, conversionCompleted, conversion?.id, triggerValidation, validationActive]);
   const selectedFinding =
     findings.find((finding) => finding.id === selectedFindingId) ?? findings[0];
   const generatedFiles = (conversionResultQuery.data?.files ?? []).filter((f) =>
@@ -227,6 +233,14 @@ export const ReviewFindingsPage: React.FC = () => {
 
   const submitReview = (finding: ValidationFinding, status: HumanReviewTargetStatus) => {
     reviewFinding.mutate({ findingId: finding.id, input: { status } });
+  };
+
+  const handleAcceptAiFix = (finding: ValidationFinding) => {
+    applyAiFix.mutate(finding.id, {
+      onSuccess: () => {
+        conversionResultQuery.refetch();
+      },
+    });
   };
 
   const submitNotApplicable = (reason: string) => {
@@ -307,19 +321,9 @@ export const ReviewFindingsPage: React.FC = () => {
           </StatePanel>
         );
       case 'NO_VALIDATION_RUN':
-        if (triggerValidation.isPending || shouldAutoRun) {
-          return (
-            <StatePanel
-              icon={<LoaderCircle className="h-5 w-5 animate-spin" />}
-              title="Status: Processing"
-            >
-              AI-assisted semantic comparison is in progress.
-            </StatePanel>
-          );
-        }
         return (
           <StatePanel
-            icon={<ScanSearch className="h-7 w-7" />}
+            icon={<Bot className="h-5 w-5" />}
             title="AI Validation has not been run for this conversion"
             action={runValidationButton('Run AI Validation')}
           >
@@ -359,12 +363,12 @@ export const ReviewFindingsPage: React.FC = () => {
         return (
           <StatePanel
             icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
-            title="Validation Passed — All Clean"
+            title="AI validation completed"
             action={runValidationButton('Re-run AI Validation')}
           >
-            <p className="font-semibold text-emerald-800">No semantic findings were detected in this validation run.</p>
+            <p>No semantic findings were detected in this validation run.</p>
             <p className="mt-2 font-medium text-slate-700">
-              The AI validation confirmed that your modernized Java code is semantically aligned and ready for production. AI validation does not guarantee semantic equivalence. If you modified the screen code, click Re-run AI Validation to analyze your changes.
+              AI validation does not guarantee semantic equivalence. If you modified the screen code, click Re-run AI Validation to analyze your changes.
             </p>
             {triggerError && (
               <p className="mt-3 font-semibold text-rose-700" role="alert">
@@ -381,6 +385,9 @@ export const ReviewFindingsPage: React.FC = () => {
             action={runValidationButton('Run Validation Again')}
           >
             <p>{currentRun?.failureMessage ?? 'The validation run could not be completed.'}</p>
+            {currentRun?.failureCode && (
+              <p className="mt-2 font-mono text-xs text-slate-500">{currentRun.failureCode}</p>
+            )}
             {triggerError && (
               <p className="mt-3 font-semibold text-rose-700" role="alert">
                 {triggerError}
@@ -406,15 +413,6 @@ export const ReviewFindingsPage: React.FC = () => {
                   Saving review decision…
                 </p>
               )}
-              {aiFixSuccessMessage && (
-                <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs font-medium text-emerald-800 flex items-start gap-2.5 shadow-xs animate-in fade-in">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-emerald-900">AI Fix Applied &amp; Code Updated</p>
-                    <p className="mt-0.5 text-emerald-700">{aiFixSuccessMessage}</p>
-                  </div>
-                </div>
-              )}
               {reviewError && (
                 <p className="mb-4 rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm font-medium text-rose-700" role="alert">
                   {reviewError}
@@ -426,8 +424,8 @@ export const ReviewFindingsPage: React.FC = () => {
                     key={finding.id}
                     finding={finding}
                     isSelected={finding.id === selectedFinding?.id}
-                    isSubmitting={reviewFinding.isPending || applyAiFix.isPending}
-                    isFixing={fixingFindingId === finding.id}
+                    isSubmitting={reviewFinding.isPending}
+                    isFixing={applyAiFix.isPending && (applyAiFix.variables as string) === finding.id}
                     onSelect={() => {
                       setSelectedFindingId(finding.id);
                       setSelectedGeneratedFilePath(null);
@@ -452,14 +450,35 @@ export const ReviewFindingsPage: React.FC = () => {
               </div>
 
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Original legacy source
-                </p>
-                <p className="mt-2 text-sm font-semibold text-slate-800">Source preview unavailable</p>
-                <p className="mt-1 text-xs leading-5 text-slate-500">
-                  No authorized source-file read endpoint is available. Use the source file and line
-                  metadata shown on the finding.
-                </p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    Original legacy source
+                  </p>
+                  {legacySource?.linesOfCode ? (
+                    <span className="text-[11px] font-mono text-slate-500 font-medium">
+                      {legacySource.linesOfCode} lines
+                    </span>
+                  ) : null}
+                </div>
+                {legacySource?.content ? (
+                  <div className="max-h-[340px] overflow-hidden rounded-lg border border-slate-700">
+                    <CodeViewer
+                      code={legacySource.content}
+                      filename={legacySource.name || screen?.name || 'legacy-source.cbl'}
+                      language="cobol"
+                      highlightStartLine={selectedFinding?.sourceLocation?.startLine}
+                      highlightEndLine={selectedFinding?.sourceLocation?.endLine}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="mt-2 text-sm font-semibold text-slate-800">Source preview unavailable</p>
+                    <p className="mt-1 text-xs leading-5 text-slate-500">
+                      No authorized source-file read endpoint is available. Use the source file and line
+                      metadata shown on the finding.
+                    </p>
+                  </>
+                )}
               </div>
 
               <div>
@@ -473,10 +492,11 @@ export const ReviewFindingsPage: React.FC = () => {
                         key={file.relativePath}
                         type="button"
                         onClick={() => setSelectedGeneratedFilePath(file.relativePath)}
-                        className={`rounded-lg border px-2.5 py-1 text-xs font-mono ${file.relativePath === selectedGeneratedFile?.relativePath
+                        className={`rounded-lg border px-2.5 py-1 text-xs font-mono ${
+                          file.relativePath === selectedGeneratedFile?.relativePath
                             ? 'border-brand-300 bg-brand-50 font-semibold text-brand-700'
                             : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-                          }`}
+                        }`}
                       >
                         {file.relativePath}
                       </button>
@@ -492,7 +512,7 @@ export const ReviewFindingsPage: React.FC = () => {
                     <CodeViewer
                       code={
                         (selectedGeneratedFile.relativePath.toLowerCase().endsWith('.tsx') &&
-                          localStorage.getItem(`alsm_custom_code_${projectId}_${screenId}`)) ||
+                         localStorage.getItem(`alsm_custom_code_${projectId}_${screenId}`)) ||
                         selectedGeneratedFile.content
                       }
                       filename={selectedGeneratedFile.relativePath}
@@ -524,22 +544,21 @@ export const ReviewFindingsPage: React.FC = () => {
   return (
     <div className="flex min-h-[calc(100vh-5rem)] flex-col space-y-6 bg-slate-50/30 pb-24">
       <ModernizationWorkflow
-        currentStep={isCobol ? 'validate' : 'validation'}
         workflowType={isCobol ? 'PROGRAMS' : 'SCREENS'}
-        completedSteps={isCobol ? ['upload', 'analyze', 'convert'] : ['upload', 'conversion']}
+        currentStep={isCobol ? 'review' : 'validation'}
+        completedSteps={isCobol ? ['upload', 'analyze', 'convert', 'validate'] : ['upload', 'conversion']}
         onStepClick={(stepId) => {
           if (isCobol) {
-            if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
-            if (stepId === 'analyze') navigate(ROUTES.PROJECTS.SCREENS(projectId));
-            if (stepId === 'convert' || stepId === 'conversion') navigate(ROUTES.PROJECTS.SCREENS(projectId));
-            if (stepId === 'validate' || stepId === 'validation') navigate(ROUTES.PROJECTS.SCREENS(projectId));
+            if (stepId === 'upload') navigate(`${ROUTES.PROJECTS.UPLOAD(projectId)}?tab=programs`);
+            if (stepId === 'analyze') navigate(`${ROUTES.PROJECTS.SCREENS(projectId)}?stage=analyze`);
+            if (stepId === 'convert') navigate(`${ROUTES.PROJECTS.SCREENS(projectId)}?stage=convert`);
+            if (stepId === 'validate') navigate(`${ROUTES.PROJECTS.SCREENS(projectId)}?stage=validate`);
             if (stepId === 'review' || stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, screenId));
             if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
           } else {
             if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
-            if (stepId === 'conversion' || stepId === 'convert') navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
-            if (stepId === 'validate' || stepId === 'validation') navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
-            if (stepId === 'review' || stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, screenId));
+            if (stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
+            if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, screenId));
             if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
           }
         }}
@@ -550,15 +569,35 @@ export const ReviewFindingsPage: React.FC = () => {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Validation &amp; Human Review
+                {isCobol ? 'Transpilation Review & Findings' : 'Validation & Human Review'}
               </h1>
+
+              <ProgramSwitcher
+                projectId={projectId}
+                currentScreenId={screenId}
+                currentScreenName={screen?.name}
+                targetMode="review"
+              />
+
+
             </div>
             <p className="mt-2 text-sm text-slate-600">
-              AI-generated findings are advisory. Final review decisions are made by human
-              reviewers.
+              {isCobol
+                ? 'Review generated Spring Boot classes, method mappings, and transpiler findings.'
+                : 'AI-generated findings are advisory. Final review decisions are made by human reviewers.'}
             </p>
           </div>
           <div className="flex items-center space-x-2">
+            {isCobol && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(ROUTES.PROJECTS.RESULT(projectId, screenId))}
+                className="space-x-1.5 text-xs font-semibold rounded-full border-[#0652CC] text-[#0652CC] hover:bg-[#F0F6FF]"
+              >
+                <FileCode className="h-3.5 w-3.5" />
+                <span>View Generated Java Code</span>
+              </Button>
+            )}
             {conversionCompleted && currentRun && (
               <Button
                 type="button"
@@ -580,17 +619,16 @@ export const ReviewFindingsPage: React.FC = () => {
             )}
             <Button
               variant="outline"
-              onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+              onClick={() => navigate(mappingRoute)}
               className="space-x-1.5 text-xs font-medium rounded-full border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] shadow-none"
             >
               <Sliders className="h-3.5 w-3.5 text-brand-600" />
-              <span>Edit Mapping &amp; Code</span>
+              <span>{isCobol ? 'Edit Method Mapping' : 'Edit Mapping & Code'}</span>
             </Button>
           </div>
         </div>
       </header>
 
-      <ValidationOutcomeNotice run={currentRun} />
       {renderState()}
 
       {notApplicableFinding && (
@@ -603,32 +641,21 @@ export const ReviewFindingsPage: React.FC = () => {
         />
       )}
 
-      <div
-        style={{ left: 'var(--sidebar-width, 15rem)' }}
-        className="fixed bottom-0 right-0 z-40 border-t border-slate-200 bg-white px-6 py-4 shadow-2xl transition-[left] duration-300"
-      >
+      <div style={{ left: 'var(--sidebar-width, 15rem)' }} className="fixed bottom-0 right-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur px-6 lg:px-8 py-4 shadow-2xl transition-[left] duration-300">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-            <span>
-              {findings.length === 0
-                ? 'All validations passed · 0 issues detected'
-                : `${reviewedCount} of ${findings.length} findings reviewed`}
-            </span>
-            <span className="text-slate-400">
-              {findings.length === 0
-                ? 'Your converted code is clean and ready to export.'
-                : 'Review decisions are saved automatically.'}
-            </span>
+            <span>{reviewedCount} of {findings.length} findings reviewed</span>
+            <span className="text-slate-400">Review decisions are saved automatically.</span>
           </div>
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              onClick={() => navigate(ROUTES.PROJECTS.MAPPING(projectId, screenId))}
+              onClick={() => navigate(mappingRoute)}
               className="space-x-1.5 text-xs"
             >
               <Sliders className="h-3.5 w-3.5 text-brand-600" />
-              <span>Correct Mapping &amp; Re-convert</span>
+              <span>{isCobol ? 'Edit Method Mapping' : 'Correct Mapping & Re-convert'}</span>
             </Button>
             <Button
               onClick={() => navigate(ROUTES.PROJECTS.EXPORT(projectId))}
@@ -643,6 +670,14 @@ export const ReviewFindingsPage: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+export const ReviewFindingsPage: React.FC = () => {
+  return (
+    <EnsureQueryClient>
+      <ReviewFindingsContent />
+    </EnsureQueryClient>
   );
 };
 

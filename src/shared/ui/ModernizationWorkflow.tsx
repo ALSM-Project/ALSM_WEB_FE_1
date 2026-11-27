@@ -170,9 +170,6 @@ export const ModernizationWorkflow: React.FC<ModernizationWorkflowProps> = ({
           <h2 className="text-base font-bold text-[#0F172A] tracking-tight">
             Modernization Workflow
           </h2>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
-            Deterministic stage progression for legacy assets
-          </p>
         </div>
         <div className="inline-flex items-center space-x-1.5 bg-[#F0F4F8] border border-[#DCE3EC] px-3 py-1 rounded-full text-xs font-semibold text-[#244A70]">
           <span>Stage {currentIndex + 1} of {steps.length}</span>

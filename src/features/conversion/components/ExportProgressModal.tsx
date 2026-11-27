@@ -6,7 +6,6 @@ import {
   Download,
   Terminal,
   ArrowRight,
-  Sparkles,
   FileArchive,
 } from 'lucide-react';
 import { Modal } from '@/shared/ui/Modal';
@@ -23,7 +22,9 @@ export interface ExportProgressModalProps {
   screensCount: number;
   onDownloadAgain: () => void;
   onClose: () => void;
+  onBackToWorkspace?: () => void;
   onRetry: () => void;
+  isCobol?: boolean;
 }
 
 export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
@@ -37,14 +38,23 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
   screensCount,
   onDownloadAgain,
   onClose,
+  onBackToWorkspace,
   onRetry,
+  isCobol = false,
 }) => {
-  const steps = [
-    { label: 'Verify export eligibility & dependencies', threshold: 10 },
-    { label: 'Synthesize React components & TypeScript types', threshold: 35 },
-    { label: 'Package build configuration and tooling', threshold: 65 },
-    { label: 'Compress ZIP bundle and optimize assets', threshold: 90 },
-  ];
+  const steps = isCobol
+    ? [
+        { label: 'Verify export eligibility & dependencies', threshold: 10 },
+        { label: 'Synthesize Java Spring Boot classes & batch jobs', threshold: 35 },
+        { label: 'Package Maven build configuration (pom.xml, wrapper)', threshold: 65 },
+        { label: 'Compress ZIP bundle and optimize project tree', threshold: 90 },
+      ]
+    : [
+        { label: 'Verify export eligibility & dependencies', threshold: 10 },
+        { label: 'Synthesize React components & TypeScript types', threshold: 35 },
+        { label: 'Package build configuration and tooling', threshold: 65 },
+        { label: 'Compress ZIP bundle and optimize assets', threshold: 90 },
+      ];
 
   return (
     <Modal
@@ -54,7 +64,11 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
         error
           ? 'Export Failed'
           : isComplete
-          ? 'Code Package Ready'
+          ? isCobol
+            ? 'Java Package Ready'
+            : 'Code Package Ready'
+          : isCobol
+          ? 'Generating Java Code Package'
           : 'Generating Code Package'
       }
       maxWidth="lg"
@@ -88,7 +102,9 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                   {currentStepLabel}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Packaging {screensCount} screens into standalone project bundle...
+                  {isCobol
+                    ? `Packaging ${screensCount} programs into Spring Boot Maven bundle...`
+                    : `Packaging ${screensCount} screens into standalone project bundle...`}
                 </p>
               </div>
             </div>
@@ -155,7 +171,6 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
               <div>
                 <h3 className="text-sm font-bold text-emerald-950 flex items-center space-x-1.5">
                   <span>Download Started</span>
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
                 </h3>
                 <p className="text-xs text-emerald-800 font-mono mt-0.5">
                   {bundleFilename} (~{bundleSizeKb} KB)
@@ -166,18 +181,33 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
             {/* Next Steps Guide */}
             <div className="space-y-2">
               <div className="flex items-center space-x-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
-                <Terminal className="w-4 h-4 text-slate-500" />
+                <Terminal className="w-3.5 h-3.5 text-slate-500" />
                 <span>Next steps to run your code</span>
               </div>
               <div className="bg-slate-950 text-slate-200 p-3.5 rounded-xl font-mono text-xs space-y-1.5 border border-slate-800 shadow-inner">
-                <p className="text-slate-400"># 1. Unzip the package</p>
-                <p className="text-cyan-400 font-bold">
-                  tar -xf {bundleFilename}
-                </p>
-                <p className="text-slate-400 pt-1"># 2. Install dependencies & run</p>
-                <p className="text-emerald-400 font-bold">
-                  npm install && npm run dev
-                </p>
+                {isCobol ? (
+                  <>
+                    <p className="text-slate-400"># 1. Unzip the package</p>
+                    <p className="text-cyan-400 font-bold">
+                      tar -xf {bundleFilename}
+                    </p>
+                    <p className="text-slate-400 pt-1"># 2. Build & run Spring Boot application</p>
+                    <p className="text-emerald-400 font-bold">
+                      ./mvnw clean install && ./mvnw spring-boot:run
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-slate-400"># 1. Unzip the package</p>
+                    <p className="text-cyan-400 font-bold">
+                      tar -xf {bundleFilename}
+                    </p>
+                    <p className="text-slate-400 pt-1"># 2. Install dependencies & run</p>
+                    <p className="text-emerald-400 font-bold">
+                      npm install && npm run dev
+                    </p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -188,16 +218,16 @@ export const ExportProgressModal: React.FC<ExportProgressModalProps> = ({
                 onClick={onDownloadAgain}
                 className="space-x-1.5 text-xs font-semibold"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5" />
                 <span>Download Again</span>
               </Button>
 
               <Button
-                onClick={onClose}
+                onClick={onBackToWorkspace || onClose}
                 className="space-x-1.5 text-xs font-semibold"
               >
-                <span>Back to Screens</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>{isCobol ? 'Back to Programs' : 'Back to Screens'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>

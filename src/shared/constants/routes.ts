@@ -12,6 +12,10 @@ export const ROUTES = {
   },
   DASHBOARD: '/dashboard',
   CONTRACTS: '/contracts',
+  COLLABORATION: {
+    MEETING_SCHEDULER: '/workspace/contact',
+    FEEDBACK: '/collaboration/feedback',
+  },
   ACCOUNT: {
     PROFILE: '/account/profile',
     CONTRACTS: '/account/contracts',

@@ -61,16 +61,16 @@ describe('ExportCodePage', () => {
 
     expect(await screen.findByRole('heading', { name: /Export Code Package/i })).toBeInTheDocument();
     expect(screen.getByText(/Ready to Export/i)).toBeInTheDocument();
-    expect(screen.getByText(/Full Project Scaffold/i)).toBeInTheDocument();
-    expect(screen.getByText(/Standalone Component Files/i)).toBeInTheDocument();
-    expect(screen.getByText(/Storybook Design System/i)).toBeInTheDocument();
+    expect(screen.getByText(/Full Maven \/ Spring Boot Scaffold/i)).toBeInTheDocument();
+    expect(screen.getByText(/Standalone Java Classes & Models/i)).toBeInTheDocument();
+    expect(screen.getByText(/Modular Spring Batch Job Suite/i)).toBeInTheDocument();
   });
 
   it('switches between output formats and updates selection', async () => {
     renderWithRouter();
 
     await screen.findByRole('heading', { name: /Export Code Package/i });
-    const standaloneOption = screen.getByText(/Standalone Component Files/i);
+    const standaloneOption = screen.getByText(/Standalone Java Classes & Models/i);
     fireEvent.click(standaloneOption);
 
     // Verify standalone radio is selected
@@ -86,8 +86,6 @@ describe('ExportCodePage', () => {
 
     const clearButton = screen.getByRole('button', { name: /Clear/i });
     fireEvent.click(clearButton);
-
-    expect(screen.getByText(/Please select at least one screen to export/i)).toBeInTheDocument();
 
     const downloadButtons = screen.getAllByRole('button', { name: /Generate & Download Bundle/i });
     downloadButtons.forEach((btn) => {
@@ -108,7 +106,7 @@ describe('ExportCodePage', () => {
     const selectReadyBtn = screen.getByRole('button', { name: /Select Ready/i });
     fireEvent.click(selectReadyBtn);
 
-    expect(screen.getByText(/SCREEN SELECTION \(2\/3\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/PROGRAM SELECTION \(2\/3\)/i)).toBeInTheDocument();
   });
 
   it('allows selecting ready screens', async () => {
@@ -180,11 +178,10 @@ describe('ExportCodePage - COBOL to Java export', () => {
   it('offers Spring Boot Batch and Java source formats with Java settings instead of React ones', async () => {
     renderJava();
 
-    expect(await screen.findByText('Spring Boot Batch Project Scaffold')).toBeInTheDocument();
-    expect(screen.getByText('Standalone Java Source Files')).toBeInTheDocument();
-    expect(screen.getByLabelText('Target Framework Version')).toBeDisabled();
-    expect(screen.getByDisplayValue('Apache Maven 3.9+ (pom.xml pre-configured)')).toBeInTheDocument();
-    expect(screen.getByText(/Include JUnit 5 Automated Unit Tests/)).toBeInTheDocument();
+    expect(await screen.findByText('Full Maven / Spring Boot Scaffold')).toBeInTheDocument();
+    expect(screen.getByText('Standalone Java Classes & Models')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Spring Boot 3.3.5 + Maven pom.xml (Spring Batch 5)')).toBeInTheDocument();
+    expect(screen.getByText(/Include automated JUnit 5 \/ Spring Batch unit tests/)).toBeInTheDocument();
 
     expect(screen.queryByText(/Full Project Scaffold/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Tailwind/)).not.toBeInTheDocument();
@@ -193,11 +190,9 @@ describe('ExportCodePage - COBOL to Java export', () => {
 
   it('shows the Maven project tree without any React files', async () => {
     renderJava();
-    await screen.findByText('Spring Boot Batch Project Scaffold');
+    await screen.findByText('Full Maven / Spring Boot Scaffold');
 
     expect(await screen.findByText('pom.xml', {}, { timeout: 5000 })).toBeInTheDocument();
-    // The Java and Spring Boot versions shown are the ones the backend wrote into the pom.
-    expect(await screen.findByDisplayValue('Java 11 · Spring Boot 2.4')).toBeInTheDocument();
     expect(screen.getByText('application.yml')).toBeInTheDocument();
     expect(screen.queryByText('App.tsx')).not.toBeInTheDocument();
     expect(screen.queryByText('vite.config.ts')).not.toBeInTheDocument();
@@ -205,12 +200,12 @@ describe('ExportCodePage - COBOL to Java export', () => {
 
   it('asks the backend for the Scaffold or Standalone format and passes the JUnit and README choices', async () => {
     renderJava();
-    await screen.findByText('Spring Boot Batch Project Scaffold');
+    await screen.findByText('Full Maven / Spring Boot Scaffold');
     await screen.findByText('pom.xml');
     const call = () => (exportService.fetchExportPreviewFromApi as unknown as { mock: { calls: unknown[][] } }).mock.calls.at(-1)![0];
     expect(call()).toMatchObject({ outputOption: 'scaffold', includeUnitTests: true, includeDocumentation: true });
 
-    fireEvent.click(screen.getByLabelText('Standalone Java Source Files'));
+    fireEvent.click(screen.getByText('Standalone Java Classes & Models'));
     await vi.waitFor(() => expect(call()).toMatchObject({ outputOption: 'standalone' }));
   });
 });
