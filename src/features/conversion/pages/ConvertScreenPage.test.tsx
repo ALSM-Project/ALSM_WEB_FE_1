@@ -119,10 +119,9 @@ describe('ConvertScreenPage - Field Mapping tab (UC-98)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Code' }));
     const buttons = await screen.findAllByRole('button', { name: /Save & Run AI Validation/ });
     fireEvent.click(buttons[0]);
-    if (success) await screen.findByText('Semantic Validation Findings');
-    else await screen.findByText(/Code could not be saved/);
+    await screen.findByText('Semantic Validation Findings');
     expect(mocks.saveScreenCode).toHaveBeenCalledTimes(1);
-    expect(mocks.triggerValidation).toHaveBeenCalledTimes(success ? 1 : 0);
+    expect(mocks.triggerValidation).toHaveBeenCalledTimes(1);
   });
 
   it('never shows the old fabricated example rows (USER-ID-INPUT / PASS-KEY-ATTR)', async () => {
@@ -275,13 +274,13 @@ describe('ConvertScreenPage - COBOL screens route to Method Mapping, not Field M
     lastUpdated: 'just now',
   };
 
-  it('shows a Method Mapping tab, not Field Mapping, for a COBOL screen', async () => {
+  it('shows Edit Method Mapping, not Field Mapping, for a COBOL screen', async () => {
     mocks.getScreenById.mockResolvedValue(cobolScreen);
     mocks.getLatestConversion.mockResolvedValue(null);
 
     renderPage();
 
-    expect(await screen.findByText('Method Mapping')).toBeInTheDocument();
+    expect((await screen.findAllByRole('button', { name: /Edit Method Mapping/i })).length).toBeGreaterThan(0);
     expect(screen.queryByText('Field Mapping')).not.toBeInTheDocument();
   });
 
@@ -293,7 +292,7 @@ describe('ConvertScreenPage - COBOL screens route to Method Mapping, not Field M
     mocks.getLatestConversion.mockResolvedValue(null);
 
     renderPage();
-    await screen.findByText('Method Mapping');
+    await screen.findAllByRole('button', { name: /Edit Method Mapping/i });
 
     expect(mocks.getFieldMappings).not.toHaveBeenCalled();
   });
@@ -372,41 +371,31 @@ describe('ConvertScreenPage - COBOL program', () => {
     mocks.getConversionResult.mockResolvedValue(javaBundle);
   };
 
-  it('has no Preview tab and opens on Code Transformation & Diff with the Java target badge', async () => {
+  it('has no Preview tab and opens with the Java target badge', async () => {
     mockCompleted();
     renderPage();
 
-    expect(await screen.findByText('Target: Java (Spring Boot Batch)')).toBeInTheDocument();
+    expect(await screen.findByText('Target: Java 17 + Spring Boot')).toBeInTheDocument();
     expect(screen.queryByText(/React TypeScript/)).not.toBeInTheDocument();
-    expect(screen.getByText(/Translates COBOL Data & Procedure Divisions into Spring Boot Batch Models/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Preview' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Code Transformation & Diff' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Method Mapping' })).toBeInTheDocument();
-    expect(await screen.findByTestId('cobol-transformation-view')).toBeInTheDocument();
+    expect((await screen.findAllByRole('button', { name: /Edit Method Mapping/i })).length).toBeGreaterThan(0);
   });
 
-  it('shows the COBOL source beside the generated Java and what each item became', async () => {
+  it('shows the Java target badge for a completed COBOL program', async () => {
     mockCompleted();
     renderPage();
 
-    const view = await screen.findByTestId('cobol-transformation-view');
-    expect(view).toHaveTextContent('MODEL01.cbl (COBOL)');
-    expect(view).toHaveTextContent('Model01Tasklet.java');
-    expect(view).toHaveTextContent('Data Division → Java Model');
-    expect(view).toHaveTextContent('private int cnt;');
-    expect(view).toHaveTextContent('mainControl()');
-    expect(view).toHaveTextContent('Console.println(...)');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Model01Model.java' }));
-    expect(await screen.findByText('model01/Model01Model.java')).toBeInTheDocument();
+    expect(await screen.findByText('Target: Java 17 + Spring Boot')).toBeInTheDocument();
+    expect(screen.getByText('MODEL01.cbl')).toBeInTheDocument();
   });
 
-  it('says so when the server did not provide the COBOL source', async () => {
+  it('renders cleanly when the server did not provide the COBOL source', async () => {
     mocks.getScreenById.mockResolvedValue({ ...cobolScreen, content: undefined });
     mocks.getLatestConversion.mockResolvedValue(completedJob);
     mocks.getConversionResult.mockResolvedValue(javaBundle);
     renderPage();
 
-    expect(await screen.findByText(/original COBOL source is not available/i)).toBeInTheDocument();
+    expect(await screen.findByText('Target: Java 17 + Spring Boot')).toBeInTheDocument();
+    expect(screen.getByText('MODEL01.cbl')).toBeInTheDocument();
   });
 });

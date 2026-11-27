@@ -114,8 +114,11 @@ export function getBreadcrumbsFromRoute(
     return [{ label: 'Resources' }, { label: 'Modernization Guide' }];
   }
 
+  if (cleanPath.includes('/collaboration/feedback')) {
+    return [{ label: 'Collaboration' }, { label: 'Feedback & Reviews' }];
+  }
   if (cleanPath.includes('/contact')) {
-    return [{ label: 'Resources' }, { label: 'Contact & Support' }];
+    return [{ label: 'Collaboration' }, { label: 'Meeting Scheduler' }];
   }
 
   // Handle Enterprise Contracts routes & detail view (CONTRACT & BILLING)

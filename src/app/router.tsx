@@ -38,7 +38,8 @@ import {
   ReviewFindingsPage,
   InitialQualityReviewPage,
 } from '@/features/conversion';
-import { WorkspaceContactPage } from '@/features/contact';
+import { MeetingSchedulerPage } from '@/features/meetings/pages/MeetingSchedulerPage';
+import { FeedbackPage } from '@/features/feedback/pages/FeedbackPage';
 import { DiagnosticsPage } from '@/features/diagnostics';
 import { Web1WorkspacePreview } from '@/features/preview/Web1WorkspacePreview';
 
@@ -106,7 +107,8 @@ export const router = createBrowserRouter([
           { path: '/workspace-preview', element: <Web1WorkspacePreview /> },
           { path: '/workspace/docs', element: <WorkspaceDocsPage /> },
 
-          { path: '/workspace/contact', element: <WorkspaceContactPage /> },
+          { path: '/workspace/contact', element: <MeetingSchedulerPage /> },
+          { path: '/collaboration/feedback', element: <FeedbackPage /> },
           { path: '/projects', element: <ProjectsListPage /> },
           { path: '/projects/:projectId', element: <ProjectOverviewPage /> },
 

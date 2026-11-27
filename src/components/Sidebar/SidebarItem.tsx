@@ -89,6 +89,8 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
     return node.path || '#';
   };
 
+  const isSupportChatTrigger = item.path === '#support-chat' || item.id === 'web1_support_center';
+
   return (
     <div className="w-full">
       {hasChildren ? (
@@ -129,6 +131,21 @@ export const SidebarItem: React.FC<SidebarItemProps> = ({
             </div>
           )}
         </div>
+      ) : isSupportChatTrigger ? (
+        <button
+          type="button"
+          onClick={() => {
+            onTrackUsage && onTrackUsage(item.id);
+            window.dispatchEvent(new CustomEvent('alsm:open-support-chat'));
+          }}
+          className={`w-full h-10 flex items-center text-sm font-medium rounded-lg transition-colors cursor-pointer ${paddingClass} text-[#475569] hover:bg-[#F8FAFC] hover:text-[#0F172A]`}
+          title={isCollapsed ? item.label : undefined}
+        >
+          <div className="flex items-center space-x-3 truncate min-w-0">
+            <DynamicIcon name={item.icon} className="w-[18px] h-[18px] shrink-0 text-[#64748B]" />
+            {!isCollapsed && <span className="truncate">{item.label}</span>}
+          </div>
+        </button>
       ) : (
         <NavLink
           to={getDynamicPath(item)}

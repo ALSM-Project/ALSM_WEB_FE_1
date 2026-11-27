@@ -1,6 +1,12 @@
 export type ExportOutputOption = 'scaffold' | 'standalone' | 'storybook';
 
-export type FrameworkTarget = 'react-19' | 'react-18';
+export type FrameworkTarget =
+  | 'react-19'
+  | 'react-18'
+  | 'java-17'
+  | 'java-21'
+  | 'java-11'
+  | 'java-8';
 
 export type StylingOption = 'tailwind' | 'css-modules';
 
@@ -9,7 +15,7 @@ export interface ExportFileItem {
   name: string;
   size: string;
   type: 'file' | 'dir';
-  language?: 'typescript' | 'javascript' | 'json' | 'markdown' | 'html' | 'css' | 'java' | 'xml' | 'yaml';
+  language?: 'typescript' | 'javascript' | 'json' | 'markdown' | 'html' | 'css' | 'java';
   content?: string;
   children?: ExportFileItem[];
 }
@@ -40,12 +46,3 @@ export interface BundleMetrics {
   selectedScreensCount: number;
 }
 
-
-/** Output formats of a Java (COBOL to Java) export. Used by the page only - the API keeps its own formats. */
-export type JavaExportFormat = 'spring-boot-batch' | 'java-sources';
-
-export interface JavaExportOptions {
-  format: JavaExportFormat;
-  includeJUnitTests: boolean;
-  includeReadme: boolean;
-}

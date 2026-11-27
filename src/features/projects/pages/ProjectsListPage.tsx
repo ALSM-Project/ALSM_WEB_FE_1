@@ -59,7 +59,6 @@ export const ProjectsListPage: React.FC = () => {
       {/* Reusable Standard PageHeader */}
       <PageHeader
         title="Modernization Projects"
-        subtitle="Manage your legacy BMS/DSPF and COBOL modernization workspace projects."
         actions={
           <Button
             onClick={() => setIsCreateModalOpen(true)}

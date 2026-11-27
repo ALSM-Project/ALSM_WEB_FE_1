@@ -100,7 +100,7 @@ function useSafeAuth() {
 
 export const ModernizationDashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useSafeAuth();
+  useSafeAuth();
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -159,13 +159,6 @@ export const ModernizationDashboardPage: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
-
-  // Organization info
-  const organizationName =
-    user?.organizationName ||
-    user?.companyName ||
-    contracts[0]?.customer?.legalName ||
-    'Customer Organization';
 
   const latestContract = contracts[0] || null;
 
@@ -401,18 +394,10 @@ export const ModernizationDashboardPage: React.FC = () => {
       <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0D9488] bg-teal-50 border border-teal-200 px-2.5 py-0.5 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
-              <span>{organizationName}</span>
-            </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0F172A]">
             Workspace Dashboard
           </h1>
-          <p className="text-xs sm:text-sm text-[#475569]">
-            Monitor your modernization projects, conversion progress, and service usage.
-          </p>
-
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-center">

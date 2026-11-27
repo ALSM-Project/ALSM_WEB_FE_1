@@ -181,9 +181,6 @@ export const InvoicesPage: React.FC = () => {
             <FileText className="w-7 h-7 text-[#244A70]" />
             Invoices & Billing History
           </h1>
-          <p className="text-sm text-[#6B778C] mt-1">
-            View, audit, and download official enterprise billing receipts and itemized statements.
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button

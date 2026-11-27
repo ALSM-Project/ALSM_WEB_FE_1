@@ -4,12 +4,14 @@ import { MemoryRouter } from 'react-router-dom';
 import { LoginPage } from './LoginPage';
 
 const mockLogin = vi.fn();
+const mockVerifyMfaLogin = vi.fn();
 const mockLoginWithGoogle = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock('@/app/providers', () => ({
   useAuth: () => ({
     login: mockLogin,
+    verifyMfaLogin: mockVerifyMfaLogin,
     loginWithGoogle: mockLoginWithGoogle,
   }),
   isUserStaffOrAdmin: () => false,
@@ -125,6 +127,47 @@ describe('LoginPage - Remember Me feature', () => {
       expect(localStorage.getItem('alsm_remembered_email')).toBeNull();
       expect(localStorage.getItem('alsm_remembered_password')).toBeNull();
       expect(localStorage.getItem('alsm_remember_me_flag')).toBe('false');
+    });
+  });
+
+  it('prompts for 2FA code when login returns requiresTwoFactor and completes login after verification', async () => {
+    mockLogin.mockResolvedValueOnce({
+      requiresTwoFactor: true,
+      mfaToken: 'mfa-challenge-token',
+    });
+    mockVerifyMfaLogin.mockResolvedValueOnce({
+      id: '1',
+      email: 'mfa@example.com',
+      fullName: 'MFA User',
+    });
+
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>
+    );
+
+    fireEvent.change(screen.getByPlaceholderText(/Enter your work email/i), {
+      target: { value: 'mfa@example.com' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Enter your password/i), {
+      target: { value: 'password123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^Sign In$/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Two-Factor Authentication/i)).toBeTruthy();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByPlaceholderText(/6-digit code or 10-character backup code/i), {
+      target: { value: '123456' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Verify & Sign In/i }));
+
+    await waitFor(() => {
+      expect(mockVerifyMfaLogin).toHaveBeenCalledWith('mfa-challenge-token', '123456');
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
     });
   });
 });

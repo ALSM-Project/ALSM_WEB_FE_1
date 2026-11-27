@@ -82,11 +82,6 @@ export const BulkConvertPage: React.FC = () => {
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
           {isCobol ? 'Bulk Convert Programs' : 'Bulk Convert Screens'}
         </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          {isCobol
-            ? 'Compile and modernize multiple COBOL programs into Java Spring Boot components simultaneously.'
-            : 'Convert multiple legacy screens to modern frameworks simultaneously.'}
-        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

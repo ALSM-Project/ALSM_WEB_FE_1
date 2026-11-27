@@ -54,6 +54,10 @@ export class AccountService {
     await apiClient.delete<void>(`/auth/sessions/${sessionId}`);
   }
 
+  async revokeAllOtherSessions(): Promise<void> {
+    await apiClient.post<void>('/auth/sessions/revoke-others');
+  }
+
 }
 
 export const accountService = new AccountService();

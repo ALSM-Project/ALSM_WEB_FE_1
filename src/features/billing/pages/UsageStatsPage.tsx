@@ -34,15 +34,6 @@ function formatQuotaValue(value: number): string {
   return value.toLocaleString();
 }
 
-function getPlanBadgeClass(tier: string): string {
-  switch (tier?.toUpperCase()) {
-    case 'PROFESSIONAL': return 'bg-blue-100 text-blue-800 border border-blue-200';
-    case 'ENTERPRISE': return 'bg-purple-100 text-purple-800 border border-purple-200';
-    case 'TRIAL': return 'bg-amber-100 text-amber-800 border border-amber-200';
-    default: return 'bg-slate-100 text-slate-700 border border-slate-200';
-  }
-}
-
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 interface QuotaCardProps {
@@ -203,7 +194,6 @@ export const UsageStatsPage: React.FC = () => {
     plan.tier?.toUpperCase() === 'TRIAL' ||
     plan.name?.toLowerCase().includes('trial');
   const isEnterprise = !isTrial && plan.tier?.toUpperCase() === 'ENTERPRISE';
-  const displayTier = isTrial ? 'TRIAL' : plan.tier?.toUpperCase();
   const displayName = isTrial && !plan.name?.toLowerCase().includes('trial') ? 'Trial' : plan.name;
 
   const programs = data.programs || {
@@ -245,17 +235,8 @@ export const UsageStatsPage: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-bold text-slate-900">{displayName}</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getPlanBadgeClass(displayTier)}`}>
-                {displayTier}
-              </span>
+
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
-              {isEnterprise
-                ? (screens.max === -1 ? 'Unlimited resources — Enterprise plan' : 'Contracted enterprise quota')
-                : isTrial
-                ? 'Active trial quota configured by administrator'
-                : 'Current active subscription plan'}
-            </p>
           </div>
         </div>
         {!isEnterprise && (

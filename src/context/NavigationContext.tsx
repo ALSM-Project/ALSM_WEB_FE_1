@@ -89,6 +89,39 @@ export const STATIC_SERVICE_ITEMS: MenuItem[] = [
   },
 ];
 
+export const STATIC_COLLABORATION_ITEMS: MenuItem[] = [
+  {
+    id: 'web1_meetings',
+    label: 'Meeting Scheduler',
+    icon: 'Calendar',
+    path: '/workspace/contact',
+    parentId: 'web1_group_collaboration',
+    isVisible: true,
+    order: 1,
+    category: 'COLLABORATION',
+  },
+  {
+    id: 'web1_support_center',
+    label: 'Support Center',
+    icon: 'MessagesSquare',
+    path: '#support-chat',
+    parentId: 'web1_group_collaboration',
+    isVisible: true,
+    order: 2,
+    category: 'COLLABORATION',
+  },
+  {
+    id: 'web1_feedback_reviews',
+    label: 'Feedback & Reviews',
+    icon: 'Star',
+    path: '/collaboration/feedback',
+    parentId: 'web1_group_collaboration',
+    isVisible: true,
+    order: 3,
+    category: 'COLLABORATION',
+  },
+];
+
 /**
  * Authoritative static Account navigation items.
  */
@@ -256,6 +289,36 @@ export function mergeDynamicAndStaticNavigation(dynamicItems: MenuItem[]): MenuI
         (s.path && dynamicPaths.has(s.path.toLowerCase()));
       if (!hasDuplicate) {
         merged.push({ ...s });
+      }
+    }
+  }
+
+  // 5. Ensure Collaboration entries (Meeting Scheduler, Support Center, Feedback & Reviews)
+  const collabGroup = merged.find(
+    (item) =>
+      item.id === 'web1_group_collaboration' ||
+      item.category === 'COLLABORATION' ||
+      item.label.toUpperCase() === 'COLLABORATION',
+  );
+
+  if (collabGroup && Array.isArray(collabGroup.children)) {
+    for (const collabItem of STATIC_COLLABORATION_ITEMS) {
+      const existsInGroup = collabGroup.children.some(
+        (c) =>
+          c.id.toLowerCase() === collabItem.id.toLowerCase() ||
+          (c.path && collabItem.path && c.path.toLowerCase() === collabItem.path.toLowerCase()),
+      );
+      if (!existsInGroup && !dynamicIds.has(collabItem.id.toLowerCase())) {
+        collabGroup.children = [...collabGroup.children, { ...collabItem, parentId: collabGroup.id }];
+      }
+    }
+  } else if (!collabGroup) {
+    for (const collabItem of STATIC_COLLABORATION_ITEMS) {
+      const hasDuplicate =
+        dynamicIds.has(collabItem.id.toLowerCase()) ||
+        (collabItem.path && dynamicPaths.has(collabItem.path.toLowerCase()));
+      if (!hasDuplicate) {
+        merged.push({ ...collabItem });
       }
     }
   }

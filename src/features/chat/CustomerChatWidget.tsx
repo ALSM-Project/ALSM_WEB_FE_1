@@ -2,19 +2,27 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   Minus,
+  Maximize2,
   Send,
   Headphones,
   Loader2,
   Bot,
   UserCheck,
   CheckCheck,
-  ShieldCheck,
-  Clock,
-  Sparkles,
   GripVertical,
+  Paperclip,
+  FileText,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { useAuth } from '@/app/providers';
 import { apiClient } from '@/services/api/apiClient';
+import {
+  formatFileSize,
+  resolveAttachmentUrl,
+  uploadSupportAttachment,
+  type SupportAttachmentItem,
+} from './supportAttachment.service';
 
 export interface ChatMessageItem {
   id: string;
@@ -25,6 +33,7 @@ export interface ChatMessageItem {
   senderRole: 'CUSTOMER' | 'SALES_REP' | 'STAFF' | 'SYSTEM';
   content: string;
   isInternal?: boolean;
+  attachments?: SupportAttachmentItem[];
   createdAt: string;
 }
 
@@ -38,28 +47,35 @@ export interface ChatConversationItem {
   companyName?: string;
   lastMessage?: string;
   lastMessageAt?: string;
+  customerUnreadCount?: number;
 }
 
-const QUICK_STARTER_CHIPS = [
-  { label: 'Screen conversion quota', text: 'I would like to inquire about expanding our screen conversion quota.' },
-  { label: 'Custom BMS/COBOL parser', text: 'We have proprietary BMS/COBOL macros requiring custom parser support.' },
-  { label: 'Enterprise SLA & deployment', text: 'Can you provide details on dedicated on-premise SLA options?' },
-];
+const CONVERSATION_STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  OPEN: { label: 'Open', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+  IN_PROGRESS: { label: 'In Progress', className: 'bg-amber-50 text-amber-800 border-amber-200' },
+  WAITING_ON_CUSTOMER: { label: 'Waiting on You', className: 'bg-indigo-50 text-indigo-700 border-indigo-200' },
+  CLOSED: { label: 'Closed', className: 'bg-slate-100 text-slate-700 border-slate-200' },
+};
 
 export const CustomerChatWidget: React.FC = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [conversation, setConversation] = useState<ChatConversationItem | null>(null);
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [inputText, setInputText] = useState('');
+  const [pendingAttachments, setPendingAttachments] = useState<SupportAttachmentItem[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLiveConnected, setIsLiveConnected] = useState(false);
 
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // --- Draggable Floating Action Button State ---
   const [btnPos, setBtnPos] = useState<{ x: number; y: number } | null>(null);
@@ -82,6 +98,64 @@ export const CustomerChatWidget: React.FC = () => {
     initY: 0,
     moved: false,
   });
+
+  const markConversationRead = useCallback(async (convId: string) => {
+    setUnreadCount(0);
+    try {
+      await apiClient.post(`/crm/conversations/${convId}/read`, {});
+    } catch {
+      // Non-blocking read sync
+    }
+  }, []);
+
+  // Initialize or fetch the customer's active conversation
+  const loadConversationAndMessages = useCallback(
+    async (options?: { markRead?: boolean }) => {
+      if (!user?.email) return;
+      try {
+        setLoading(true);
+        setErrorMsg(null);
+        const conv = await apiClient.get<ChatConversationItem>('/crm/conversations/my/active');
+        setConversation(conv);
+
+        const msgs = await apiClient.get<ChatMessageItem[]>(`/crm/conversations/${conv.id}/messages`);
+        setMessages(msgs || []);
+
+        if (options?.markRead) {
+          await markConversationRead(conv.id);
+        } else if (typeof conv.customerUnreadCount === 'number') {
+          setUnreadCount(conv.customerUnreadCount);
+        }
+      } catch (err) {
+        console.error('Failed to load active customer conversation:', err);
+        setErrorMsg('Unable to load support conversation. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user?.email, markConversationRead],
+  );
+
+  // Fetch initial unread status on mount when authenticated (skip in test mode unless opened)
+  useEffect(() => {
+    if (!user?.email) return;
+    if ((import.meta as any).env?.MODE === 'test') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const conv = await apiClient.get<ChatConversationItem>('/crm/conversations/my/active');
+        if (!cancelled && conv) {
+          setConversation(conv);
+          setUnreadCount(conv.customerUnreadCount ?? 0);
+        }
+      } catch {
+        // Ignore silent background check error
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.email]);
 
   // Draggable Floating Button Handlers (Mouse & Touch)
   const handleBtnMouseDown = (e: React.MouseEvent) => {
@@ -159,14 +233,20 @@ export const CustomerChatWidget: React.FC = () => {
     window.addEventListener('touchend', onTouchEnd);
   };
 
+  const openChatWidget = useCallback(() => {
+    setIsOpen(true);
+    setIsMinimized(false);
+    setUnreadCount(0);
+    void loadConversationAndMessages({ markRead: true });
+    setTimeout(() => textareaRef.current?.focus(), 150);
+  }, [loadConversationAndMessages]);
+
   const handleBtnClick = () => {
     if (btnDragRef.current.moved) {
       btnDragRef.current.moved = false;
       return;
     }
-    setIsOpen(true);
-    setUnreadCount(0);
-    loadConversationAndMessages();
+    openChatWidget();
   };
 
   // Draggable Modal Header Handlers (Desktop)
@@ -212,34 +292,14 @@ export const CustomerChatWidget: React.FC = () => {
     window.addEventListener('mouseup', onMouseUp);
   };
 
-  // Initialize or fetch the customer's active conversation
-  const loadConversationAndMessages = useCallback(async () => {
-    if (!user?.email) return;
-    try {
-      setLoading(true);
-      const conv = await apiClient.get<ChatConversationItem>('/crm/conversations/my/active');
-      setConversation(conv);
-
-      const msgs = await apiClient.get<ChatMessageItem[]>(`/crm/conversations/${conv.id}/messages`);
-      setMessages(msgs || []);
-    } catch (err) {
-      console.error('Failed to load active customer conversation:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.email]);
-
-  // Support global open request (e.g., from Contact & Support page CTA)
+  // Support global open request (from Collaboration -> Support Center sidebar or Contact page CTA)
   useEffect(() => {
     const handleOpenChat = () => {
-      setIsOpen(true);
-      setUnreadCount(0);
-      loadConversationAndMessages();
-      setTimeout(() => textareaRef.current?.focus(), 150);
+      openChatWidget();
     };
     window.addEventListener('alsm:open-support-chat', handleOpenChat);
     return () => window.removeEventListener('alsm:open-support-chat', handleOpenChat);
-  }, [loadConversationAndMessages]);
+  }, [openChatWidget]);
 
   // Connect WebSocket when conversation is loaded
   useEffect(() => {
@@ -253,7 +313,7 @@ export const CustomerChatWidget: React.FC = () => {
     const wsUrl = `${protocol}//${host}:3000/ws/crm-chat`;
 
     let ws: WebSocket | null = null;
-    let reconnectTimeout: any = null;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
     let isDisposed = false;
 
     const connect = () => {
@@ -272,7 +332,7 @@ export const CustomerChatWidget: React.FC = () => {
               userEmail: user?.email,
               userName: user?.fullName || user?.email?.split('@')[0],
               conversationId: conversation.id,
-            })
+            }),
           );
         };
 
@@ -287,10 +347,14 @@ export const CustomerChatWidget: React.FC = () => {
                   return [...prev, msg];
                 });
 
-                if (!isOpen) {
+                if ((!isOpen || isMinimized) && msg.senderRole !== 'CUSTOMER') {
                   setUnreadCount((c) => c + 1);
+                } else if (isOpen && !isMinimized && msg.senderRole !== 'CUSTOMER') {
+                  void markConversationRead(conversation.id);
                 }
               }
+            } else if (data.type === 'CONVERSATION_UPDATED' && data.conversation?.id === conversation.id) {
+              setConversation((prev) => (prev ? { ...prev, status: data.conversation.status } : data.conversation));
             }
           } catch (e) {
             console.error('Failed to parse incoming WS message:', e);
@@ -321,25 +385,14 @@ export const CustomerChatWidget: React.FC = () => {
       if (ws) ws.close();
       wsRef.current = null;
     };
-  }, [conversation?.id, user?.id, user?.email, user?.fullName, isOpen]);
-
-  // When widget is opened, fetch initial conversation if not yet loaded
-  useEffect(() => {
-    if (isOpen && !conversation) {
-      loadConversationAndMessages();
-    }
-    if (isOpen) {
-      setUnreadCount(0);
-      setTimeout(() => textareaRef.current?.focus(), 150);
-    }
-  }, [isOpen, conversation, loadConversationAndMessages]);
+  }, [conversation?.id, user?.id, user?.email, user?.fullName, isOpen, isMinimized, markConversationRead]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
-    if (isOpen && typeof messagesEndRef.current?.scrollIntoView === 'function') {
+    if (isOpen && !isMinimized && typeof messagesEndRef.current?.scrollIntoView === 'function') {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, sending, isOpen]);
+  }, [messages, sending, isOpen, isMinimized]);
 
   // Auto-resize textarea according to content
   useEffect(() => {
@@ -355,44 +408,72 @@ export const CustomerChatWidget: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         setIsOpen(false);
+        setIsMinimized(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const handleSendMessage = async (textToSend?: string) => {
-    const content = (textToSend || inputText).trim();
-    if (!content || sending) return;
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
+    try {
+      setUploading(true);
+      setErrorMsg(null);
+      const uploaded = await uploadSupportAttachment(file);
+      setPendingAttachments((prev) => [...prev, uploaded]);
+    } catch {
+      setErrorMsg('Failed to upload attachment. Check file type and size (max 10 MB).');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleSendMessage = async (textToSend?: string) => {
+    const trimmed = (textToSend ?? inputText).trim();
+    if ((!trimmed && pendingAttachments.length === 0) || sending || uploading) return;
+
+    const content = trimmed || `Sent ${pendingAttachments.length} attachment${pendingAttachments.length === 1 ? '' : 's'}`;
+    const attachmentsToSend = [...pendingAttachments];
     let activeConv = conversation;
+
     try {
       setSending(true);
-      setInputText('');
+      setErrorMsg(null);
+      if (!textToSend) setInputText('');
+      setPendingAttachments([]);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
 
-      // If active conversation doesn't exist yet, get or create one
       if (!activeConv) {
         activeConv = await apiClient.get<ChatConversationItem>('/crm/conversations/my/active');
         setConversation(activeConv);
       }
 
-      // Send to backend via HTTP post (which also broadcasts to FE2 via WebSocket)
       const posted = await apiClient.post<ChatMessageItem>(
         `/crm/conversations/${activeConv.id}/messages`,
-        { content, isInternal: false }
+        {
+          content,
+          isInternal: false,
+          attachments: attachmentsToSend,
+        },
       );
 
-      // Optimistically add to state
       setMessages((prev) => {
         if (prev.some((m) => m.id === posted.id)) return prev;
         return [...prev, posted];
       });
     } catch (err) {
       console.error('Failed to send customer chat message:', err);
-      setInputText(content);
+      setErrorMsg('Failed to send your message. Please try again.');
+      if (!textToSend) setInputText(trimmed);
+      setPendingAttachments(attachmentsToSend);
     } finally {
       setSending(false);
       setTimeout(() => textareaRef.current?.focus(), 50);
@@ -402,7 +483,7 @@ export const CustomerChatWidget: React.FC = () => {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      void handleSendMessage();
     }
   };
 
@@ -444,6 +525,8 @@ export const CustomerChatWidget: React.FC = () => {
 
   if (!user) return null;
 
+  const statusInfo = CONVERSATION_STATUS_LABELS[conversation?.status || 'OPEN'] || CONVERSATION_STATUS_LABELS.OPEN;
+
   return (
     <>
       {/* Floating Chat Trigger Button — Circular Draggable Floating Action Button (FAB) */}
@@ -466,23 +549,17 @@ export const CustomerChatWidget: React.FC = () => {
               isBtnDragging ? 'cursor-grabbing scale-105 ring-2 ring-white/50' : 'cursor-grab hover:scale-105'
             } transition-transform duration-150 border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#244A70]/50 focus-visible:ring-offset-2 select-none touch-none`}
           >
-            {/* Tooltip on hover */}
             <span className="hidden sm:inline-flex items-center absolute right-full mr-3 px-3 py-1.5 bg-slate-900/90 backdrop-blur-xs text-white text-xs font-semibold rounded-lg shadow-md pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap">
               Chat with Team
             </span>
 
-            {/* Icon */}
             <Headphones className="w-6 h-6 transition-transform group-hover:scale-110 pointer-events-none" />
 
-            {/* Active Status Pulse Badge */}
-            <span className="absolute top-0.5 right-0.5 flex h-3 w-3 pointer-events-none">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#15803D] border-2 border-[#244A70]" />
-            </span>
-
-            {/* Unread Counter Badge */}
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -left-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[11px] font-bold bg-[#B91C1C] text-white rounded-full shadow-md border-2 border-white animate-bounce pointer-events-none">
+              <span
+                aria-label={`${unreadCount} unread message${unreadCount === 1 ? '' : 's'}`}
+                className="absolute -top-1 -left-1 inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[11px] font-bold bg-[#B91C1C] text-white rounded-full shadow-md border-2 border-white pointer-events-none"
+              >
                 {unreadCount}
               </span>
             )}
@@ -490,8 +567,49 @@ export const CustomerChatWidget: React.FC = () => {
         )}
       </div>
 
-      {/* Floating Chat Window Modal — Inherited from ALSM Web2 Admin Design System */}
-      {isOpen && (
+      {/* Minimized Compact Bar */}
+      {isOpen && isMinimized && (
+        <div
+          role="region"
+          aria-label="Minimized support chat"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl bg-[#14263F] text-white px-4 py-2.5 shadow-xl border border-[#203954]"
+        >
+          <Headphones className="w-4 h-4 shrink-0" />
+          <span className="text-xs font-bold whitespace-nowrap">ALSM Team Support</span>
+          {unreadCount > 0 && (
+            <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[11px] font-bold bg-[#B91C1C] text-white rounded-full">
+              {unreadCount}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              setIsMinimized(false);
+              if (conversation?.id) void markConversationRead(conversation.id);
+            }}
+            aria-label="Expand support chat"
+            title="Expand chat"
+            className="p-1 text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors cursor-pointer"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsOpen(false);
+              setIsMinimized(false);
+            }}
+            aria-label="Close chat"
+            title="Close chat"
+            className="p-1 text-slate-300 hover:text-white hover:bg-white/10 rounded transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Floating Chat Window Modal */}
+      {isOpen && !isMinimized && (
         <aside
           role="dialog"
           aria-modal="true"
@@ -505,7 +623,7 @@ export const CustomerChatWidget: React.FC = () => {
             !modalPos ? 'sm:bottom-6 sm:right-6' : ''
           } z-50 w-full h-full sm:w-[420px] sm:h-[580px] sm:max-h-[calc(100vh-3rem)] bg-white sm:rounded-xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden animate-fade-in font-sans`}
         >
-          {/* Header — Deep Navy Brand Surface (#14263F) with Accessible Contrast & Drag Handle */}
+          {/* Header */}
           <div
             onMouseDown={handleModalHeaderMouseDown}
             className={`bg-[#14263F] text-white px-4 py-3 flex items-center justify-between border-b border-[#203954] shrink-0 select-none ${
@@ -515,28 +633,17 @@ export const CustomerChatWidget: React.FC = () => {
           >
             <div className="flex items-center gap-2.5 min-w-0">
               <GripVertical className="w-4 h-4 text-slate-400 hidden sm:block shrink-0" />
-              <div className="relative">
-                <div className="w-8 h-8 rounded-lg bg-[#203954] flex items-center justify-center text-white shrink-0">
-                  <Headphones className="w-4 h-4" />
-                </div>
-                <span
-                  className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#14263F] ${
-                    isLiveConnected ? 'bg-[#15803D]' : 'bg-[#B45309]'
-                  }`}
-                  aria-hidden="true"
-                />
+              <div className="w-8 h-8 rounded-lg bg-[#203954] flex items-center justify-center text-white shrink-0">
+                <Headphones className="w-4 h-4" />
               </div>
 
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-xs font-bold text-white tracking-tight truncate">ALSM Team Support</h3>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#203954] text-blue-100 border border-blue-400/30 shrink-0">
-                    Enterprise
-                  </span>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-blue-100 mt-0.5">
+                <div className="flex items-center gap-1.5 text-[11px] text-blue-100 mt-0.5">
                   <span className="truncate">
-                    {isLiveConnected ? 'Online • Direct Support' : 'Connecting to desk...'}
+                    {isLiveConnected ? 'Live updates connected' : 'Support conversation'}
                   </span>
                 </div>
               </div>
@@ -545,7 +652,7 @@ export const CustomerChatWidget: React.FC = () => {
             <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => setIsMinimized(true)}
                 className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
                 title="Minimize chat"
                 aria-label="Minimize chat"
@@ -554,7 +661,10 @@ export const CustomerChatWidget: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  setIsMinimized(false);
+                }}
                 className="p-1.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-400"
                 title="Close chat"
                 aria-label="Close chat"
@@ -564,19 +674,50 @@ export const CustomerChatWidget: React.FC = () => {
             </div>
           </div>
 
-          {/* Subheader / Enterprise SLA Desk Banner — Single Surface Clean Layout */}
+          {/* Subheader: Conversation Status */}
           <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs text-slate-700 shrink-0">
-            <div className="flex items-center gap-2 truncate">
-              <span className="w-2 h-2 rounded-full bg-[#244A70]" />
-              <span className="font-semibold text-slate-800 truncate">Workspace Modernization Desk</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-[#244A70] bg-white border border-slate-200 px-2.5 py-1 rounded-md shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>SLA Active</span>
-            </div>
+            <span className="font-semibold text-slate-800 truncate">
+              {conversation?.title || 'Support Center'}
+            </span>
+            <span
+              className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold shrink-0 ${statusInfo.className}`}
+            >
+              {statusInfo.label}
+            </span>
           </div>
 
-          {/* Messages Container — Crisp Slate Surface without Nested Card Borders */}
+          {/* Error Banner */}
+          {errorMsg && (
+            <div
+              role="alert"
+              className="px-4 py-2.5 bg-rose-50 border-b border-rose-200 text-xs text-rose-700 flex items-center justify-between gap-2 shrink-0"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span className="truncate">{errorMsg}</span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => void loadConversationAndMessages({ markRead: true })}
+                  className="inline-flex items-center gap-1 font-semibold underline hover:text-rose-900 cursor-pointer"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                  <span>Retry</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setErrorMsg(null)}
+                  aria-label="Dismiss chat error"
+                  className="p-0.5 hover:bg-rose-100 rounded cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Messages Container */}
           <div
             role="log"
             aria-live="polite"
@@ -588,48 +729,21 @@ export const CustomerChatWidget: React.FC = () => {
                 <span className="text-xs font-medium text-slate-600">Loading conversation history...</span>
               </div>
             ) : messages.length === 0 ? (
-              <div className="h-full flex flex-col justify-between py-2">
-                <div className="text-center px-4 space-y-3 mt-4">
-                  <div className="w-10 h-10 rounded-xl bg-white text-[#244A70] flex items-center justify-center border border-slate-200 mx-auto shadow-xs">
-                    <Bot className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-bold text-slate-900">
-                      Welcome, {user.fullName || user.email.split('@')[0]}
-                    </h4>
-                    <p className="text-xs text-slate-600 max-w-[280px] mx-auto leading-relaxed">
-                      ALSM modernization architects are online. How can we help your modernization project today?
-                    </p>
-                  </div>
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white text-xs text-slate-700 border border-slate-200 shadow-xs">
-                    <Clock className="w-3.5 h-3.5 text-[#244A70]" />
-                    <span>Average reply time: under 5 minutes</span>
-                  </div>
+              <div className="h-full flex flex-col items-center justify-center text-center px-4 space-y-3">
+                <div className="w-10 h-10 rounded-xl bg-white text-[#244A70] flex items-center justify-center border border-slate-200 shadow-xs">
+                  <Bot className="w-5 h-5" />
                 </div>
-
-                {/* Quick Starter Inquiry Chips */}
-                <div className="space-y-2 pt-4">
-                  <span className="text-xs font-bold text-slate-600 uppercase tracking-wider block px-1">
-                    Suggested Inquiries
-                  </span>
-                  <div className="space-y-1.5">
-                    {QUICK_STARTER_CHIPS.map((chip, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSendMessage(chip.text)}
-                        className="w-full text-left text-xs px-3.5 py-2.5 bg-white hover:bg-blue-50/60 border border-slate-200 hover:border-blue-300 rounded-lg text-slate-800 hover:text-blue-700 transition-colors cursor-pointer shadow-xs flex items-center justify-between group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#244A70]"
-                      >
-                        <span className="truncate">{chip.label}</span>
-                        <Sparkles className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors shrink-0 ml-2" />
-                      </button>
-                    ))}
-                  </div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-slate-900">
+                    Welcome, {user.fullName || user.email.split('@')[0]}
+                  </h4>
+                  <p className="text-xs text-slate-600 max-w-[280px] mx-auto leading-relaxed">
+                    Send a message or attach a screenshot/file below. Our support team will reply here.
+                  </p>
                 </div>
               </div>
             ) : (
               <>
-                {/* Date Separator */}
                 <div className="flex items-center justify-center my-2">
                   <div className="h-px bg-slate-200 flex-1" />
                   <span className="px-3 py-1 text-xs font-medium text-slate-600 bg-white rounded-full border border-slate-200 shadow-xs">
@@ -638,7 +752,6 @@ export const CustomerChatWidget: React.FC = () => {
                   <div className="h-px bg-slate-200 flex-1" />
                 </div>
 
-                {/* Messages Feed */}
                 <div className="space-y-3">
                   {messages.map((m, index) => {
                     const isMe = m.senderRole === 'CUSTOMER';
@@ -658,16 +771,14 @@ export const CustomerChatWidget: React.FC = () => {
                             <div className="w-4 h-4 rounded-full bg-white text-[#244A70] border border-slate-200 flex items-center justify-center">
                               <UserCheck className="w-2.5 h-2.5" />
                             </div>
-                            <span className="font-bold text-slate-800">
-                              {formatSenderDisplay(m)}
-                            </span>
-                            <span className="text-xs px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md font-semibold border border-blue-200">
-                              Team
+                            <span className="font-bold text-slate-800">{formatSenderDisplay(m)}</span>
+                            <span className="text-[11px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded-md font-semibold border border-blue-200">
+                              Support
                             </span>
                           </div>
                         )}
 
-                        <div className="relative group max-w-[85%] flex items-end gap-1.5">
+                        <div className="relative group max-w-[85%] flex flex-col gap-1.5">
                           <div
                             className={`rounded-2xl px-4 py-2.5 text-xs leading-relaxed transition-colors whitespace-pre-wrap break-words ${
                               isMe
@@ -676,18 +787,61 @@ export const CustomerChatWidget: React.FC = () => {
                             }`}
                           >
                             <p>{m.content}</p>
+
+                            {m.attachments && m.attachments.length > 0 && (
+                              <div className="mt-2 space-y-1.5">
+                                {m.attachments.map((att, idx) => {
+                                  const isImage = att.mimeType?.startsWith('image/');
+                                  const fullUrl = resolveAttachmentUrl(att.url);
+                                  return isImage ? (
+                                    <a
+                                      key={att.fileId || idx}
+                                      href={fullUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="block overflow-hidden rounded-lg border border-black/10"
+                                    >
+                                      <img
+                                        src={fullUrl}
+                                        alt={att.name}
+                                        className="max-h-40 w-full object-cover"
+                                      />
+                                    </a>
+                                  ) : (
+                                    <a
+                                      key={att.fileId || idx}
+                                      href={fullUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs border ${
+                                        isMe
+                                          ? 'bg-white/10 border-white/20 text-white hover:bg-white/20'
+                                          : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100'
+                                      }`}
+                                    >
+                                      <FileText className="w-3.5 h-3.5 shrink-0" />
+                                      <span className="truncate max-w-[180px]">{att.name}</span>
+                                      {att.size ? (
+                                        <span className="text-[10px] opacity-80 shrink-0">
+                                          {formatFileSize(att.size)}
+                                        </span>
+                                      ) : null}
+                                    </a>
+                                  );
+                                })}
+                              </div>
+                            )}
                           </div>
                         </div>
 
-                        {/* Metadata Footer: Timestamp + Delivery receipt */}
                         <div
-                          className={`flex items-center gap-1 px-1 mt-1 text-xs text-slate-500 ${
+                          className={`flex items-center gap-1 px-1 mt-1 text-[11px] text-slate-500 ${
                             isMe ? 'justify-end' : 'justify-start'
                           }`}
                         >
                           <span className="tabular-nums font-mono">{formattedTime}</span>
                           {isMe && (
-                            <span title="Delivered" aria-label="Delivered">
+                            <span title="Sent" aria-label="Sent">
                               <CheckCheck className="w-3.5 h-3.5 text-[#244A70] inline" />
                             </span>
                           )}
@@ -697,7 +851,6 @@ export const CustomerChatWidget: React.FC = () => {
                   })}
                 </div>
 
-                {/* Live Typing Indicator */}
                 {sending && (
                   <div className="flex items-center gap-2 mt-2 px-1 text-slate-500 animate-fade-in">
                     <div className="flex items-center gap-1 bg-white border border-slate-200 px-3 py-1.5 rounded-lg rounded-bl-xs shadow-xs">
@@ -705,7 +858,7 @@ export const CustomerChatWidget: React.FC = () => {
                       <span className="w-1.5 h-1.5 bg-[#244A70] rounded-full animate-pulse [animation-delay:200ms]" />
                       <span className="w-1.5 h-1.5 bg-[#244A70] rounded-full animate-pulse [animation-delay:400ms]" />
                     </div>
-                    <span className="text-xs text-slate-600">Sending to desk...</span>
+                    <span className="text-xs text-slate-600">Sending...</span>
                   </div>
                 )}
               </>
@@ -713,34 +866,63 @@ export const CustomerChatWidget: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick replies bar if messages already exist */}
-          {messages.length > 0 && (
-            <div className="px-3 py-2 bg-slate-50 border-t border-slate-200 flex items-center gap-1.5 overflow-x-auto no-scrollbar shrink-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0 mr-1">
-                Quick:
-              </span>
-              {QUICK_STARTER_CHIPS.map((chip, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleSendMessage(chip.text)}
-                  className="shrink-0 text-xs px-3 py-1 bg-white hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 rounded-full text-slate-700 hover:text-blue-700 transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#244A70]"
+          {/* Pending Attachments Preview */}
+          {pendingAttachments.length > 0 && (
+            <div className="px-3 py-2 bg-slate-50 border-t border-slate-200 flex flex-wrap gap-1.5 shrink-0">
+              {pendingAttachments.map((att, idx) => (
+                <div
+                  key={att.fileId || idx}
+                  className="inline-flex items-center gap-1.5 bg-white border border-slate-200 rounded-md px-2 py-1 text-xs text-slate-700"
                 >
-                  {chip.label}
-                </button>
+                  <FileText className="w-3.5 h-3.5 text-[#244A70] shrink-0" />
+                  <span className="truncate max-w-[140px]">{att.name}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPendingAttachments((prev) => prev.filter((_, i) => i !== idx))
+                    }
+                    aria-label={`Remove ${att.name}`}
+                    className="text-slate-400 hover:text-rose-600 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
               ))}
             </div>
           )}
 
           {/* Unified Composer Footer */}
           <div className="p-3 bg-white border-t border-slate-200 shrink-0">
+            <input
+              ref={fileInputRef}
+              type="file"
+              onChange={handleFileSelect}
+              accept="image/*,.pdf,.txt,.csv,.json,.doc,.docx,.xls,.xlsx,.zip"
+              className="hidden"
+              aria-label="Attach image or file"
+            />
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                handleSendMessage();
+                void handleSendMessage();
               }}
-              className="relative flex items-end bg-slate-50 hover:bg-white focus-within:bg-white border border-slate-200 focus-within:border-[#244A70] focus-within:ring-1 focus-within:ring-[#244A70] rounded-lg transition-colors p-2 pl-3 gap-2 shadow-xs"
+              className="relative flex items-end bg-slate-50 hover:bg-white focus-within:bg-white border border-slate-200 focus-within:border-[#244A70] focus-within:ring-1 focus-within:ring-[#244A70] rounded-lg transition-colors p-2 gap-1.5 shadow-xs"
             >
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading || sending}
+                title="Attach image or file"
+                aria-label="Attach image or file"
+                className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-[#244A70] hover:bg-slate-100 transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+              >
+                {uploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Paperclip className="w-4 h-4" />
+                )}
+              </button>
+
               <textarea
                 ref={textareaRef}
                 rows={1}
@@ -754,9 +936,9 @@ export const CustomerChatWidget: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={!inputText.trim() || sending}
+                disabled={(!inputText.trim() && pendingAttachments.length === 0) || sending || uploading}
                 className={`h-8 w-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#244A70]/30 ${
-                  inputText.trim() && !sending
+                  (inputText.trim() || pendingAttachments.length > 0) && !sending && !uploading
                     ? 'bg-[#244A70] hover:bg-[#1B3856] active:bg-[#13283E] text-white'
                     : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                 }`}
@@ -770,20 +952,6 @@ export const CustomerChatWidget: React.FC = () => {
                 )}
               </button>
             </form>
-
-            <div className="flex items-center justify-between text-xs text-slate-600 px-1 pt-2">
-              <span className="flex items-center gap-1.5">
-                <span>Press</span>
-                <kbd className="px-2.5 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-mono text-slate-700 shadow-xs">
-                  Enter
-                </kbd>
-                <span>to send</span>
-              </span>
-              <span className="flex items-center gap-1.5 font-medium text-slate-600">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Protected by Enterprise SLA</span>
-              </span>
-            </div>
           </div>
         </aside>
       )}

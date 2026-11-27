@@ -1,7 +1,7 @@
 import { apiClient } from '@/services/api/apiClient';
 import { mockQuota } from '@/mocks/projects.mock';
 import type { CreateProjectPayload, Project, UpdateProjectPayload, WorkspaceQuota } from '../types/project';
-import { cacheProjectName } from '@/shared/utils/projectCache';
+import { cacheProjectName, cacheProjectConversionType } from '@/shared/utils/projectCache';
 
 /** Real, backend-backed project CRUD. No mock fallback on failure — a failed request
  * must surface as a real error the UI can show, never silently swap in fake data
@@ -12,7 +12,10 @@ export class ProjectService {
   async getProjects(): Promise<Project[]> {
     const projects = await apiClient.get<Project[]>('/projects');
     if (Array.isArray(projects)) {
-      projects.forEach((p) => cacheProjectName(p.id, p.name));
+      projects.forEach((p) => {
+        cacheProjectName(p.id, p.name);
+        if (p.conversionType) cacheProjectConversionType(p.id, p.conversionType);
+      });
     }
     return projects;
   }
@@ -22,6 +25,9 @@ export class ProjectService {
       const proj = await apiClient.get<Project>(`/projects/${id}`);
       if (proj && proj.name) {
         cacheProjectName(proj.id, proj.name);
+      }
+      if (proj && proj.conversionType) {
+        cacheProjectConversionType(proj.id, proj.conversionType);
       }
       return proj;
     } catch {
@@ -41,6 +47,7 @@ export class ProjectService {
     });
     if (created && created.id && created.name) {
       cacheProjectName(created.id, created.name);
+      if (created.conversionType) cacheProjectConversionType(created.id, created.conversionType);
     }
     return created;
   }
@@ -49,6 +56,7 @@ export class ProjectService {
     const updated = await apiClient.patch<Project>(`/projects/${id}`, payload);
     if (updated && updated.id && updated.name) {
       cacheProjectName(updated.id, updated.name);
+      if (updated.conversionType) cacheProjectConversionType(updated.id, updated.conversionType);
     }
     return updated;
   }

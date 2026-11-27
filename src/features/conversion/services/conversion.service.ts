@@ -84,6 +84,14 @@ export class ConversionService {
     }
   }
 
+  async getScreenSource(screenId: string): Promise<{ name: string; content: string; sourceType: string; linesOfCode: number } | null> {
+    try {
+      return await apiClient.get<{ name: string; content: string; sourceType: string; linesOfCode: number }>(`/screens/${screenId}/source`);
+    } catch {
+      return null;
+    }
+  }
+
   /** Real COBOL copybook dependency analysis for one screen (computed by the backend at
    * upload time). No mock fallback — a real failure here must surface as a real error. */
   async getCopybookDependencies(screenId: string): Promise<ProgramAnalysis> {
@@ -294,6 +302,15 @@ export class ConversionService {
   async applyDiagnosticPatch(_logId: string): Promise<boolean> {
     await new Promise((resolve) => setTimeout(resolve, 500));
     return true;
+  }
+
+  async aiRemediate(
+    projectId: string,
+    screenId: string,
+  ): Promise<{ message: string; jobId: string }> {
+    return apiClient.post<{ message: string; jobId: string }>(
+      `/projects/${projectId}/screens/${screenId}/ai-remediate`,
+    );
   }
 }
 

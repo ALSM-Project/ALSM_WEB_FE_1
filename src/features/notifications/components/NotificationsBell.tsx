@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, CheckCheck } from 'lucide-react';
 import { notificationsApi } from '../api/notifications.api';
 import type { NotificationList, SystemNotification } from '../api/notifications.api';
@@ -6,6 +7,7 @@ import type { NotificationList, SystemNotification } from '../api/notifications.
 const emptyList: NotificationList = { items: [], unreadCount: 0 };
 
 export const NotificationsBell: React.FC = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationList>(emptyList);
   const [open, setOpen] = useState(false);
 
@@ -55,6 +57,10 @@ export const NotificationsBell: React.FC = () => {
       } catch {
         await refresh();
       }
+    }
+    if (item.link) {
+      setOpen(false);
+      navigate(item.link);
     }
   };
 

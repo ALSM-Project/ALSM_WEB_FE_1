@@ -73,7 +73,6 @@ describe('UsageStatsPage (UC-35)', () => {
 
     expect(screen.getByRole('heading', { name: /Service Usage/i })).toBeInTheDocument();
     expect(screen.getByText('Starter')).toBeInTheDocument();
-    expect(screen.getByText('STARTER')).toBeInTheDocument();
     expect(screen.getByText('Screens / Month')).toBeInTheDocument();
     expect(screen.getByText('Programs')).toBeInTheDocument();
     expect(screen.getByText('Projects')).toBeInTheDocument();
@@ -124,8 +123,7 @@ describe('UsageStatsPage (UC-35)', () => {
 
     renderComponent();
 
-    expect(screen.getByText('ENTERPRISE')).toBeInTheDocument();
-    expect(screen.getByText('Unlimited resources — Enterprise plan')).toBeInTheDocument();
+    expect(screen.getByText('Enterprise Custom')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Upgrade Plan/i })).not.toBeInTheDocument();
     expect(screen.getAllByText('Unlimited').length).toBeGreaterThan(0);
   });
@@ -148,8 +146,6 @@ describe('UsageStatsPage (UC-35)', () => {
     renderComponent();
 
     expect(screen.getByText('Trial')).toBeInTheDocument();
-    expect(screen.getByText('TRIAL')).toBeInTheDocument();
-    expect(screen.getByText('Active trial quota configured by administrator')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Upgrade Plan/i })).toBeInTheDocument();
   });
 
