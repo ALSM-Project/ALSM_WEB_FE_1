@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { Button, Input, toast } from '@/shared/ui';
 import { billingService } from '../services/billing.service';
-import { env } from '@/shared/constants/env';
 
 export const ContractSigningPage: React.FC = () => {
   const { contractId } = useParams<{ contractId: string }>();

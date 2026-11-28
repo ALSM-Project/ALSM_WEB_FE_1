@@ -16,7 +16,6 @@ import {
   Clock,
   RefreshCw,
   PhoneCall,
-  Check,
 } from 'lucide-react';
 import { ROUTES } from '@/shared/constants/routes';
 import { Button } from '@/shared/ui/Button';

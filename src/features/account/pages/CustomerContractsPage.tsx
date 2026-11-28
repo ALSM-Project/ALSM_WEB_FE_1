@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { billingService } from '@/features/billing/services/billing.service';
-import { env } from '@/shared/constants/env';
 
 type ContractTab =
   | 'ALL'
