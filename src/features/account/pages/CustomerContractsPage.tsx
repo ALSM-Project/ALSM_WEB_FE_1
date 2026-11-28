@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/ui/Button';
 import { billingService } from '@/features/billing/services/billing.service';
-import { env } from '@/shared/constants/env';
 
 type ContractTab =
   | 'ALL'
@@ -372,10 +371,9 @@ export const CustomerContractsPage: React.FC = () => {
     }
   };
 
-  const handleDownloadPdf = (contractId: string) => {
-    const apiBase = env.apiBaseUrl.replace(/\/+$/, '');
-    const pdfUrl = `${apiBase}/api/v1/enterprise-contracts/${contractId}/pdf`;
-    window.open(pdfUrl, '_blank');
+  const handleDownloadPdf = async (contractId: string) => {
+    const contract = contracts.find((item) => item.id === contractId);
+    await billingService.downloadContractPdf(contractId, contract?.contractNumber || contractId);
   };
 
   const tabs: { key: ContractTab; label: string; count?: number }[] = [

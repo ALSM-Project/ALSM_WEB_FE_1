@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation, Link } from 'react-router-dom';
 import {
   Search,
   Plus,
@@ -31,12 +31,22 @@ import { DependencyDiagnosticsModal } from '../components/DependencyDiagnosticsM
 import { CobolTranspilerPipeline } from '../components/CobolTranspilerPipeline';
 import { ValidateBuildView } from '../components/ValidateBuildView';
 import { BulkConvertModal } from '../components/BulkConvertModal';
+import {
+  POLL_INTERVAL_MS,
+  reconcileTracked,
+  sameScreens,
+  shouldPoll,
+  trackConversions,
+  withQueuedStatus,
+  type TrackedConversions,
+} from '../utils/conversionPolling';
 
 const PROGRAM_SOURCE_TYPES = new Set(['COBOL', 'RPG']);
 
 export const ScreensListPage: React.FC = () => {
   const { projectId = 'proj-acme' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [project, setProject] = useState<Project | null>(null);
@@ -87,6 +97,8 @@ export const ScreensListPage: React.FC = () => {
     }
   }, [projectId]);
 
+  const [trackedConversions, setTrackedConversions] = useState<TrackedConversions>({});
+
   const loadScreens = useCallback(() => {
     setLoading(true);
     setLoadError(null);
@@ -94,6 +106,7 @@ export const ScreensListPage: React.FC = () => {
       .getScreens(projectId)
       .then((data) => {
         setAllAssets(data);
+        setTrackedConversions((prev) => reconcileTracked(prev, data, Date.now()));
         setLoading(false);
       })
       .catch((err) => {
@@ -102,9 +115,29 @@ export const ScreensListPage: React.FC = () => {
       });
   }, [projectId]);
 
+  const refreshScreens = useCallback(() => {
+    conversionService
+      .getScreens(projectId)
+      .then((data) => {
+        setAllAssets((prev) => (sameScreens(prev, data) ? prev : data));
+        setTrackedConversions((prev) => reconcileTracked(prev, data, Date.now()));
+      })
+      .catch(() => {});
+  }, [projectId]);
+
   useEffect(() => {
     loadScreens();
   }, [loadScreens]);
+
+  const pollingActive = shouldPoll(allAssets, trackedConversions);
+
+  useEffect(() => {
+    if (!pollingActive) return;
+    const timer = window.setInterval(() => {
+      refreshScreens();
+    }, POLL_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [pollingActive, refreshScreens]);
 
   const handleDeleteScreen = async () => {
     if (!deleteTarget) return;
@@ -126,8 +159,9 @@ export const ScreensListPage: React.FC = () => {
   };
 
   // Screens (BMS/DSPF/TXT) vs Programs (COBOL/RPG) split by sourceType
-  const screens = allAssets.filter((a) => !PROGRAM_SOURCE_TYPES.has(a.sourceType));
-  const programs = allAssets.filter((a) => PROGRAM_SOURCE_TYPES.has(a.sourceType));
+  const displayAssets = withQueuedStatus(allAssets, trackedConversions, Date.now());
+  const screens = displayAssets.filter((a) => !PROGRAM_SOURCE_TYPES.has(a.sourceType));
+  const programs = displayAssets.filter((a) => PROGRAM_SOURCE_TYPES.has(a.sourceType));
 
   const isCobolInit = isCobolProjectSync(projectId);
 
@@ -141,6 +175,15 @@ export const ScreensListPage: React.FC = () => {
     (programs.length > 0 && screens.length === 0);
 
   const activeTab = isProgramProject ? 'programs' : 'screens';
+
+  useEffect(() => {
+    const navState = location.state as { startPolling?: boolean; screenIds?: string[] } | null;
+    if (navState?.startPolling && Array.isArray(navState.screenIds) && navState.screenIds.length > 0) {
+      setTrackedConversions((prev) => trackConversions(prev, navState.screenIds!, allAssets, Date.now()));
+      setToast(`Bulk conversion started for ${navState.screenIds.length} ${isProgramProject ? 'program(s)' : 'screen(s)'}.`);
+      navigate(location.pathname + location.search, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, location.search, navigate, allAssets, isProgramProject]);
 
   const applyFilters = (items: LegacyScreen[]) =>
     items.filter((item) => {
@@ -204,9 +247,10 @@ export const ScreensListPage: React.FC = () => {
     setBulkError(null);
     try {
       await conversionService.bulkConvertScreens(projectId, selectedIds);
+      setTrackedConversions((prev) => trackConversions(prev, selectedIds, allAssets, Date.now()));
       setBulkModalOpen(false);
       setToast(`Bulk conversion started for ${selectedIds.length} ${isProgramProject ? 'program(s)' : 'screen(s)'}.`);
-      loadScreens();
+      refreshScreens();
     } catch (err) {
       setBulkError(err instanceof Error ? err : new Error('Bulk conversion failed'));
     } finally {

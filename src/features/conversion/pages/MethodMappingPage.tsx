@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, Save, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, History, Save, XCircle } from 'lucide-react';
 import { conversionService } from '../services/conversion.service';
 import type { MethodMappingEntry } from '../types/conversion';
 import { ROUTES } from '@/shared/constants/routes';
@@ -146,6 +146,14 @@ export const MethodMappingPage: React.FC = () => {
             Cancel
           </Button>
           <Button
+            variant="outline"
+            onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+            className="space-x-1.5 text-xs font-semibold"
+          >
+            <History className="w-4 h-4 text-slate-500" />
+            <span>Version History</span>
+          </Button>
+          <Button
             onClick={handleSave}
             isLoading={saving}
             disabled={loading || !hasGeneratedCode || invalidNames.length > 0}
@@ -158,9 +166,19 @@ export const MethodMappingPage: React.FC = () => {
       </div>
 
       {savedMsg && (
-        <div className="bg-[#ECFDF3] border border-[#ABEFC6] text-[#079455] p-4 rounded-xl text-sm font-medium flex items-center space-x-2">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-          <span>{savedMsg}</span>
+        <div className="bg-[#ECFDF3] border border-[#ABEFC6] text-[#079455] p-4 rounded-xl text-sm font-medium flex items-center justify-between gap-3">
+          <div className="flex items-center space-x-2">
+            <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+            <span>{savedMsg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#067647] hover:underline shrink-0 cursor-pointer"
+          >
+            <History className="w-4 h-4" />
+            <span>View Versions</span>
+          </button>
         </div>
       )}
 

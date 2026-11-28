@@ -8,6 +8,7 @@ import {
   Clock3,
   Download,
   FileCode,
+  History,
   LoaderCircle,
   RotateCcw,
   Sliders,
@@ -619,6 +620,14 @@ const ReviewFindingsContent: React.FC = () => {
             )}
             <Button
               variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+              className="space-x-1.5 text-xs font-medium rounded-full border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] shadow-none"
+            >
+              <History className="h-3.5 w-3.5 text-slate-500" />
+              <span>Version History</span>
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => navigate(mappingRoute)}
               className="space-x-1.5 text-xs font-medium rounded-full border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] shadow-none"
             >
@@ -649,6 +658,14 @@ const ReviewFindingsContent: React.FC = () => {
             <span className="text-slate-400">Review decisions are saved automatically.</span>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+              className="space-x-1.5 text-xs font-medium rounded-full border-[#D7E2F0] text-[#0B2B5B] hover:bg-[#F0F6FF] shadow-none"
+            >
+              <History className="h-3.5 w-3.5 text-slate-500" />
+              <span>Version History</span>
+            </Button>
             <Button
               variant="outline"
               onClick={() => navigate(mappingRoute)}

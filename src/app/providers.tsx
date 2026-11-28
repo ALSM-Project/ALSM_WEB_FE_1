@@ -70,10 +70,32 @@ export function isUserPartner(u: User | null | undefined): boolean {
   return partnerRoles.includes(role) || roles.some((r) => partnerRoles.includes(r));
 }
 
+function isWeb3PortalUrl(url: string): boolean {
+  const configuredWeb3Url = import.meta.env.VITE_WEB3_PORTAL_URL || 'http://localhost:3003';
+  try {
+    if (new URL(url).origin === new URL(configuredWeb3Url).origin) return true;
+  } catch {
+    // Ignore invalid URL and fall back to substring checks
+  }
+  const lower = url.toLowerCase();
+  return lower.includes('3003') || lower.includes('web3') || lower.includes('workspace.alsmplatform');
+}
+
+function isStaffPortalUrl(url: string): boolean {
+  const configuredStaffUrl = import.meta.env.VITE_STAFF_PORTAL_URL || 'http://localhost:3002';
+  try {
+    if (new URL(url).origin === new URL(configuredStaffUrl).origin) return true;
+  } catch {
+    // Ignore invalid URL and fall back to substring checks
+  }
+  const lower = url.toLowerCase();
+  return lower.includes('3002') || lower.includes('staff');
+}
+
 /**
  * Determine target portal URL for token handoff.
  * Supports:
- * 1. returnTo query param (e.g. from Web 3 http://localhost:3003/auth/callback)
+ * 1. returnTo query param (e.g. from Web 3 https://workspace.alsmplatform.id.vn/auth/callback)
  * 2. PARTNER role default -> Web 3 (VITE_WEB3_PORTAL_URL || http://localhost:3003/auth/callback)
  * 3. Staff/Admin roles -> Web 2 Staff Portal (VITE_STAFF_PORTAL_URL || http://localhost:3002/auth/callback)
  */
@@ -87,7 +109,7 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
       const returnTo = params.get("returnTo");
       if (returnTo && (returnTo.startsWith("http://") || returnTo.startsWith("https://"))) {
         // If returnTo points to Web 3 (Partner Portal), ONLY redirect if user is legitimately a partner with Web 3 access
-        if (returnTo.includes('3003') || returnTo.includes('web3')) {
+        if (isWeb3PortalUrl(returnTo)) {
           if (isUserPartner(u) || u.hasWeb3Access) {
             return returnTo;
           }
@@ -96,7 +118,7 @@ export function getTargetHandoffUrl(u: User | null | undefined): string | null {
         }
 
         // If returnTo points to Web 2 (Staff Portal), ONLY redirect if user is staff/admin
-        if (returnTo.includes('3002') || returnTo.includes('staff')) {
+        if (isStaffPortalUrl(returnTo)) {
           if (isUserStaffOrAdmin(u)) {
             return returnTo;
           }
@@ -136,7 +158,7 @@ export async function redirectUserToPortal(targetUrl?: string | null): Promise<v
   console.log('[providers] redirectUserToPortal called with target:', target);
   await tokenStore.handoff(({ accessToken, refreshToken }) => {
     console.log('[providers] tokenStore.handoff callback executing! Navigating to target portal...');
-    if (target.includes('3003') || target.includes('web3')) {
+    if (isWeb3PortalUrl(target)) {
       window.location.href = `${target}#access_token=${encodeURIComponent(accessToken)}&refresh_token=${encodeURIComponent(refreshToken)}`;
     } else {
       const separator = target.includes("?") ? "&" : "?";
