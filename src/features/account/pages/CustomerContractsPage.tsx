@@ -372,10 +372,9 @@ export const CustomerContractsPage: React.FC = () => {
     }
   };
 
-  const handleDownloadPdf = (contractId: string) => {
-    const apiBase = env.apiBaseUrl.replace(/\/+$/, '');
-    const pdfUrl = `${apiBase}/api/v1/enterprise-contracts/${contractId}/pdf`;
-    window.open(pdfUrl, '_blank');
+  const handleDownloadPdf = async (contractId: string) => {
+    const contract = contracts.find((item) => item.id === contractId);
+    await billingService.downloadContractPdf(contractId, contract?.contractNumber || contractId);
   };
 
   const tabs: { key: ContractTab; label: string; count?: number }[] = [

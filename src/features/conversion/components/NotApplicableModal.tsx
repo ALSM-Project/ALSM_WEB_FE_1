@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Info } from 'lucide-react';
 
 export interface NotApplicableModalProps {
@@ -19,8 +20,8 @@ export const NotApplicableModal: React.FC<NotApplicableModalProps> = ({
   const [reason, setReason] = useState('');
   const trimmedReason = reason.trim();
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-xs">
+  return createPortal(
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-[#14263F]/70 p-4 backdrop-blur-xs">
       <div
         className="flex w-full max-w-lg flex-col space-y-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl"
         role="dialog"
@@ -83,7 +84,8 @@ export const NotApplicableModal: React.FC<NotApplicableModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

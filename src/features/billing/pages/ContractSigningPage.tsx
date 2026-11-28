@@ -118,9 +118,6 @@ export const ContractSigningPage: React.FC = () => {
 
   const isBothSigned = isCustomerSigned && isProviderSigned;
 
-  const apiBase = env.apiBaseUrl.replace(/\/+$/, '');
-  const pdfDownloadUrl = `${apiBase}/api/v1/enterprise-contracts/${contractId}/pdf`;
-
   return (
     <div className="w-full space-y-6 min-w-0">
       {/* Header */}
@@ -140,15 +137,14 @@ export const ContractSigningPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href={pdfDownloadUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 shadow-sm transition"
+          <button
+            type="button"
+            onClick={() => void billingService.downloadContractPdf(contract.id || contractId!, contract.contractNumber)}
+            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 shadow-sm transition cursor-pointer"
           >
             <Download className="w-4 h-4 text-slate-500" />
             Download Contract PDF (PDFKit)
-          </a>
+          </button>
           {isBothSigned ? (
             <Button
               variant="primary"

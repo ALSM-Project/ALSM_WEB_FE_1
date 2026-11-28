@@ -332,8 +332,24 @@ export const ResultInspectionPage: React.FC = () => {
       {/* Modernization Workflow Step Bar */}
       <ModernizationWorkflow
         workflowType={isCobolProgram ? 'PROGRAMS' : 'SCREENS'}
-        currentStep={isCobolProgram ? 'review' : 'result'}
-        completedSteps={isCobolProgram ? ['upload', 'analyze', 'convert', 'validate'] : ['upload', 'conversion']}
+        currentStep={isCobolProgram ? 'review' : 'convert'}
+        completedSteps={isCobolProgram ? ['upload', 'analyze', 'convert', 'validate'] : ['upload']}
+        onStepClick={(stepId) => {
+          if (isCobolProgram) {
+            if (stepId === 'upload') navigate(`${ROUTES.PROJECTS.UPLOAD(projectId)}?tab=programs`);
+            if (stepId === 'analyze') navigate(`${ROUTES.PROJECTS.SCREENS(projectId)}?stage=analyze`);
+            if (stepId === 'convert') navigate(`${ROUTES.PROJECTS.SCREENS(projectId)}?stage=convert`);
+            if (stepId === 'validate') navigate(`${ROUTES.PROJECTS.SCREENS(projectId)}?stage=validate`);
+            if (stepId === 'review' || stepId === 'result') navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          } else {
+            if (stepId === 'upload') navigate(ROUTES.PROJECTS.UPLOAD(projectId));
+            if (stepId === 'convert' || stepId === 'conversion') navigate(ROUTES.PROJECTS.CONVERT(projectId, screenId));
+            if (stepId === 'validate' || stepId === 'validation') navigate(ROUTES.PROJECTS.REVIEW(projectId, screenId));
+            if (stepId === 'result') navigate(ROUTES.PROJECTS.RESULT(projectId, screenId));
+            if (stepId === 'export') navigate(ROUTES.PROJECTS.EXPORT(projectId));
+          }
+        }}
       />
 
       {/* Header section with Program Switcher */}
@@ -882,9 +898,19 @@ export const ResultInspectionPage: React.FC = () => {
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span className="font-medium">{saveSuccessMsg}</span>
                   </div>
-                  <button onClick={() => setSaveSuccessMsg(null)} className="text-emerald-700 hover:text-emerald-900">
-                    <X className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+                      className="inline-flex items-center gap-1 font-semibold text-emerald-900 hover:underline cursor-pointer"
+                    >
+                      <History className="w-3.5 h-3.5" />
+                      <span>View Versions</span>
+                    </button>
+                    <button onClick={() => setSaveSuccessMsg(null)} className="text-emerald-700 hover:text-emerald-900">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -1032,9 +1058,19 @@ export const ResultInspectionPage: React.FC = () => {
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span className="font-medium">{saveSuccessMsg}</span>
               </div>
-              <button onClick={() => setSaveSuccessMsg(null)} className="text-emerald-700 hover:text-emerald-900">
-                <X className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+                  className="inline-flex items-center gap-1 font-semibold text-emerald-900 hover:underline cursor-pointer"
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>View Versions</span>
+                </button>
+                <button onClick={() => setSaveSuccessMsg(null)} className="text-emerald-700 hover:text-emerald-900">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           )}
 

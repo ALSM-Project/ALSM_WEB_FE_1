@@ -6,6 +6,7 @@ import { StatusBadge, Button, PageHeader } from '@/shared/ui';
 import { CreateProjectModal } from '../components/CreateProjectModal';
 import { EditProjectModal } from '../components/EditProjectModal';
 import { projectService } from '../services/project.service';
+import { resolveWorkspace } from '../utils/conversionTypeResolver';
 import type { Project } from '../types/project';
 
 const LEGACY_TYPE_LABEL: Record<string, string> = {
@@ -53,6 +54,11 @@ export const ProjectsListPage: React.FC = () => {
     if (filterType === 'COBOL') return matchesSearch && legacyType.includes('COBOL');
     return matchesSearch;
   });
+
+  const openProject = (p: Project) => {
+    const isCobol = resolveWorkspace(p.conversionType) === 'PROGRAMS';
+    navigate(isCobol ? `${ROUTES.PROJECTS.UPLOAD(p.id)}?tab=programs` : ROUTES.PROJECTS.SCREENS(p.id));
+  };
 
   return (
     <div className="space-y-6">
@@ -121,7 +127,7 @@ export const ProjectsListPage: React.FC = () => {
           filteredProjects.map((p) => (
             <div
               key={p.id}
-              onClick={() => navigate(ROUTES.PROJECTS.SCREENS(p.id))}
+              onClick={() => openProject(p)}
               className="bg-white border border-[#D9E2EC] hover:border-[#244A70] rounded-xl p-6 shadow-2xs hover:shadow-md transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-6 cursor-pointer group"
             >
               <div className="space-y-2 max-w-2xl">
@@ -157,7 +163,7 @@ export const ProjectsListPage: React.FC = () => {
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(ROUTES.PROJECTS.SCREENS(p.id));
+                    openProject(p);
                   }}
                   className="bg-[#244A70] hover:bg-[#1B3856] text-white text-xs font-bold space-x-1.5 shadow-2xs"
                 >

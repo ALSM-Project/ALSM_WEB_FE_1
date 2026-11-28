@@ -103,7 +103,7 @@ export const UploadSourcePage: React.FC = () => {
     cachedConversionType === 'COBOL_TO_JAVA';
 
   const [project, setProject] = useState<Project | null>(null);
-  const [projectLoading, setProjectLoading] = useState(!isInitialCobol);
+  const [projectLoading, setProjectLoading] = useState(true);
   const [screenFiles, setScreenFiles] = useState<SourceFile[]>([]);
   const [programFiles, setProgramFiles] = useState<SourceFile[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -112,9 +112,7 @@ export const UploadSourcePage: React.FC = () => {
   // Load project details and existing uploaded source screens for this project
   React.useEffect(() => {
     let cancelled = false;
-    if (!isInitialCobol) {
-      setProjectLoading(true);
-    }
+    setProjectLoading(true);
 
     Promise.resolve(projectService.getProjectById(projectId))
       ?.then((p) => {

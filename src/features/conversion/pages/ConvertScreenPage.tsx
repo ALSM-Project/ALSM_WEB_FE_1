@@ -13,6 +13,7 @@ import {
   Check,
   ExternalLink,
   Wrench,
+  History,
 } from 'lucide-react';
 import { conversionKeys } from '../queries/conversionKeys';
 import { validationKeys } from '../queries/validationKeys';
@@ -889,12 +890,31 @@ export const ConvertScreenPage: React.FC = () => {
                         >
                           Save & Run AI Validation &rarr;
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+                          className="text-[11px] font-semibold px-2.5 py-1 text-slate-700 hover:bg-slate-50"
+                        >
+                          <History className="w-3.5 h-3.5 mr-1" />
+                          Version History
+                        </Button>
                       </div>
                     </div>
                     {saveSuccessMsg && (
-                      <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                        <span>{saveSuccessMsg}</span>
+                      <div className="flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs">
+                        <div className="flex items-center space-x-1.5">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span>{saveSuccessMsg}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+                          className="inline-flex items-center gap-1 font-semibold text-emerald-900 hover:underline shrink-0 cursor-pointer"
+                        >
+                          <History className="w-3.5 h-3.5" />
+                          <span>View Versions</span>
+                        </button>
                       </div>
                     )}
                     <CodeEditor
@@ -1009,6 +1029,15 @@ export const ConvertScreenPage: React.FC = () => {
                 >
                   Save & Run AI Validation &rarr;
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+                  className="text-xs font-semibold px-3 py-1.5 text-slate-700 hover:bg-slate-50"
+                >
+                  <History className="w-4 h-4 mr-1.5" />
+                  Version History
+                </Button>
 
                 <div className="bg-slate-200/80 p-0.5 rounded-lg flex items-center text-xs">
                   <button
@@ -1036,9 +1065,19 @@ export const ConvertScreenPage: React.FC = () => {
             </div>
 
             {saveSuccessMsg && (
-              <div className="mb-4 flex items-center space-x-2 px-3.5 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>{saveSuccessMsg}</span>
+              <div className="mb-4 flex items-center justify-between gap-2 px-3.5 py-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{saveSuccessMsg}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(ROUTES.PROJECTS.HISTORY(projectId, screenId))}
+                  className="inline-flex items-center gap-1 font-semibold text-emerald-900 hover:underline shrink-0 cursor-pointer"
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>View Versions</span>
+                </button>
               </div>
             )}
 
